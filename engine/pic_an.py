@@ -25,7 +25,7 @@ from scipy import misc
 
 from skimage import exposure
 
-import pic_an
+import pic_an_old
 
 class cell:
     '''Class representing cell variables and methods'''
@@ -43,7 +43,7 @@ class cell:
 
         nucleus_new = (self.pic_foci != 0)
 
-        results = pic_an.foci_plm(self.rescaled_foci_pic, nucleus_new)
+        results = pic_an_old.foci_plm(self.rescaled_foci_pic, nucleus_new)
 
         self.foci_number    = results[0]
         self.foci_soid      = results[1]
@@ -214,10 +214,10 @@ class image_dir(cell_set):
         nuclei_abspath = os.path.join(self.dir_path,nuclei_name)
         foci_abspath   = os.path.join(self.dir_path,  foci_name)
 
-        pic_nuclei = pic_an.image_hsv_value(nuclei_abspath)
-        pic_foci   = pic_an.image_hsv_value(  foci_abspath)
+        pic_nuclei = pic_an_old.image_hsv_value(nuclei_abspath)
+        pic_foci   = pic_an_old.image_hsv_value(  foci_abspath)
 
-        nuclei = pic_an.find_nuclei(pic_nuclei, min_cell_size)
+        nuclei = pic_an_old.find_nuclei(pic_nuclei, min_cell_size)
 
         for label_num in np.arange(np.max(nuclei)) + 1:
 
@@ -268,8 +268,8 @@ class image_dir(cell_set):
         print np.max(self.nuclei)
         print rescaled_nuclei_pic.shape
 
-        nuclei_colored = pic_an.color_objects(self.pic_nuclei, self.nuclei)
-        merged = pic_an.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
+        nuclei_colored = pic_an_old.color_objects(self.pic_nuclei, self.nuclei)
+        merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
 
 
         misc.imsave(pic_colored_nuclei_path, nuclei_colored)

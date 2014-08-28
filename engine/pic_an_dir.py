@@ -19,7 +19,7 @@
 
 
 import os
-import pic_an_2
+import pic_an
 
 def calc_multiple_dirs(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF'):
     '''Separately calculates foci for all subdirs'''
@@ -44,7 +44,7 @@ def calc_foci_in_dir(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF', 
     pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
             (os.path.isfile(os.path.join(image_dir,nuclei_name)) and os.path.isfile(os.path.join(image_dir, foci_name)))]
 
-    image_dirs = [pic_an_2.image_dir(image_dir) for image_dir in pre_image_dirs]
+    image_dirs = [pic_an.image_dir(image_dir) for image_dir in pre_image_dirs]
 
     path1,name2 = os.path.split(dir_path)
     name1       = os.path.split(path1)[1]
@@ -52,7 +52,7 @@ def calc_foci_in_dir(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF', 
     name = name1 + '_' + name2
     absoutfile = os.path.join(dir_path,outfile)
 
-    cell_set = pic_an_2.cell_set(name=name, cells=[])
+    cell_set = pic_an.cell_set(name=name, cells=[])
 
     remained = len(image_dirs)
 
