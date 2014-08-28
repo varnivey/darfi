@@ -5,7 +5,7 @@
 #    Copyright (C) 2014  Ivan V. Ozerov
 #
 #    This program is free software; you can redistribute it and/or modify
-#    it under the terms of the GNU General Public License version 2 as 
+#    it under the terms of the GNU General Public License version 2 as·
 #    published by the Free Software Foundation.
 #
 #    This program is distributed in the hope that it will be useful,
@@ -17,580 +17,292 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import matplotlib
-matplotlib.use('QT4Agg')
 
-import matplotlib.pyplot as plt
-from scipy import misc
-from scipy import ndimage
+import os
 import numpy as np
 
-from skimage import filter as filt
-from skimage import morphology
-from skimage import feature
-from skimage import segmentation
-from skimage import color
-from skimage import restoration
+from scipy import misc
+
 from skimage import exposure
-from skimage import measure
-from skimage import draw
 
+import pic_an
 
-def calc_temp(image_with_nuclei, image_with_foci, frame_size = 3, cutoff_shift = 0.5):
-    '''Temporary function for testing'''
+class cell:
+    '''Class representing cell variables and methods'''
 
-    pic_nuclei = image_hsv_value(image_with_nuclei)
-    pic_foci   = image_hsv_value(image_with_foci  )
+    def __init__(self, nucleus, pic_nucleus, pic_foci):
+        '''Construct cell from mask and channel pics'''
 
-#    foci_deconvolved = deconvolved_image(pic_foci)
-#    nuclei_deconvolved = deconvolved_image(pic_nuclei)
+        self.nucleus = nucleus
+        self.pic_nucleus = pic_nucleus
+        self.pic_foci  = pic_foci
+        self.area      = np.sum(nucleus)
 
-    nuclei = find_nuclei(pic_nuclei)
-#    foci   = find_foci(nuclei, pic_foci, frame_size, cutoff_shift)
+    def calculate_foci(self):
+        '''Finds foci and its parameters'''
 
-#    rescaled_nuclei, rescaled_foci_list = normalized_pics(nuclei, pic_nuclei, [pic_foci])
-#    rescaled_foci = rescaled_foci_list[0]
+        nucleus_new = (self.pic_foci != 0)
 
-    rescaled_nuclei = normalized_pic(nuclei, pic_nuclei)
-    rescaled_foci  = normalized_foci(nuclei, pic_foci)
+        results = pic_an.foci_plm(self.rescaled_foci_pic, nucleus_new)
 
-#    foci   = find_foci(nuclei, rescaled_foci, frame_size, cutoff_shift)
-    foci   = find_foci(rescaled_foci, nuclei)
+        self.foci_number    = results[0]
+        self.foci_soid      = results[1]
+        self.foci_area      = results[2]
+        self.foci_seeds     = results[3]
+        self.foci_binary    = results[4]
 
 
-    nuclei_colored = color_objects(pic_nuclei, nuclei)
-#    foci_colored   = color_objects(pic_foci,   foci  )
 
-    merged = nice_merged_pic(rescaled_nuclei, rescaled_foci, nuclei, foci, 0.66, 0.33)
 
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/source_nuclei.jpg', pic_nuclei)
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/source_fitc.jpg', pic_foci)
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/deconv_nuclei.jpg', nuclei_deconvolved)
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/deconv_foci.jpg'  ,   foci_deconvolved)
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/rescaled_nuclei.jpg', rescaled_nuclei)
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/rescaled_foci.jpg',   rescaled_foci)
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/colored_nuclei.jpg', nuclei_colored)
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_foci.jpg', foci)
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/colored_foci.jpg', foci_colored)
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/merged.jpg', merged)
+class cell_set:
+    '''Class representing set of cells'''
 
-#    plt.imshow(binary)
-#    plt.show()
+    def __init__(self, name = '', cells = []):
+        '''Constract set from the list of cells given'''
 
-def image_hsv_value(image_file):
-    '''Returns HSV value as numpy array for image file given'''
+        self.cells = cells
+        self.name  = name
 
-    pic_source = misc.imread(image_file)
 
-    pic_grey = np.max(pic_source,2)
+    def rescale_nuclei(self):
+        '''Rescale nuclei in the set'''
 
-    return pic_grey
+        new_values = []
 
-def deconvolved_image(source_pic):
-    '''Returns deconvolved image'''
+        for cur_cell in self.cells:
 
-    denoised = restoration.denoise_bilateral(source_pic)
-    return denoised
+            nucleus_values = np.extract(cur_cell.nucleus, cur_cell.pic_nucleus)
 
-def find_nuclei(pic_with_nuclei, min_cell_size = 1500, frame_size = 5, cutoff_shift = 0.):
-    '''Returns pic with labeled nuclei'''
+            mean_value = np.mean(nucleus_values, dtype = float)
 
-#    binary = binarize_otsu(pic_with_nuclei, frame_size, cutoff_shift)
-    binary = binarize_canny(pic_with_nuclei)
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', binary)
+            new_values.append(nucleus_values/mean_value)
 
-    labels = label_nuclei(binary, min_cell_size)
+            cur_cell.rescaled_nucleus_pic = cur_cell.pic_nucleus/mean_value
 
-    return labels
+        p2,p98 = np.percentile(np.concatenate(new_values),(2,98))
 
-#    print np.max(labels)
+        for cur_cell in self.cells:
 
+            rescaled_norm_pic = exposure.rescale_intensity(cur_cell.rescaled_nucleus_pic, in_range=(p2, p98))
 
-#def find_foci(nuclei, pic_with_foci, frame_size = 3, cutoff_shift = 0.5):
-#    '''Returns pic with labeled foci'''
+            cur_cell.rescaled_nucleus_pic = np.floor(rescaled_norm_pic*200).astype(int)
 
-#    binary = binarize_otsu(pic_with_foci, frame_size, cutoff_shift)
-#    binary = binarize_otsu_foci(pic_with_foci, nuclei, cutoff_shift)
 
-#    labeled_foci = nuclei*binary
+    def rescale_foci(self):
+        '''Rescale foci in the set'''
 
-#    return labeled_foci
+        new_foci_values = []
 
+        for cur_cell in self.cells:
 
-def foci_log(foci_pic):
-    '''Find foci using LoG algorithm'''
+            foci_values = np.extract(cur_cell.nucleus, cur_cell.pic_foci)
 
-    blobs_log = blob_log(foci_pic, max_sigma=30, num_sigma=10, threshold=.1)
+            mean_value = np.percentile(foci_values, (20))
 
-#    blobs_log[:, 2] = blobs_log[:, 2] * sqrt(2)
+            new_foci_values.append(foci_values/mean_value)
 
-def find_foci(foci_pic, nuclei):
-    '''Returns pic with labeled foci'''
+            cur_cell.rescaled_foci_pic = cur_cell.pic_foci/mean_value
 
-    nuclei_bin_new = (foci_pic != 0)
-    nuclei = nuclei*nuclei_bin_new
+        p2,p100 = np.percentile(np.concatenate(new_foci_values),(2,100))
 
-    nuclei_num = np.max(nuclei)
+        for cur_cell in self.cells:
 
-    foci_nums = []
-    foci_area = []
-    foci_soid = []
-    foci_bins = []
-    foci_seeds = []
+            rescaled_norm_pic = exposure.rescale_intensity(cur_cell.rescaled_foci_pic, in_range=(p2, p100))
 
-#    print nuclei_num
+            cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(int)
 
-    for label in range(nuclei_num):
 
-        nucleus = (nuclei == label + 1)
-        cur_foci_pic = foci_pic*nucleus
+    def calculate_foci(self):
+        '''Calculate foci_plm for all cells'''
 
-        num, soid, area, seeds, binary = foci_plm(cur_foci_pic, nucleus)
+        remained = len(self.cells)
 
-        foci_nums.append(num)
-        foci_area.append(area)
-        foci_soid.append(soid)
-        foci_seeds.append(seeds)
-        foci_bins.append(binary)
+        name = self.name
 
-    binary = sum(foci_bins)
-    markers = sum(foci_seeds)
+        print 'Foci calculation have started for', name
 
-    labeled_foci = nuclei*binary
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/seeds_foci.jpg', markers)
+        for cur_cell in self.cells:
+            cur_cell.calculate_foci()
 
-    return labeled_foci
+            remained -= 1
 
+            if remained == 0:
+                print 'Foci calculation have finished for', name
 
-def foci_plm(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 80, foci_radius = 10, foci_min_level_on_bg = 40):
-    '''Find foci using peak_local_max seed search followed by watershed'''
+            else:
+                print remained, 'nuclei remained for', name
 
-#    print np.max(foci_pic)
 
-    foci_pic_blured = ndimage.gaussian_filter(foci_pic, 1)
+    def calculate_foci_parameters(self):
+        '''Calculate absolute and relative foci number, area and soid in 10-90 percent interval'''
 
-    foci_values = np.extract(nucleus, foci_pic)
+        abs_foci_nums  = []
+        abs_foci_areas = []
+        abs_foci_soids = []
 
-    min_peak_val = np.percentile(foci_values, (peak_min_val_perc))
+        rel_foci_nums  = []
+        rel_foci_areas = []
+        rel_foci_soids = []
 
-#    min_peak_val_2 = bg_val*peak_on_bg_min_val_koef
+        for cur_cell in self.cells:
 
-#    min_peak_val = max(min_peak_val_1, min_peak_val_2)
+            abs_foci_nums.append(  cur_cell.foci_number)
+            abs_foci_areas.append( cur_cell.foci_area  )
+            abs_foci_soids.append( cur_cell.foci_soid  )
 
-#    print 'New cell'
+            try:
+                rel_foci_nums.append(  cur_cell.foci_number*2000/np.float(cur_cell.area))
+                rel_foci_areas.append( cur_cell.foci_area*2000/  np.float(cur_cell.area))
+                rel_foci_soids.append( cur_cell.foci_soid*2000/  np.float(cur_cell.area))
+            except:
+                pass
 
-    local_maxi = feature.peak_local_max(foci_pic_blured, min_distance=5, threshold_abs=min_peak_val, indices=False, labels=nucleus)
 
-    markers = measure.label(local_maxi)
+        self.abs_foci_num_param   = mean_and_MSE(abs_foci_nums)
+        self.abs_foci_area_param  = mean_and_MSE(abs_foci_areas)
+        self.abs_foci_soid_param  = mean_and_MSE(abs_foci_soids)
 
-#    print np.max(markers)
+        self.rel_foci_num_param   = mean_and_MSE(rel_foci_nums)
+        self.rel_foci_area_param  = mean_and_MSE(rel_foci_areas)
+        self.rel_foci_soid_param  = mean_and_MSE(rel_foci_soids)
 
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/maxi.jpg', markers_fin)
 
-    labels_ws = morphology.watershed(-foci_pic_blured, markers, mask=nucleus)
 
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/watershed_foci.jpg', labels_ws)
+    def write_parameters(self, outfilename):
+        '''Write file with set parameters'''
 
-    labels_num = np.max(labels_ws)
+        params = [len(self.cells)]
+        params.extend(self.abs_foci_num_param)
+        params.extend(self.abs_foci_area_param)
+        params.extend(self.abs_foci_soid_param)
+        params.extend(self.rel_foci_num_param)
+        params.extend(self.rel_foci_area_param)
+        params.extend(self.rel_foci_soid_param)
 
-    foci_list = []
+        str_params = [str(round(item, 4)).rjust(12) for item in params]
+        str_params.insert(0,self.name.rjust(20))
 
-    npsum         = np.sum
-    npfloor       = np.floor
-    nppercentile  = np.percentile
-    npnonzero     = np.nonzero
-    nptranspose   = np.transpose
-    nppower       = np.power
-    npindices     = np.indices
-    nplogical_and = np.logical_and
-    npextract     = np.extract
+        with open(outfilename, 'w') as outfile:
+            outfile.write(' '.join(str_params))
 
-    pic_shape = labels_ws.shape
 
-    markers_fin = np.zeros(pic_shape, dtype = bool)
-    markers_num = 0
+    def append(self,cell):
+        '''Add a new cell to the set'''
 
-    foci_radius_2 = nppower(foci_radius,2)
+        self.cells.append(cell)
 
-    for label_num in range(labels_num):
+    def extend(self, other_cell_set):
+        '''Add new cells from another cell set'''
 
-        label_ws = (labels_ws == label_num + 1)
+        self.cells.extend(other_cell_set.cells)
 
-        marker = (markers == label_num + 1)
-        marker_size = npsum(marker)
 
-        x_m,y_m = nptranspose(npnonzero(marker))[0]
-        x,y = npindices(pic_shape)
 
-        label_circle = nppower(x - x_m,2) + nppower(y - y_m,2) < foci_radius_2
 
-        label = nplogical_and(label_ws,label_circle)
-        pic_label = label*foci_pic
+class image_dir(cell_set):
+    '''Class representing directory with images'''
 
-        label_values = npextract(label, pic_label)
+    def __init__(self,dir_path):
+        '''Constructor'''
 
-        bg_val,peak_val = nppercentile(label_values, (20,95))
+        self.dir_path = dir_path
+        self.cells = []
 
-#        peak_val = npsum(marker*foci_pic)/marker_size
+    def load_separate_images(self, nuclei_name, foci_name, min_cell_size = 1500):
+        '''Load nuclei and foci from separate images'''
 
-#        print peak_val
+        nuclei_abspath = os.path.join(self.dir_path,nuclei_name)
+        foci_abspath   = os.path.join(self.dir_path,  foci_name)
 
-#        local_cutoff = npfloor(bg_val + (peak_val - bg_val)*foci_min_val_koef).astype(int)
+        pic_nuclei = pic_an.image_hsv_value(nuclei_abspath)
+        pic_foci   = pic_an.image_hsv_value(  foci_abspath)
 
-        discount_focus = (peak_val - bg_val) < foci_min_level_on_bg
+        nuclei = pic_an.find_nuclei(pic_nuclei, min_cell_size)
 
-#        print bg_val, peak_val, peak_val - bg_val, not discount_focus
+        for label_num in np.arange(np.max(nuclei)) + 1:
 
-        if discount_focus:
-            continue
+            nucleus = (nuclei == label_num)
+            cell_pic_nucleus = nucleus*pic_nuclei
+            cell_pic_foci    = nucleus*pic_foci
 
-        markers_fin[x_m,y_m] = True
+            self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci))
 
-        markers_num += 1
+        self.nuclei = nuclei
 
-        local_cutoff = nppercentile(label_values, (foci_min_val_perc)).astype(int)
+        self.pic_nuclei = pic_nuclei
 
-        foci_list.append(pic_label > local_cutoff)
 
-#        print local_cutoff, npsum(pic_label >= local_cutoff)
+    def write_all_pic_files(self):
+        '''Write file with colored nuclei'''
 
-    markers_fin = ndimage.binary_dilation(markers_fin, iterations = 2)
 
-#    print markers_num
+        if self.number_of_cells() == 0:
+            print "No cells found in" + self.dir_path
 
-    foci_bin = sum(foci_list)
+            return
 
-    foci_area = np.sum(foci_bin)
+        pic_colored_nuclei_path = os.path.join(self.dir_path,'colored_nuclei.jpg')
+        pic_merged_path         = os.path.join(self.dir_path,'merged.jpg')
+        pic_seeds_path          = os.path.join(self.dir_path,'seeds_foci.jpg')
+        pic_rescaled_foci_path  = os.path.join(self.dir_path,'rescaled_foci.jpg')
 
-    if foci_area != 0:
-        foci_soid = np.sum(foci_bin*foci_pic)/(1.*foci_area)
-    else:
-        foci_soid = 0.
+        rescaled_nuclei_pics = []
+        rescaled_foci_pics   = []
+        seed_pics            = []
+        foci_bin_pics        = []
 
-    return [markers_num,foci_area,foci_soid,markers_fin, foci_bin]
+        for cur_cell in self.cells:
 
+            rescaled_nuclei_pics.append(cur_cell.rescaled_nucleus_pic)
+            rescaled_foci_pics.append(cur_cell.rescaled_foci_pic)
+            seed_pics.append(cur_cell.foci_seeds)
+            foci_bin_pics.append(cur_cell.foci_binary)
 
 
-def binarize_otsu(pic_source, frame_size = 3, cutoff_shift = 0):
-    '''Binarize image using Otsu threshold'''
+        rescaled_nuclei_pic = sum(rescaled_nuclei_pics)
+        rescaled_foci_pic   = sum(rescaled_foci_pics)
+        seeds               = sum(seed_pics)
+        foci_binary         = sum(foci_bin_pics)
 
-    pic_smooth = ndimage.gaussian_filter(pic_source, frame_size)
+        print self.dir_path
+        print np.max(self.nuclei)
+        print rescaled_nuclei_pic.shape
 
-    cutoff_otsu = filt.threshold_otsu(pic_source)
+        nuclei_colored = pic_an.color_objects(self.pic_nuclei, self.nuclei)
+        merged = pic_an.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
 
-    cutoff = np.floor(cutoff_otsu*(cutoff_shift + 1.)).astype(int)
 
-    binary = pic_smooth > cutoff
+        misc.imsave(pic_colored_nuclei_path, nuclei_colored)
+        misc.imsave(pic_merged_path, merged)
+        misc.imsave(pic_seeds_path, seeds)
+        misc.imsave(pic_rescaled_foci_path, rescaled_foci_pic)
 
-    return binary
+    def number_of_cells(self):
+        '''Return number of cells from this image_dir'''
 
+        return len(self.cells)
 
-def binarize_otsu_foci(foci_pic, nuclei, cutoff_shift = 0):
-    '''Binarize image using Otsu threshold on nuclei only'''
 
-    binary_nuclei = (nuclei != 0)
 
-    foci_values = np.extract(binary_nuclei, foci_pic)
+def mean_and_MSE(value_list):
+    '''Returns list with the mean value and MSE for value_list in 10-90 percentile'''
 
-    cutoff_otsu = filt.threshold_otsu(foci_values)
+    if(len(value_list) == 0):
+        return [0.,0.]
 
-    print max(foci_values)
+    np_value_list = np.array(value_list)
 
-    print cutoff_otsu
+    p10,p90 = np.percentile(np_value_list, (10,90))
 
-    cutoff = cutoff_otsu*(cutoff_shift + 1.)
+    match_10_90 = np.logical_and(np_value_list >= p10, np_value_list <= p90)
 
-    binary = foci_pic > cutoff
+    new_values = np.extract(match_10_90, np_value_list)
 
-    return binary
+    mean = np.mean(new_values)
 
-def binarize_canny(pic_source):
+    MSE = np.power(np.sum(np.power(new_values - mean, 2)/len(new_values)), 0.5)
 
-    edges = filt.canny(pic_source, sigma = 3, high_threshold = 25., low_threshold = 2.)
-
-    edges = ndimage.morphology.binary_dilation(edges, iterations = 2)
-
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', edges)
-
-    binary = ndimage.binary_fill_holes(edges)
-
-    binary = ndimage.median_filter(binary, 3)
-
-    binary = ndimage.morphology.binary_erosion(binary, iterations = 2)
-
-    return binary
-
-
-def label_nuclei(binary, min_size):
-    '''Label, watershed and remove small objects'''
-
-    distance = ndimage.distance_transform_edt(binary)
-
-    distance_blured = ndimage.gaussian_filter(distance, 5)
-
-    local_maxi = feature.peak_local_max(distance_blured, indices=False, labels=binary, min_distance = 30)
-
-    markers = measure.label(local_maxi)
-
-#    markers[~binary] = -1
-
-#    labels_rw = segmentation.random_walker(binary, markers)
-
-#    labels_rw[labels_rw == -1] = 0
-
-#    labels_rw = segmentation.relabel_sequential(labels_rw)
-
-    labels_ws = morphology.watershed(-distance, markers, mask=binary)
-
-    labels_large = morphology.remove_small_objects(labels_ws,min_size)
-
-    labels_clean_border = clear_border(labels_large)
-
-    labels_from_one = segmentation.relabel_sequential(labels_clean_border)
-
-#    plt.imshow(ndimage.morphology.binary_dilation(markers))
-#    plt.show()
-
-    return labels_from_one[0]
-
-def clear_border(pic_labeled):
-    '''Removes objects which touch the border'''
-
-    borders = np.zeros(pic_labeled.shape, np.bool)
-
-    borders[ 0,:] = 1
-    borders[-1,:] = 1
-    borders[:, 0] = 1
-    borders[:,-1] = 1
-
-    at_border = np.unique(pic_labeled[borders])
-
-    for obj in at_border:
-        pic_labeled[pic_labeled == obj] = 0
-
-    return pic_labeled
-
-def color_objects(pic_grey,labels):
-    '''Return image with colored nuclei'''
-
-
-#    hsv_source = color.rgb2hsv(pic_source)
-
-    if np.max(labels) == 0:
-        return pic_grey
-
-    try:
-        hue_step = 1./np.max(labels)
-    except:
-        return pic_grey
-    hue = labels*hue_step
-
-    val = pic_grey
-
-    sat = (labels != 0)*0.5
-#    sat = (labels != 0)
-
-#    sat.resize(val.shape)
-
-    pic_shape = list(val.shape)
-    pic_shape.append(3)
-
-    hsv_result = np.hstack((hue,sat,val))
-
-    hsv_result.resize(pic_shape)
-
-    rgb_result = color.hsv2rgb(hsv_result)
-
-    return rgb_result
-
-
-def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., color_foci=0.33):
-    '''Returns enchanced picture with black bg and merged channels inside the objects'''
-
-
-    pic_shape = list(nuclei.shape)
-    pic_shape.append(3)
-
-    nuclei = (nuclei != 0)
-    foci   = (foci   != 0)
-
-    nuclei_only = nuclei - foci
-
-    hue = color_nuclei*nuclei_only + foci*color_foci
-
-    foci_enhanced = 255 - np.floor((255 - source_foci)*0.8).astype(int)
-
-    val = source_nuclei*nuclei_only + foci*foci_enhanced
-
-#    val = nuclei*((source_nuclei > foci_enhanced)*source_nuclei + (source_nuclei < foci_enhanced)*foci_enhanced)
-
-    sat = nuclei*1.
-
-    hsv_result = np.hstack((hue,sat,val))
-
-    hsv_result.resize(pic_shape)
-
-    rgb_result = color.hsv2rgb(hsv_result)
-
-#    rgb_blured = ndimage.gaussian_filter(rgb_result, 3)
-
-    return rgb_result
-
-def rescaled_pic(labels, source_pic):
-    '''Returns pic with rescaled contrast for all oblects'''
-
-    labels_num = np.max(labels)
-
-    rescaled_pics = []
-
-    for label_num in np.arange(labels_num) + 1:
-
-        label = (labels == label_num)
-        label_pic = label*source_pic
-
-        label_values = np.extract(label, label_pic)
-        p2, p100 = np.percentile(label_values, (2, 100))
-
-        rescaled_pics.append(exposure.rescale_intensity(label_pic, in_range=(p2, p100)))
-
-        rescaled_label_values = np.extract(label, rescaled_pics[-1])
-
-        print str(label_num).rjust(4), str(round(np.mean(label_values),3)).rjust(10), str(round(np.mean(rescaled_label_values),3)).rjust(10)
-
-    return sum(rescaled_pics)
-
-
-def normalized_pic(labels, source_pic):
-    '''Returns pic with equal mean intensity for all objects'''
-
-    labels_num = np.max(labels)
-
-    new_values = []
-    label_pics = []
-
-    for label_num in np.arange(labels_num) + 1:
-
-        label = (labels == label_num)
-        label_pic = label*source_pic
-
-        label_values = np.extract(label, label_pic)
-
-        mean_value = np.mean(label_values, dtype = float)
-
-        new_values.append(label_values/mean_value)
-        label_pics.append(label_pic/mean_value)
-
-    p2,p100 = np.percentile(np.concatenate(new_values),(2,100))
-
-    norm_pic = sum(label_pics)
-
-    rescaled_norm_pic = exposure.rescale_intensity(norm_pic, in_range=(p2, p100))
-
-#    return rescaled_norm_pic
-    return np.floor(rescaled_norm_pic*255).astype(int)
-
-
-def normalized_pics(nuclei, source_nuclei, source_foci_pic_list):
-    '''Returns pic with equal mean intensity of nuclei and \
-            pics with foci intensity normalized on nuclei'''
-
-    labels_num = np.max(nuclei)
-
-    new_nucleus_values = []
-    nucleus_pics = []
-    mean_values = []
-
-#    foci_pics_list = []
-
-
-    for label_num in np.arange(labels_num) + 1:
-
-        label = (nuclei == label_num)
-        nucleus_pic = label*source_nuclei
-
-        nucleus_values = np.extract(label, nucleus_pic)
-
-        mean_value = np.mean(nucleus_values, dtype = float)
-
-        mean_values.append(mean_value)
-        new_nucleus_values.append(nucleus_values/mean_value)
-        nucleus_pics.append(nucleus_pic/mean_value)
-
-
-    p2,p100 = np.percentile(np.concatenate(new_nucleus_values),(2,100))
-
-    norm_nucleus_pic = sum(nucleus_pics)
-
-    rescaled_norm_nucleus_pic = exposure.rescale_intensity(norm_nucleus_pic, in_range=(p2, p100))
-
-    print len(source_foci_pic_list)
-
-    rescaled_norm_foci_pic_list = [normalized_foci(nuclei, source_foci, mean_values) for source_foci in source_foci_pic_list]
-
-    return (rescaled_norm_nucleus_pic, rescaled_norm_foci_pic_list)
-
-
-
-def normalized_foci(nuclei, source_foci):
-    '''Normalize foci pics using nuclei mean values'''
-
-    labels_num = np.max(nuclei)
-
-    new_foci_values = []
-    foci_pics = []
-
-    for label_num in np.arange(labels_num) + 1:
-
-        label = (nuclei == label_num)
-        foci_pic = label*source_foci
-
-        foci_values = np.extract(label, foci_pic)
-
-        mean_value = np.percentile(foci_values, (20))
-
-        new_foci_values.append(foci_values/mean_value)
-        foci_pics.append(foci_pic/mean_value)
-
-    p2,p100 = np.percentile(np.concatenate(new_foci_values),(2,100))
-
-    norm_foci_pic = sum(foci_pics)
-
-    rescaled_norm_foci_pic = exposure.rescale_intensity(norm_foci_pic, in_range=(p2, p100))
-
-#    return rescaled_norm_foci_pic
-    return np.floor(rescaled_norm_foci_pic*255).astype(int)
-
-
-def normalized_foci_on_bg(nuclei, source_foci):
-    '''Returns foci intensity normalized on foci bg'''
-
-    labels_num = np.max(nuclei)
-
-    new_foci_values = []
-    foci_pics = []
-
-    for label_num in np.arange(labels_num) + 1:
-
-        label = (nuclei == label_num)
-        foci_pic = label*source_foci
-
-        foci_values = np.extract(label, foci_pic)
-
-        p10,p15,p20 = np.percentile(foci_values, (10,15,20))
-
-        mean_value = (p10+p15+p20)/3
-
-        new_foci_values.append(foci_values/mean_value)
-        foci_pics.append(foci_pic/mean_value)
-
-    p2,p100 = np.percentile(np.concatenate(new_foci_values),(2,100))
-
-    norm_foci_pic = sum(foci_pics)
-
-    rescaled_norm_foci_pic = exposure.rescale_intensity(norm_foci_pic, in_range=(p2, p100))
-
-#    return rescaled_norm_foci_pic
-    return np.floor(rescaled_norm_foci_pic*255).astype(int)
+    return [mean, MSE]
 
 
 
