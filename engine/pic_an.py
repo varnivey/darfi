@@ -58,7 +58,7 @@ class cell_set:
     '''Class representing set of cells'''
 
     def __init__(self, name = '', cells = []):
-        '''Constract set from the list of cells given'''
+        '''Construct set from the list of cells given'''
 
         self.cells = cells
         self.name  = name
