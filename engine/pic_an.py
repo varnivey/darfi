@@ -21,9 +21,12 @@
 import os
 import numpy as np
 
-from scipy import misc
+from skimage.exposure import rescale_intensity
 
-from skimage import exposure
+from scipy.misc import imsave
+
+#from skimage.io import imsave
+#from skimage.io import imread
 
 import pic_an_old
 
@@ -83,7 +86,7 @@ class cell_set:
 
         for cur_cell in self.cells:
 
-            rescaled_norm_pic = exposure.rescale_intensity(cur_cell.rescaled_nucleus_pic, in_range=(p2, p98))
+            rescaled_norm_pic = rescale_intensity(cur_cell.rescaled_nucleus_pic, in_range=(p2, p98))
 
             cur_cell.rescaled_nucleus_pic = np.floor(rescaled_norm_pic*200).astype(int)
 
@@ -107,7 +110,7 @@ class cell_set:
 
         for cur_cell in self.cells:
 
-            rescaled_norm_pic = exposure.rescale_intensity(cur_cell.rescaled_foci_pic, in_range=(p2, p100))
+            rescaled_norm_pic = rescale_intensity(cur_cell.rescaled_foci_pic, in_range=(p2, p100))
 
             cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(int)
 
@@ -272,10 +275,10 @@ class image_dir(cell_set):
         merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
 
 
-        misc.imsave(pic_colored_nuclei_path, nuclei_colored)
-        misc.imsave(pic_merged_path, merged)
-        misc.imsave(pic_seeds_path, seeds)
-        misc.imsave(pic_rescaled_foci_path, rescaled_foci_pic)
+        imsave(pic_colored_nuclei_path, nuclei_colored)
+        imsave(pic_merged_path, merged)
+        imsave(pic_seeds_path, seeds)
+        imsave(pic_rescaled_foci_path, rescaled_foci_pic)
 
     def number_of_cells(self):
         '''Return number of cells from this image_dir'''
