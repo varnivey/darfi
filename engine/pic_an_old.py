@@ -405,7 +405,7 @@ def color_objects(pic_grey,labels):
 
     hsv_result.resize(pic_shape)
 
-    rgb_result = color.hsv2rgb(hsv_result)
+    rgb_result = color.hsv2rgb(hsv_result).astype(np.uint8)
 
     return rgb_result
 
@@ -424,7 +424,7 @@ def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., c
 
     hue = color_nuclei*nuclei_only + foci*color_foci
 
-    foci_enhanced = 255 - np.floor((255 - source_foci)*0.8).astype(int)
+    foci_enhanced = 255 - np.floor((255 - source_foci)*0.8)
 
     val = source_nuclei*nuclei_only + foci*foci_enhanced
 
@@ -436,7 +436,7 @@ def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., c
 
     hsv_result.resize(pic_shape)
 
-    rgb_result = color.hsv2rgb(hsv_result)
+    rgb_result = color.hsv2rgb(hsv_result).astype(np.uint8)
 
 #    rgb_blured = ndimage.gaussian_filter(rgb_result, 3)
 

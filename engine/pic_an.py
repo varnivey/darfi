@@ -24,10 +24,10 @@ import numpy as np
 from skimage.exposure import rescale_intensity
 from skimage import img_as_ubyte
 
-#from skimage.io import imsave
+from skimage.io import imsave
 from skimage.io import imread
 
-from scipy.misc import imsave
+#from scipy.misc import imsave
 #from scipy.misc import imread
 
 import pic_an_old
@@ -266,7 +266,7 @@ class image_dir(cell_set):
 
         rescaled_nuclei_pic = sum(rescaled_nuclei_pics)
         rescaled_foci_pic   = sum(rescaled_foci_pics)
-        seeds               = sum(seed_pics)
+        seeds               = (255*sum(seed_pics)).astype(np.uint8)
         foci_binary         = sum(foci_bin_pics)
 
         nuclei_colored = pic_an_old.color_objects(self.pic_nuclei, self.nuclei)
