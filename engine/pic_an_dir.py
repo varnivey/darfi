@@ -61,7 +61,7 @@ def calc_foci_in_dir(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF', 
     print "Image loading have started for", name
 
     for image_dir in image_dirs:
-        image_dir.load_separate_images( nuclei_name, foci_name, 1500)
+        image_dir.load_separate_images(nuclei_name, foci_name, sensitivity = 3., min_cell_size = 1500)
 
         remained -= 1
 

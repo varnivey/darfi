@@ -22,11 +22,13 @@ import os
 import numpy as np
 
 from skimage.exposure import rescale_intensity
-
-from scipy.misc import imsave
+from skimage import img_as_ubyte
 
 #from skimage.io import imsave
-#from skimage.io import imread
+from skimage.io import imread
+
+from scipy.misc import imsave
+#from scipy.misc import imread
 
 import pic_an_old
 
@@ -88,7 +90,7 @@ class cell_set:
 
             rescaled_norm_pic = rescale_intensity(cur_cell.rescaled_nucleus_pic, in_range=(p2, p98))
 
-            cur_cell.rescaled_nucleus_pic = np.floor(rescaled_norm_pic*200).astype(int)
+            cur_cell.rescaled_nucleus_pic = np.floor(rescaled_norm_pic*200).astype(np.uint8)
 
 
     def rescale_foci(self):
@@ -112,7 +114,7 @@ class cell_set:
 
             rescaled_norm_pic = rescale_intensity(cur_cell.rescaled_foci_pic, in_range=(p2, p100))
 
-            cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(int)
+            cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(np.uint8)
 
 
     def calculate_foci(self):
@@ -211,16 +213,16 @@ class image_dir(cell_set):
         self.dir_path = dir_path
         self.cells = []
 
-    def load_separate_images(self, nuclei_name, foci_name, min_cell_size = 1500):
+    def load_separate_images(self, nuclei_name, foci_name, sensitivity = 5., min_cell_size = 1500):
         '''Load nuclei and foci from separate images'''
 
         nuclei_abspath = os.path.join(self.dir_path,nuclei_name)
         foci_abspath   = os.path.join(self.dir_path,  foci_name)
 
-        pic_nuclei = pic_an_old.image_hsv_value(nuclei_abspath)
-        pic_foci   = pic_an_old.image_hsv_value(  foci_abspath)
+        pic_nuclei = image_hsv_value(nuclei_abspath)
+        pic_foci   = image_hsv_value(  foci_abspath)
 
-        nuclei = pic_an_old.find_nuclei(pic_nuclei, min_cell_size)
+        nuclei = pic_an_old.find_nuclei(pic_nuclei, sensitivity, min_cell_size)
 
         for label_num in np.arange(np.max(nuclei)) + 1:
 
@@ -267,10 +269,6 @@ class image_dir(cell_set):
         seeds               = sum(seed_pics)
         foci_binary         = sum(foci_bin_pics)
 
-        print self.dir_path
-        print np.max(self.nuclei)
-        print rescaled_nuclei_pic.shape
-
         nuclei_colored = pic_an_old.color_objects(self.pic_nuclei, self.nuclei)
         merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
 
@@ -306,6 +304,17 @@ def mean_and_MSE(value_list):
     MSE = np.power(np.sum(np.power(new_values - mean, 2)/len(new_values)), 0.5)
 
     return [mean, MSE]
+
+
+def image_hsv_value(image_file):
+    '''Returns HSV value as numpy array for image file given'''
+
+
+    pic_source = img_as_ubyte(imread(image_file))
+
+    pic_grey = np.max(pic_source,2)
+
+    return pic_grey
 
 
 

@@ -92,11 +92,13 @@ def deconvolved_image(source_pic):
     denoised = restoration.denoise_bilateral(source_pic)
     return denoised
 
-def find_nuclei(pic_with_nuclei, min_cell_size = 1500, frame_size = 5, cutoff_shift = 0.):
+def find_nuclei(pic_with_nuclei, sensitivity = 5., min_cell_size = 1500, frame_size = 5, cutoff_shift = 0.):
     '''Returns pic with labeled nuclei'''
 
+#    print sensitivity
+
 #    binary = binarize_otsu(pic_with_nuclei, frame_size, cutoff_shift)
-    binary = binarize_canny(pic_with_nuclei)
+    binary = binarize_canny(pic_with_nuclei, sensitivity)
 #    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', binary)
 
     labels = label_nuclei(binary, min_cell_size)
@@ -304,9 +306,13 @@ def binarize_otsu_foci(foci_pic, nuclei, cutoff_shift = 0):
 
     return binary
 
-def binarize_canny(pic_source):
+def binarize_canny(pic_source, sensitivity = 5.):
 
-    edges = filt.canny(pic_source, sigma = 3, high_threshold = 25., low_threshold = 2.)
+    ht = 5. + (sensitivity/5.)*20.
+
+#    print ht
+
+    edges = filt.canny(pic_source, sigma = 3, high_threshold = ht, low_threshold = 2.)
 
     edges = ndimage.morphology.binary_dilation(edges, iterations = 2)
 
