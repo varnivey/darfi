@@ -185,8 +185,6 @@ def foci_plm(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 80, 
 
     markers = measure.label(local_maxi)
 
-#    print np.max(markers)
-
 #    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/maxi.jpg', markers_fin)
 
     labels_ws = morphology.watershed(-foci_pic_blured, markers, mask=nucleus)

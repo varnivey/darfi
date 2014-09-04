@@ -32,6 +32,9 @@ from skimage.io import imread
 
 import pic_an_old
 
+#from pic_an_old import foci_plm
+from pic_an_calc import foci_plm
+
 class cell:
     '''Class representing cell variables and methods'''
 
@@ -48,7 +51,7 @@ class cell:
 
         nucleus_new = (self.pic_foci != 0)
 
-        results = pic_an_old.foci_plm(self.rescaled_foci_pic, nucleus_new)
+        results = foci_plm(self.rescaled_foci_pic, nucleus_new)
 
         self.foci_number    = results[0]
         self.foci_soid      = results[1]
@@ -282,6 +285,7 @@ class image_dir(cell_set):
         '''Return number of cells from this image_dir'''
 
         return len(self.cells)
+
 
 
 
