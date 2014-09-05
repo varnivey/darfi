@@ -306,7 +306,7 @@ def binarize_otsu_foci(foci_pic, nuclei, cutoff_shift = 0):
 
 def binarize_canny(pic_source, sensitivity = 5.):
 
-    ht = 5. + (sensitivity/5.)*20.
+    ht = 5. + ((10 - sensitivity)/5.)*20.
 
 #    print ht
 
