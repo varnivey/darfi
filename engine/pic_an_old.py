@@ -312,17 +312,31 @@ def binarize_canny(pic_source, sensitivity = 5.):
 
     edges = filt.canny(pic_source, sigma = 3, high_threshold = ht, low_threshold = 2.)
 
-    edges = ndimage.morphology.binary_dilation(edges, iterations = 2)
+    selem_morph = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
 
-    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', edges)
+    for i in (1,2):
+        edges = morphology.binary_dilation(edges, selem_morph)
 
-    binary = ndimage.binary_fill_holes(edges)
+#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', edges)
 
-    binary = ndimage.median_filter(binary, 3)
+#    binary = ndimage.binary_fill_holes(edges)
 
-    binary = ndimage.morphology.binary_erosion(binary, iterations = 2)
+    labels = measure.label(edges)
 
-    return binary
+    labelcount = np.bincount(labels.ravel())
+
+    bg = np.argmax(labelcount)
+
+    edges[labels != bg] = 255
+
+    selem_med = np.ones((3,3), dtype = bool)
+
+    binary = filt.rank.median(edges, selem_med)
+
+    for i in (1,2,3):
+        binary = morphology.binary_erosion(edges, selem_morph)
+
+    return edges
 
 
 def label_nuclei(binary, min_size):

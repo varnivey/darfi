@@ -82,7 +82,7 @@ def foci_plm(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, 
 
         peace_list.append(peace(pic_label > local_cutoff, (up,down,right,left)))
 
-    selem = np.ones((2,2), dtype = bool)
+    selem = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
 
     markers_fin = binary_dilation(binary_dilation(markers_fin, selem), selem)
 

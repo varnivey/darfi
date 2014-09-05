@@ -49,6 +49,7 @@ class cell:
         self.coords       = coords
         self.area         = np.sum(nucleus)
 
+
     def calculate_foci(self):
         '''Finds foci and its parameters'''
 
