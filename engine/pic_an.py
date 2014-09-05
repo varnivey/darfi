@@ -213,20 +213,39 @@ class cell_set:
 class image_dir(cell_set):
     '''Class representing directory with images'''
 
-    def __init__(self,dir_path):
+    def __init__(self,dir_path, nuclei_name, foci_name):
         '''Constructor'''
 
         self.dir_path = dir_path
         self.cells = []
+        self.nuclei_name = nuclei_name
+        self.foci_name   = foci_name
 
-    def load_separate_images(self, nuclei_name, foci_name, sensitivity = 5., min_cell_size = 1500):
-        '''Load nuclei and foci from separate images'''
 
-        nuclei_abspath = os.path.join(self.dir_path,nuclei_name)
-        foci_abspath   = os.path.join(self.dir_path,  foci_name)
+    def get_source_pic_nuclei(self):
+        '''Return grey pic with nuclei'''
+
+        nuclei_abspath = os.path.join(self.dir_path, self.nuclei_name)
 
         pic_nuclei = image_hsv_value(nuclei_abspath)
+
+        return pic_nuclei
+
+
+    def get_source_pic_foci(self):
+        '''Return grey pic with foci'''
+
+        foci_abspath   = os.path.join(self.dir_path,   self.foci_name)
+
         pic_foci   = image_hsv_value(  foci_abspath)
+
+        return pic_foci
+
+    def load_separate_images(self, sensitivity = 5., min_cell_size = 1500):
+        '''Load nuclei and foci from separate images'''
+
+        pic_nuclei = self.get_source_pic_nuclei()
+        pic_foci   = self.get_source_pic_foci()
 
         nuclei = pic_an_old.find_nuclei(pic_nuclei, sensitivity, min_cell_size)
 
@@ -247,27 +266,21 @@ class image_dir(cell_set):
 
         self.nuclei = nuclei
 
-        self.pic_nuclei = pic_nuclei
 
-
-    def write_all_pic_files(self):
-        '''Write file with colored nuclei'''
-
+    def get_all_pics(self):
+        '''Return all calculated pics'''
 
         if self.number_of_cells() == 0:
-            print "No cells found in" + self.dir_path
+            print "No cells found in " + self.dir_path
 
-            return
-
-        pic_colored_nuclei_path = os.path.join(self.dir_path,'colored_nuclei.jpg')
-        pic_merged_path         = os.path.join(self.dir_path,'merged.jpg')
-        pic_seeds_path          = os.path.join(self.dir_path,'seeds_foci.jpg')
-        pic_rescaled_foci_path  = os.path.join(self.dir_path,'rescaled_foci.jpg')
+            return (None, None, None, None, None)
 
         rescaled_nuclei_peaces = []
         rescaled_foci_peaces   = []
         seed_peaces            = []
         foci_bin_peaces        = []
+
+        pic_nuclei = self.get_source_pic_nuclei()
 
         x_max, y_max = self.nuclei.shape
 
@@ -286,14 +299,27 @@ class image_dir(cell_set):
         seeds               = (255*join_peaces(seed_peaces, x_max, y_max)).astype(np.uint8)
         foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
 
-        nuclei_colored = pic_an_old.color_objects(self.pic_nuclei, self.nuclei)
+        nuclei_colored = pic_an_old.color_objects(pic_nuclei, self.nuclei)
         merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
 
+        return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
+
+
+    def write_all_pic_files(self):
+        '''Write all calculated pics to files'''
+
+        pic_colored_nuclei_path = os.path.join(self.dir_path,'colored_nuclei.jpg')
+        pic_merged_path         = os.path.join(self.dir_path,'merged.jpg')
+        pic_seeds_path          = os.path.join(self.dir_path,'seeds_foci.jpg')
+        pic_rescaled_foci_path  = os.path.join(self.dir_path,'rescaled_foci.jpg')
+
+        rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged = self.get_all_pics()
 
         imsave(pic_colored_nuclei_path, nuclei_colored)
         imsave(pic_merged_path, merged)
         imsave(pic_seeds_path, seeds)
         imsave(pic_rescaled_foci_path, rescaled_foci_pic)
+
 
     def number_of_cells(self):
         '''Return number of cells from this image_dir'''
