@@ -57,8 +57,8 @@ def foci_plm(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, 
         if right > x_max: right = x_max
 
 
-        up_c, down_c    = up - y_m + foci_radius - 1, y_m - down - foci_radius + 1
-        right_c, left_c = right - x_m + foci_radius - 1, x_m - left - foci_radius + 1
+        up_c, down_c    = up - y_m + foci_radius - 1, foci_radius - 1 - (y_m - down)
+        right_c, left_c = right - x_m + foci_radius - 1, foci_radius - 1 - (x_m - left)
 
         label      = label_circle[left_c:right_c, down_c:up_c]
         new_pic    = foci_pic[left:right, down:up]
@@ -139,10 +139,10 @@ class peace:
         self.coords = coords
 
 
-def join_peaces(peace_list, x_max, y_max):
-    '''Join binary peaces into single image with (x_max, y_max) size'''
+def join_peaces(peace_list, x_max, y_max, dtype = bool):
+    '''Join peaces into single image with (x_max, y_max) size'''
 
-    result = np.zeros((x_max, y_max),dtype = bool)
+    result = np.zeros((x_max, y_max),dtype = dtype)
 
     for peace_item in peace_list:
 
@@ -151,8 +151,6 @@ def join_peaces(peace_list, x_max, y_max):
         result[left:right, down:up] += peace_item.image
 
     return result
-
-
 
 
 

@@ -34,17 +34,20 @@ import pic_an_old
 
 #from pic_an_old import foci_plm
 from pic_an_calc import foci_plm
+from pic_an_calc import join_peaces
+from pic_an_calc import peace
 
 class cell:
     '''Class representing cell variables and methods'''
 
-    def __init__(self, nucleus, pic_nucleus, pic_foci):
+    def __init__(self, nucleus, pic_nucleus, pic_foci, coords = (0,0,0,0)):
         '''Construct cell from mask and channel pics'''
 
-        self.nucleus = nucleus
-        self.pic_nucleus = pic_nucleus
-        self.pic_foci  = pic_foci
-        self.area      = np.sum(nucleus)
+        self.nucleus      = nucleus
+        self.pic_nucleus  = pic_nucleus
+        self.pic_foci     = pic_foci
+        self.coords       = coords
+        self.area         = np.sum(nucleus)
 
     def calculate_foci(self):
         '''Finds foci and its parameters'''
@@ -194,10 +197,10 @@ class cell_set:
             outfile.write(' '.join(str_params))
 
 
-    def append(self,cell):
+    def append(self,new_cell):
         '''Add a new cell to the set'''
 
-        self.cells.append(cell)
+        self.cells.append(new_cell)
 
     def extend(self, other_cell_set):
         '''Add new cells from another cell set'''
@@ -233,7 +236,14 @@ class image_dir(cell_set):
             cell_pic_nucleus = nucleus*pic_nuclei
             cell_pic_foci    = nucleus*pic_foci
 
-            self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci))
+            coords = find_cell_coords(nucleus)
+            up,down,right,left = coords
+
+            nucleus          =          nucleus[left:right,down:up]
+            cell_pic_nucleus = cell_pic_nucleus[left:right,down:up]
+            cell_pic_foci    =    cell_pic_foci[left:right,down:up]
+
+            self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords))
 
         self.nuclei = nuclei
 
@@ -254,23 +264,27 @@ class image_dir(cell_set):
         pic_seeds_path          = os.path.join(self.dir_path,'seeds_foci.jpg')
         pic_rescaled_foci_path  = os.path.join(self.dir_path,'rescaled_foci.jpg')
 
-        rescaled_nuclei_pics = []
-        rescaled_foci_pics   = []
-        seed_pics            = []
-        foci_bin_pics        = []
+        rescaled_nuclei_peaces = []
+        rescaled_foci_peaces   = []
+        seed_peaces            = []
+        foci_bin_peaces        = []
+
+        x_max, y_max = self.nuclei.shape
 
         for cur_cell in self.cells:
 
-            rescaled_nuclei_pics.append(cur_cell.rescaled_nucleus_pic)
-            rescaled_foci_pics.append(cur_cell.rescaled_foci_pic)
-            seed_pics.append(cur_cell.foci_seeds)
-            foci_bin_pics.append(cur_cell.foci_binary)
+            coords = cur_cell.coords
+
+            rescaled_nuclei_peaces.append(peace(cur_cell.rescaled_nucleus_pic, coords))
+            rescaled_foci_peaces.append(peace(cur_cell.rescaled_foci_pic, coords))
+            seed_peaces.append(peace(cur_cell.foci_seeds, coords))
+            foci_bin_peaces.append(peace(cur_cell.foci_binary, coords))
 
 
-        rescaled_nuclei_pic = sum(rescaled_nuclei_pics)
-        rescaled_foci_pic   = sum(rescaled_foci_pics)
-        seeds               = (255*sum(seed_pics)).astype(np.uint8)
-        foci_binary         = sum(foci_bin_pics)
+        rescaled_nuclei_pic = join_peaces(rescaled_nuclei_peaces, x_max, y_max, dtype = np.uint8)
+        rescaled_foci_pic   = join_peaces(rescaled_foci_peaces, x_max, y_max, dtype = np.uint8)
+        seeds               = (255*join_peaces(seed_peaces, x_max, y_max)).astype(np.uint8)
+        foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
 
         nuclei_colored = pic_an_old.color_objects(self.pic_nuclei, self.nuclei)
         merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
@@ -321,5 +335,21 @@ def image_hsv_value(image_file):
     return pic_grey
 
 
+def find_cell_coords(nucleus):
+    '''Find min and max coords = (up,down,right,left) of the cell area in the image'''
+
+    x_sum = np.sum(nucleus,1).astype(bool)
+    y_sum = np.sum(nucleus,0).astype(bool)
+
+    x_ind = np.transpose(x_sum.nonzero())
+    y_ind = np.transpose(y_sum.nonzero())
+
+    left  = x_ind[0]
+    right = x_ind[-1] + 1
+
+    down  = y_ind[0]
+    up    = y_ind[-1] + 1
+
+    return (up, down, right, left)
 
 
