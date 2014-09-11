@@ -22,6 +22,9 @@ import os
 import numpy as np
 
 from skimage.exposure import rescale_intensity
+from skimage.filter import threshold_otsu
+from skimage.color import hsv2rgb
+
 from skimage import img_as_ubyte
 
 from skimage.io import imsave
@@ -62,6 +65,23 @@ class cell:
         self.foci_area      = results[2]
         self.foci_seeds     = results[3]
         self.foci_binary    = results[4]
+
+
+    def nucleus_mean_value(self):
+        '''Return mean intensity of the nucleus'''
+
+        nucleus_points = np.extract(self.nucleus, self.pic_nucleus)
+
+        self.nucleus_mean_value = np.mean(nucleus_points)
+
+
+    def foci_mean_value(self):
+        '''Return mean intensity of the foci'''
+
+        foci_points   = np.extract(self.nucleus, self.pic_foci)
+
+        self.foci_mean_value =  np.mean(foci_points)
+
 
 
 
@@ -198,6 +218,55 @@ class cell_set:
             outfile.write(' '.join(str_params))
 
 
+    def calc_nuclei_mean_value(self):
+        '''Calculate nucleus mean value for each cell'''
+
+        for cur_cell in self.cells:
+            cur_cell.nucleus_mean_value()
+
+    def calc_foci_mean_value(self):
+        '''Calculate foci mean value for each cell'''
+
+        for cur_cell in self.cells:
+            cur_cell.foci_mean_value()
+
+
+    def bright_nuclei_count(self, thr = -1):
+        '''Return the number of nuclei brighter than a given threshold'''
+
+        values = []
+
+        for cur_cell in self.cells:
+            values.append(cur_cell.nucleus_mean_value)
+
+        val_array = np.array(values, dtype = float)
+
+        if (thr == -1):
+            thr = threshold_otsu(val_array)
+
+        self.nuclei_thr = thr
+
+        return np.sum(val_array > thr)
+
+
+    def bright_foci_count(self, thr = -1):
+        '''Return the number of foci brighter than a given threshold'''
+
+        values = []
+
+        for cur_cell in self.cells:
+            values.append(cur_cell.foci_mean_value)
+
+        val_array = np.array(values)
+
+        if (thr == -1):
+            thr = threshold_otsu(val_array)
+
+        self.foci_thr = thr
+
+        return np.sum(val_array > thr)
+
+
     def append(self,new_cell):
         '''Add a new cell to the set'''
 
@@ -207,6 +276,12 @@ class cell_set:
         '''Add new cells from another cell set'''
 
         self.cells.extend(other_cell_set.cells)
+
+    def number_of_cells(self):
+        '''Return number of cells from this image_dir'''
+
+        return len(self.cells)
+
 
 
 
@@ -268,6 +343,71 @@ class image_dir(cell_set):
         self.nuclei = nuclei
 
 
+    def get_pic_with_bright_nuclei_colored(self, color = 0.):
+        '''Return pic with colored bright nuclei'''
+
+        val = self.get_source_pic_nuclei()
+
+        bright_nuclei_peaces = []
+
+        for cur_cell in self.cells:
+            if cur_cell.nucleus_mean_value > self.nuclei_thr:
+                bright_nuclei_peaces.append(peace(cur_cell.nucleus, cur_cell.coords))
+
+        x_max, y_max = self.nuclei.shape
+
+        sat = (0.5*join_peaces(bright_nuclei_peaces, x_max, y_max))
+
+        hue = np.ones((x_max, y_max), dtype = float)*color
+
+        pic_shape = [x_max, y_max, 3]
+
+        hsv_result = np.hstack((hue,sat,val))
+
+        hsv_result.resize(pic_shape)
+
+        rgb_result = hsv2rgb(hsv_result).astype(np.uint8)
+
+        return rgb_result
+
+
+    def get_pic_with_bright_foci_colored(self, color = 0.):
+        '''Return pic with nuclei containing bright foci colored'''
+
+        val = self.get_source_pic_nuclei()
+
+        bright_foci_peaces = []
+
+        for cur_cell in self.cells:
+            if cur_cell.foci_mean_value > self.foci_thr:
+                bright_foci_peaces.append(peace(cur_cell.nucleus, cur_cell.coords))
+
+        x_max, y_max = self.nuclei.shape
+
+        sat = (0.5*join_peaces(bright_foci_peaces, x_max, y_max))
+
+        hue = np.ones((x_max, y_max), dtype = float)*color
+
+        pic_shape = [x_max, y_max, 3]
+
+        hsv_result = np.hstack((hue,sat,val))
+
+        hsv_result.resize(pic_shape)
+
+        rgb_result = hsv2rgb(hsv_result).astype(np.uint8)
+
+        return rgb_result
+
+
+    def get_pic_with_nuclei_colored(self):
+        '''Return pic with colored nuclei'''
+
+        pic_nuclei = self.get_source_pic_nuclei()
+
+        nuclei_colored = pic_an_old.color_objects(pic_nuclei, self.nuclei)
+
+        return nuclei_colored
+
     def get_all_pics(self):
         '''Return all calculated pics'''
 
@@ -306,6 +446,34 @@ class image_dir(cell_set):
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
 
 
+    def write_pic_with_bright_nuclei_colored(self, color = 0.):
+        '''Write pic with bright nucle colored'''
+
+        pic_bright_nuclei_path = os.path.join(self.dir_path,'bright_nuclei.jpg')
+
+        pic_bright_nuclei = self.get_pic_with_bright_nuclei_colored(color)
+
+        imsave(pic_bright_nuclei_path, pic_bright_nuclei)
+
+
+    def write_pic_with_bright_foci_colored(self, color = 0.):
+        '''Return pic with nuclei containing bright foci colored'''
+
+        pic_bright_foci_path = os.path.join(self.dir_path,'bright_foci.jpg')
+
+        pic_bright_foci = self.get_pic_with_bright_foci_colored(color)
+
+        imsave(pic_bright_foci_path, pic_bright_foci)
+
+    def write_pic_with_nuclei_colored(self):
+        '''Write pic with colored nuclei to a file'''
+
+        pic_nuclei_colored_path = os.path.join(self.dir_path,'nuclei_colored.jpg')
+
+        pic_nuclei_colored = self.get_pic_with_nuclei_colored()
+
+        imsave(pic_nuclei_colored_path, pic_nuclei_colored)
+
     def write_all_pic_files(self):
         '''Write all calculated pics to files'''
 
@@ -321,11 +489,6 @@ class image_dir(cell_set):
         imsave(pic_seeds_path, seeds)
         imsave(pic_rescaled_foci_path, rescaled_foci_pic)
 
-
-    def number_of_cells(self):
-        '''Return number of cells from this image_dir'''
-
-        return len(self.cells)
 
 
 

@@ -346,7 +346,9 @@ def label_nuclei(binary, min_size):
 
     distance_blured = ndimage.gaussian_filter(distance, 5)
 
-    local_maxi = feature.peak_local_max(distance_blured, indices=False, labels=binary, min_distance = 30)
+    min_dist = np.floor(np.sqrt(min_size)/1.29).astype(np.uint8)
+
+    local_maxi = feature.peak_local_max(distance_blured, indices=False, labels=binary, min_distance=20)
 
     markers = measure.label(local_maxi)
 
@@ -397,11 +399,13 @@ def color_objects(pic_grey,labels):
     if np.max(labels) == 0:
         return pic_grey
 
-    try:
-        hue_step = 1./np.max(labels)
-    except:
-        return pic_grey
-    hue = labels*hue_step
+#    try:
+#        hue_step = 1./np.max(labels)
+#    except:
+#        return pic_grey
+#    hue = labels*hue_step
+
+    hue = labels*np.random.random(1)
 
     val = pic_grey
 
