@@ -23,3 +23,7 @@ make
 # or get your hands dirty and mess with "configure-ng.py" file
 sudo make install
 
+to run gui simply exec
+python simple_gui.py
+
+
