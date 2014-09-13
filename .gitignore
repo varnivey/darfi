@@ -1,3 +1,8 @@
+#ignore results
+data/testdir_short/result.txt
+data/testdir_short/20140812_135907_/*.jpg
+data/testdir_short/20140812_140000_/*.jpg
+data/testdir_short/20140812_140021_/*.jpg
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -51,4 +56,5 @@ coverage.xml
 
 # Sphinx documentation
 docs/_build/
+
 
