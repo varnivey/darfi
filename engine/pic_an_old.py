@@ -29,8 +29,10 @@ from skimage import filter as filt
 from skimage import morphology
 from skimage import feature
 from skimage import segmentation
-from skimage import color
+from skimage import 
+#This module does not exist in python-skimage package from ubuntu repo. Use pip or easy_install instead
 from skimage import restoration
+#
 from skimage import exposure
 from skimage import measure
 from skimage import draw
@@ -38,7 +40,7 @@ from skimage import draw
 
 def calc_temp(image_with_nuclei, image_with_foci, frame_size = 3, cutoff_shift = 0.5):
     '''Temporary function for testing'''
-
+    
     pic_nuclei = image_hsv_value(image_with_nuclei)
     pic_foci   = image_hsv_value(image_with_foci  )
 
