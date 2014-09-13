@@ -6,7 +6,7 @@ to install PyQt4 on ubuntu like linux (tested on 14.01 and 13.10) follow the ins
 sudo apt-get install python-dev python-qt4 python-qt4-dev python-sip python-sip-dev build-essential gfortran libqt4-dev qt4-qmake libpq-dev libsqlite3-dev qt4-dev-tools qt4-doc unixodbc-dev pyqt4-dev-tools
 
 2.
-wget http://downloads.sourceforge.net/project/pyqt/PyQt4/PyQt-4.10.4/PyQt-x11-gpl-4.10.4.tar.gz
+wget http://downloads.sourceforge.net/project/pyqt/sip/sip-4.16.3/sip-4.16.3.tar.gz
 extract to a suitable location. Get into the directory and execute the following
 
 python config.py
