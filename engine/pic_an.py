@@ -64,6 +64,30 @@ class cell:
         self.foci_binary    = results[4]
 
 
+#    def get_nucleus_mean_value(self):
+#        '''Return mean value of the nucleus'''
+#
+#        if not hasattr(self, 'nucleus_mean_value'):
+#
+#            nucleus_values = np.extract(self.nucleus, self.pic_nucleus)
+#
+#            self.nucleus_mean_value = np.mean(nucleus_values, dtype = float)
+#
+#        return self.nucleus_mean_value
+
+
+
+    def get_foci_bg_value(self):
+        '''Return 20th percentile of foci values'''
+
+        if not hasattr(self, 'foci_bg_value'):
+
+            foci_values = np.extract(self.nucleus, self.pic_foci)
+
+            self.foci_bg_value = np.percentile(foci_values, (20))
+
+        return self.foci_bg_value
+
 
 
 class cell_set:
@@ -89,19 +113,19 @@ class cell_set:
 
             new_values.append(nucleus_values/mean_value)
 
-            cur_cell.rescaled_nucleus_pic = cur_cell.pic_nucleus/mean_value
+            cur_cell.nucleus_mean_value = mean_value
 
         p2,p98 = np.percentile(np.concatenate(new_values),(2,98))
 
         for cur_cell in self.cells:
 
-            rescaled_norm_pic = rescale_intensity(cur_cell.rescaled_nucleus_pic, in_range=(p2, p98))
+            rescaled_norm_pic = rescale_intensity(cur_cell.pic_nucleus/cur_cell.nucleus_mean_value, in_range=(p2, p98))
 
             cur_cell.rescaled_nucleus_pic = np.floor(rescaled_norm_pic*200).astype(np.uint8)
 
 
-    def rescale_foci(self):
-        '''Rescale foci in the set'''
+    def get_foci_rescale_values(self):
+        '''Return tuple with min and max values for foci rescale'''
 
         new_foci_values = []
 
@@ -109,17 +133,31 @@ class cell_set:
 
             foci_values = np.extract(cur_cell.nucleus, cur_cell.pic_foci)
 
-            mean_value = np.percentile(foci_values, (20))
+            if hasattr(cur_cell, 'foci_bg_value'):
 
-            new_foci_values.append(foci_values/mean_value)
+                bg_value = cur_cell.foci_bg_value
 
-            cur_cell.rescaled_foci_pic = cur_cell.pic_foci/mean_value
+            else:
 
-        p2,p100 = np.percentile(np.concatenate(new_foci_values),(2,100))
+                bg_value = np.percentile(foci_values, (20))
+
+                cur_cell.foci_bg_value = bg_value
+
+            new_foci_values.append(foci_values/bg_value)
+
+        return  tuple(np.percentile(np.concatenate(new_foci_values),(2,100)))
+
+
+    def rescale_foci(self, foci_rescale_values=None):
+        '''Rescale foci in the set'''
+
+        if foci_rescale_values is None:
+
+            foci_rescale_values = self.get_foci_rescale_values()
 
         for cur_cell in self.cells:
 
-            rescaled_norm_pic = rescale_intensity(cur_cell.rescaled_foci_pic, in_range=(p2, p100))
+            rescaled_norm_pic = rescale_intensity(cur_cell.pic_foci/cur_cell.get_foci_bg_value(), in_range=foci_rescale_values)
 
             cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(np.uint8)
 
