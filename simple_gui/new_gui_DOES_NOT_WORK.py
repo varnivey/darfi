@@ -63,8 +63,12 @@ class DarfiUI(QtGui.QWidget):
     def updateImages(self):
         index = self.fileMenu.selectedIndexes()[0]
         path =  self.model.filePath(index)
-        self.pixmap1.load(path + "3DAPI.TIF")
-        self.pixmap2.load(path + "3FITC.TIF")
+        print path + "/3DAPI.TIF"
+        
+        self.lbl1.setPixmap(QtGui.QPixmap(path + "/3DAPI.TIF"))
+        self.lbl1.update()
+        self.lbl2.setPixmap(QtGui.QPixmap(path + "/3FITC.TIF"))
+        self.lbl2.update()
         
     def initUI(self):      
         windowInitWidth = 1024
@@ -95,7 +99,7 @@ class DarfiUI(QtGui.QWidget):
         fileMenuLayout.addWidget(self.fileMenu)
         
         imagePreviewArea = QtGui.QWidget(self)
-        self.imagePreviewLayout = QtGui.QHBoxLayout(self)
+        self.imagePreviewLayout = QtGui.QHBoxLayout(imagePreviewArea)
         #imagePreviewArea.setFrameShape(QtGui.QFrame.StyledPanel)
 
         self.pixmap1 = QtGui.QPixmap()
