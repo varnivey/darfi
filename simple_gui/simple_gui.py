@@ -44,9 +44,9 @@ class DarfiUI(QtGui.QWidget):
         runCalcButton = QtGui.QPushButton("Calculate")
         runCalcButton.clicked.connect(lambda: self.dummyFunction())
         openSettingsButton = QtGui.QPushButton("Open settings")
-        buttonLayout.addWidget(loadButton)
+        #buttonLayout.addWidget(loadButton)
         buttonLayout.addWidget(runCalcButton)
-        buttonLayout.addWidget(openSettingsButton)
+        #buttonLayout.addWidget(openSettingsButton)
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
         statusArea = QtGui.QFrame(self)
@@ -78,11 +78,13 @@ class DarfiUI(QtGui.QWidget):
 
     def dummyFunction(self):
         #fileInfo = self.model.fileInfo()
-        indexItem = self.fileMenu.selectedIndexes()
-        fileName = self.model.fileName(indexItem[0])
-        filePath = self.model.filePath(indexItem[0])
-        Engine.calc_foci_in_dir(str(filePath))
-        print filePath
+        try:
+            indexItem = self.fileMenu.selectedIndexes()[0]
+            fileName = self.model.fileName(indexItem)
+            filePath = self.model.filePath(indexItem)
+            Engine.calc_foci_in_dir(str(filePath))
+        except IndexError:
+            print "select correct folder"
         
 def main():
     

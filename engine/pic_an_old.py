@@ -29,7 +29,7 @@ from skimage import filter as filt
 from skimage import morphology
 from skimage import feature
 from skimage import segmentation
-from skimage import 
+from skimage import color
 #This module does not exist in python-skimage package from ubuntu repo. Use pip or easy_install instead
 from skimage import restoration
 #
