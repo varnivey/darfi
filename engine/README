@@ -1,0 +1,251 @@
+This file is a part of DARFI project
+
+The engine directory contains files with classes and methods related to
+the actual calculation. On this stage calculation includes several parts:
+
+
+- cell detection and segmentation
+
+- the proper image normalization and brightness scaling algorithm for
+further calculation and data presentation
+
+- fluorescent foci detection and calculation of their properties
+
+- generation of the output images
+
+
+
+The engine directory contains several files:
+
+
+- pic_an.py
+
+This file contains the basic classes (cell, cell_set and image_dir),
+which should be used externally for image loading and saving, performing 
+calculations.
+
+- pic_an_calc.py
+
+This file contains some internal functions which should not be used
+explicitly in most cases.
+
+- pic_an_old.py
+
+It is the first file of the project. This file will be deprecated soon, 
+but as for now it contains some functions, which are still in use.
+These functions should be revised and moved to pic_an.py and 
+pic_an_calc.py.
+
+- pic_an_dir.py
+
+This file contains sample functions which run calculations and save the
+results.
+
+- pic_an_settings.py
+
+This file contains the classes related to calculation settings 
+(setting and settings). These classes are not used for calculations
+themselves. All the options are to be passed to the functions in
+pic_an.py as arguments. The classes from pic_an_settings.py should
+be used for higher level calculation options implementation.
+
+
+
+Here the available calculation options are going to be discussed in 
+more details. All the options should be passed as arguments to the 
+methods of cell_set and image_dir instances.
+
+The options list:
+
+
+######################### nuclei_name #############################
+
+type 'unicode'
+
+should be passed to:
+
+pic_an.image_dir.__init__(nuclei_name=nuclei_name)
+
+The name mask for the files used for cell (or nuclei) detection
+
+
+########################## foci_name ##############################
+
+type 'unicode'
+
+should be passed to:
+
+pic_an.image_dir.__init__(nuclei_name=nuclei_name)
+
+The name mask for the files used for cell (or nuclei) detection
+
+
+########################## outfile ################################
+
+type 'unicode'
+
+should be passed to:
+
+pic_an.cell_set.write_parameters(outfilename=outfile)
+
+The name for the calculation results for the cell_set given
+
+
+####################### sensitivity ###############################
+
+type 'int'
+
+range: 0 to 10
+
+default: 8
+
+should be passed to:
+
+pic_an.image_dir.load_separate_images(sensitivity = sensitivity)
+
+The sensitivity of the cell detection algorithm. Default value is 8.
+If sensitivity is low, some blurred cell edges could be missed, but
+if the value is high the noise can cause false cell detection.
+
+
+###################### cell_min_size ##############################
+
+type 'int'
+
+range: 0 to 4294967296
+
+default: 8
+
+should be passed to:
+
+pic_an.image_dir.load_separate_images(cell_min_size = cell_min_size)
+
+The minimum area of the cell in pixels. The objects with area below
+this level are removed during cell detection algorithm.
+
+
+#################### peak_min_val_perc ############################
+
+type 'float'
+
+range: 0. to 100.
+
+default: 60.
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(peak_min_val_perc = peak_min_val_perc)
+
+Only the points brighter than peak_min_val_perc percentile of the foci
+picture points can be the seeds for further foci search.
+
+
+#################### foci_min_val_perc ############################
+
+type 'float'
+
+range: 0. to 100.
+
+default: 90.
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(foci_min_val_perc = foci_min_val_perc)
+
+Only the points brighter than foci_min_val_perc percentile of the foci
+vicinity points can be considered as foci points.
+
+
+####################### foci_radius ###############################
+
+type 'int'
+
+range: 0 to 4294967296
+
+default: 10
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(foci_radius = foci_radius)
+
+The radius of the focus vicinity around the foci seed, in which foci
+point search is performed.
+
+
+################### foci_min_level_on_bg ##########################
+
+type 'int'
+
+range: 0 to 255
+
+default: 40
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(foci_min_level_on_bg = foci_min_level_on_bg)
+
+The minimal difference between the brightnesses of the focus points and 
+background points of the focus vicinity. The background level is equal to
+the 20th percentile brightness of the foci vicinity points.
+
+
+##################### foci_rescale_min ############################
+##################### foci_rescale_max ############################
+
+type 'float'
+
+range: 0. to 255.
+
+default: None
+
+should be passed to:
+
+pic_an.cell_set.rescale_foci(foci_rescale_values=(foci_rescale_min, foci_rescale_max))
+
+These parameters determine the minimum and maximum values for foci
+picture rescaling. If None is given the values are obtained using
+pic_an.cell_set.get_foci_rescale_values()
+
+
+####################### nuclei_color ##############################
+
+type 'float'
+
+range: 0. to 1.
+
+default: 0.66
+
+should be passed to:
+
+pic_an.image_dir.write_all_pic_files(nuclei_color=nuclei_color)
+
+Hue of the cell (nucleus) points on the final merged picture.
+
+
+######################## foci_color ###############################
+
+type 'float'
+
+range: 0. to 1.
+
+default: 0.33
+
+should be passed to:
+
+pic_an.image_dir.write_all_pic_files(nuclei_color=nuclei_color)
+
+Hue of the foci points on the final merged picture.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
