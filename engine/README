@@ -29,13 +29,6 @@ calculations.
 This file contains some internal functions which should not be used
 explicitly in most cases.
 
-- pic_an_old.py
-
-It is the first file of the project. This file will be deprecated soon, 
-but as for now it contains some functions, which are still in use.
-These functions should be revised and moved to pic_an.py and 
-pic_an_calc.py.
-
 - pic_an_dir.py
 
 This file contains sample functions which run calculations and save the

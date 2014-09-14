@@ -30,7 +30,10 @@ from skimage.io import imread
 #from scipy.misc import imsave
 #from scipy.misc import imread
 
-import pic_an_old
+#import pic_an_old
+from pic_an_calc import find_nuclei
+from pic_an_calc import color_objects
+from pic_an_calc import nice_merged_pic
 
 #from pic_an_old import foci_plm
 from pic_an_calc import foci_plm
@@ -290,7 +293,7 @@ class image_dir(cell_set):
         pic_nuclei = self.get_source_pic_nuclei()
         pic_foci   = self.get_source_pic_foci()
 
-        nuclei = pic_an_old.find_nuclei(pic_nuclei, sensitivity, min_cell_size)
+        nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
 
         for label_num in np.arange(np.max(nuclei)) + 1:
 
@@ -342,8 +345,8 @@ class image_dir(cell_set):
         seeds               = (255*join_peaces(seed_peaces, x_max, y_max)).astype(np.uint8)
         foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
 
-        nuclei_colored = pic_an_old.color_objects(pic_nuclei, self.nuclei)
-        merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, nuclei_color, foci_color)
+        nuclei_colored = color_objects(pic_nuclei, self.nuclei)
+        merged = nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, nuclei_color, foci_color)
 
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
 
