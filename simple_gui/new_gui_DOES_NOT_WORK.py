@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 import sys,os,functools
 sys.path.append('../engine')
 import pic_an_dir as Engine
@@ -62,12 +63,14 @@ class DarfiUI(QtGui.QWidget):
         
     def updateImages(self):
         index = self.fileMenu.selectedIndexes()[0]
+        #print QtGui.QDirModel.rowCount(index)
         path =  self.model.filePath(index)
-        print path + "/3DAPI.TIF"
-        
-        self.lbl1.setPixmap(QtGui.QPixmap(path + "/3DAPI.TIF"))
+        print path + "/3FITC.TIF"
+        pix1 = QtGui.QPixmap(path + "/3DAPI.TIF")
+        self.lbl1.setPixmap(pix1.scaledToWidth(300))
         self.lbl1.update()
-        self.lbl2.setPixmap(QtGui.QPixmap(path + "/3FITC.TIF"))
+        pix2 = QtGui.QPixmap(path + '/3FITС.TIF')
+        self.lbl2.setPixmap(pix2.scaledToWidth(300))
         self.lbl2.update()
         
     def initUI(self):      
@@ -80,14 +83,8 @@ class DarfiUI(QtGui.QWidget):
         self.model = CheckableDirModel()
         self.model.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
         self.fileMenu = QtGui.QListView(self)
-        #self.fileMenu.setHeaderHidden(1)
         self.fileMenu.setModel(self.model)
         self.fileMenu.clicked.connect(lambda: self.updateImages())
-        #self.fileMenu.hideColumn(1)
-        #self.fileMenu.hideColumn(2)
-        #self.fileMenu.hideColumn(3)
-        #self.fileMenu.setItemsExpandable(False)
-        #self.fileMenu.setRootIndex(self.model.index(QtCore.QDir.homePath()))
 
         fileMenuLayout = QtGui.QVBoxLayout(fileMenuArea)
         selectFolderButton = QtGui.QPushButton("Select workdir")
@@ -98,18 +95,18 @@ class DarfiUI(QtGui.QWidget):
         fileMenuLayout.addWidget(self.checkAllBox)
         fileMenuLayout.addWidget(self.fileMenu)
         
+
         imagePreviewArea = QtGui.QWidget(self)
-        self.imagePreviewLayout = QtGui.QHBoxLayout(imagePreviewArea)
+        imagePreviewLayout = QtGui.QHBoxLayout(imagePreviewArea)
+        imagePreviewLayout.setAlignment(QtCore.Qt.AlignTop)
         #imagePreviewArea.setFrameShape(QtGui.QFrame.StyledPanel)
 
-        self.pixmap1 = QtGui.QPixmap()
-        self.pixmap2 = QtGui.QPixmap()
+
         self.lbl1 = QtGui.QLabel(self)
         self.lbl2 = QtGui.QLabel(self)
-        self.lbl1.setPixmap(self.pixmap1)
-        self.lbl2.setPixmap(self.pixmap2)
-        self.imagePreviewLayout.addWidget(self.lbl1)
-        self.imagePreviewLayout.addWidget(self.lbl2)
+
+        imagePreviewLayout.addWidget(self.lbl1)
+        imagePreviewLayout.addWidget(self.lbl2)
 
         buttonArea = QtGui.QWidget(self)
         buttonLayout = QtGui.QVBoxLayout(buttonArea)
