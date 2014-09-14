@@ -310,7 +310,7 @@ class image_dir(cell_set):
         self.nuclei = nuclei
 
 
-    def get_all_pics(self):
+    def get_all_pics(self, nuclei_color = 0.66, foci_color = 0.33):
         '''Return all calculated pics'''
 
         if self.number_of_cells() == 0:
@@ -343,12 +343,12 @@ class image_dir(cell_set):
         foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
 
         nuclei_colored = pic_an_old.color_objects(pic_nuclei, self.nuclei)
-        merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, 0.66, 0.33)
+        merged = pic_an_old.nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, nuclei_color, foci_color)
 
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
 
 
-    def write_all_pic_files(self):
+    def write_all_pic_files(self, nuclei_color = 0.66, foci_color = 0.33):
         '''Write all calculated pics to files'''
 
         pic_colored_nuclei_path = os.path.join(self.dir_path,'colored_nuclei.jpg')
@@ -356,7 +356,8 @@ class image_dir(cell_set):
         pic_seeds_path          = os.path.join(self.dir_path,'seeds_foci.jpg')
         pic_rescaled_foci_path  = os.path.join(self.dir_path,'rescaled_foci.jpg')
 
-        rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged = self.get_all_pics()
+        rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged = \
+                self.get_all_pics(nuclei_color, foci_color)
 
         imsave(pic_colored_nuclei_path, nuclei_colored)
         imsave(pic_merged_path, merged)
