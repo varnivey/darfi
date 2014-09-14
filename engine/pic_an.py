@@ -50,12 +50,13 @@ class cell:
         self.area         = np.sum(nucleus)
 
 
-    def calculate_foci(self):
+    def calculate_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
         '''Finds foci and its parameters'''
 
-        nucleus_new = (self.pic_foci != 0)
+        nucleus_new = (self.rescaled_nucleus_pic != 0)
 
-        results = foci_plm(self.rescaled_foci_pic, nucleus_new)
+        results = foci_plm(self.rescaled_foci_pic, nucleus_new, peak_min_val_perc,\
+                foci_min_val_perc, foci_radius, foci_min_level_on_bg)
 
         self.foci_number    = results[0]
         self.foci_soid      = results[1]
@@ -162,7 +163,7 @@ class cell_set:
             cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(np.uint8)
 
 
-    def calculate_foci(self):
+    def calculate_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
         '''Calculate foci_plm for all cells'''
 
         remained = len(self.cells)
@@ -172,15 +173,18 @@ class cell_set:
         print 'Foci calculation have started for', name
 
         for cur_cell in self.cells:
-            cur_cell.calculate_foci()
+            cur_cell.calculate_foci(peak_min_val_perc, foci_min_val_perc, foci_radius, foci_min_level_on_bg)
 
             remained -= 1
 
             if remained == 0:
                 print 'Foci calculation have finished for', name
 
+            elif (remained == 1):
+                print remained, 'nucleus remained for', name
+
             else:
-                print remained, 'nuclei remained for', name
+                print remained, 'nuclei  remained for', name
 
 
     def calculate_foci_parameters(self):
