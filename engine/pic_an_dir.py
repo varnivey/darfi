@@ -38,7 +38,8 @@ def calc_multiple_dirs(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF'
 
 def calc_foci_in_dir(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF', outfile = 'result.txt',\
         sensitivity = 8., min_cell_size = 1500, peak_min_val_perc = 60, foci_min_val_perc = 90,\
-        foci_radius = 10, foci_min_level_on_bg = 40, nuclei_color = 0.66, foci_color = 0.33):
+        foci_radius = 10, foci_min_level_on_bg = 40, foci_rescale_min = None, foci_rescale_max = None,\
+        nuclei_color = 0.66, foci_color = 0.33):
     '''Calculates foci from dir'''
 
     dirs_with_images = [os.path.join(dir_path, directory) for directory in os.listdir(dir_path)]
@@ -81,7 +82,7 @@ def calc_foci_in_dir(dir_path, nuclei_name='3DAPI.TIF', foci_name='3FITС.TIF', 
     print "We have", len(cell_set.cells), "cells to analyze for", name
 
     cell_set.rescale_nuclei()
-    cell_set.rescale_foci()
+    cell_set.rescale_foci((foci_rescale_min, foci_rescale_max))
 
     cell_set.calculate_foci(peak_min_val_perc, foci_min_val_perc, foci_radius, foci_min_level_on_bg)
     cell_set.calculate_foci_parameters()

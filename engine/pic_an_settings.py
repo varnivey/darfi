@@ -68,8 +68,8 @@ class settings():
 
     def __init__(self, min_cell_size = 1500, cell_detect_sensitivity = 5, \
             peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10,\
-            foci_min_level_on_bg = 40, foci_rescale_max = 150,\
-            nuclei_color = 0.66, foci_color = 0.33):
+            foci_min_level_on_bg = 40, foci_rescale_min = 0.88,\
+            foci_rescale_max = 1.875, nuclei_color = 0.66, foci_color = 0.33):
         '''Initialize settings for calculation'''
 
         min_cell_size_info = 'minimum cell size in pixels'
@@ -114,11 +114,18 @@ class settings():
         foci_min_level_on_bg_max = 255
 
 
+        foci_rescale_min_info = 'foci rescale minimum value'
+        foci_rescale_min_stype = float
+        foci_rescale_min_default = 0.88
+        foci_rescale_min_min    = 0.
+        foci_rescale_min_max    = 255.
+
+
         foci_rescale_max_info = 'foci rescale maximum value'
-        foci_rescale_max_stype = int
-        foci_rescale_max_default = 150
-        foci_rescale_max_min    = 0
-        foci_rescale_max_max    = 255
+        foci_rescale_max_stype = float
+        foci_rescale_max_default = 1.875
+        foci_rescale_max_min    = 0.
+        foci_rescale_max_max    = 255.
 
 
         nuclei_color_info = 'nuclei color on the merged image'
@@ -147,6 +154,8 @@ class settings():
                 foci_radius_default, foci_radius_min, foci_radius_max)
         self.foci_min_level_on_bg = setting(foci_min_level_on_bg_info, foci_min_level_on_bg_stype,\
                 foci_min_level_on_bg_default, foci_min_level_on_bg_min, foci_min_level_on_bg_max)
+        self.foci_rescale_min = setting(foci_rescale_min_info, foci_rescale_min_stype,\
+                foci_rescale_min_default, foci_rescale_min_min, foci_rescale_min_max)
         self.foci_rescale_max = setting(foci_rescale_max_info, foci_rescale_max_stype,\
                 foci_rescale_max_default, foci_rescale_max_min, foci_rescale_max_max)
         self.nuclei_color = setting(nuclei_color_info, nuclei_color_stype,\
@@ -160,6 +169,7 @@ class settings():
         self.foci_min_val_perc.set_value(foci_min_val_perc)
         self.foci_radius.set_value(foci_radius)
         self.foci_min_level_on_bg.set_value(foci_min_level_on_bg)
+        self.foci_rescale_min.set_value(foci_rescale_min)
         self.foci_rescale_max.set_value(foci_rescale_max)
         self.nuclei_color.set_value(nuclei_color)
         self.foci_color.set_value(foci_color)

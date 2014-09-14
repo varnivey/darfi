@@ -149,10 +149,10 @@ class cell_set:
         return  tuple(np.percentile(np.concatenate(new_foci_values),(2,100)))
 
 
-    def rescale_foci(self, foci_rescale_values=None):
+    def rescale_foci(self, foci_rescale_values=(None, None)):
         '''Rescale foci in the set'''
 
-        if foci_rescale_values is None:
+        if foci_rescale_values == (None, None):
 
             foci_rescale_values = self.get_foci_rescale_values()
 
