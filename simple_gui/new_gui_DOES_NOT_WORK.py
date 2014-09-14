@@ -65,13 +65,25 @@ class DarfiUI(QtGui.QWidget):
         index = self.fileMenu.selectedIndexes()[0]
         #print QtGui.QDirModel.rowCount(index)
         path =  self.model.filePath(index)
-        print path + "/3FITC.TIF"
-        pix1 = QtGui.QPixmap(path + "/3DAPI.TIF")
-        self.lbl1.setPixmap(pix1.scaledToWidth(300))
-        self.lbl1.update()
-        pix2 = QtGui.QPixmap(path + '/3FITС.TIF')
-        self.lbl2.setPixmap(pix2.scaledToWidth(300))
-        self.lbl2.update()
+        #QtCore.QStringList(filters)
+        filters = ["*.TIF", "*.tif"]
+        imageDir = QtCore.QDir(path)
+        imageDir.setNameFilters(filters)
+        try:
+            imageName1 = imageDir.entryList()[0]
+            imageName2 = imageDir.entryList()[1]
+            pix1 = QtGui.QPixmap(path + "/" + imageName1)
+            self.lbl1.setPixmap(pix1.scaledToWidth(300))
+            self.lbl1.update()
+            pix2 = QtGui.QPixmap(path + "/" + imageName2)
+            self.lbl2.setPixmap(pix2.scaledToWidth(300))
+            self.lbl2.update()
+        except IndexError:
+            print "No data image"
+        
+        #print imageDir.entryList()[0]
+        #print imageList[1].absolutePath()
+
         
     def initUI(self):      
         windowInitWidth = 1024
