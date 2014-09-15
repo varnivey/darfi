@@ -211,6 +211,8 @@ class DarfiUI(QtGui.QWidget):
 
         self.initUI()
         
+    def resizeEvent( self, oldsize):
+        self.updateImages()
     
     def openSettings(self):
         self.settings = SettingsWindow(self,self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
@@ -254,14 +256,14 @@ class DarfiUI(QtGui.QWidget):
                 imageName1 = imageDir.entryList()[0]
                 imageName2 = imageDir.entryList()[1]
                 pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
-                self.lbl1.setPixmap(pix1)
+                self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
                 
                 self.lbl1.update()
                 pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
-                self.lbl2.setPixmap(pix2)
+                self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl2.update()
             except IndexError:
-                print "No data image"
+                ()#print "No data image"
                 
             filters2 = ["*.jpg", "*.JPG"]
             imageDir2 = QtCore.QDir(path)
@@ -272,19 +274,19 @@ class DarfiUI(QtGui.QWidget):
                 imageName3 = imageDir2.entryList()[2]
                 imageName4 = imageDir2.entryList()[3]
                 pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
-                self.lbl3.setPixmap(pix1)
+                self.lbl3.setPixmap(pix1.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl3.update()
                 pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
-                self.lbl4.setPixmap(pix2)
+                self.lbl4.setPixmap(pix2.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl4.update()
                 pix3 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName3)
-                self.lbl5.setPixmap(pix3)
+                self.lbl5.setPixmap(pix3.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl5.update()
                 pix4 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName4)
-                self.lbl6.setPixmap(pix4)
+                self.lbl6.setPixmap(pix4.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl6.update()
             except IndexError:
-                print "No data image"
+                ()#print "No data image"
         except IndexError:
             ()
         
@@ -318,29 +320,31 @@ class DarfiUI(QtGui.QWidget):
 
         imagePreviewArea = QtGui.QScrollArea(self)
         imagePreviewLayout = QtGui.QGridLayout(imagePreviewArea)
+        
+            
         #imagePreviewLayout.setSpacing(0)
         self.lbl1 = QtGui.QLabel(self)
         #self.lbl1.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
-        self.lbl1.setScaledContents(True)
+        #self.lbl1.setScaledContents(True)
         imagePreviewLayout.addWidget(self.lbl1, 0,0)
         self.lbl2 = QtGui.QLabel(self)
-        self.lbl2.setScaledContents(True)
+        #self.lbl2.setScaledContents(True)
         #self.lbl2.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl2, 0,1)
         self.lbl3 = QtGui.QLabel(self)
-        self.lbl3.setScaledContents(True)
+        #self.lbl3.setScaledContents(True)
         #self.lbl3.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl3, 1,0)
         self.lbl4 = QtGui.QLabel(self)
-        self.lbl4.setScaledContents(True)
+        #self.lbl4.setScaledContents(True)
         #self.lbl4.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl4, 1,1)
         self.lbl5 = QtGui.QLabel(self)
-        self.lbl5.setScaledContents(True)
+        #self.lbl5.setScaledContents(True)
         #self.lbl5.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl5, 2,0)
         self.lbl6 = QtGui.QLabel(self)
-        self.lbl6.setScaledContents(True)
+        #self.lbl6.setScaledContents(True)
         #self.lbl6.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl6, 2,1)
        
