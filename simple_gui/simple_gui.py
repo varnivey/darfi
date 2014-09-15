@@ -218,8 +218,8 @@ class DarfiUI(QtGui.QWidget):
         self.foci_rescale_max,self.nuclei_color,self.foci_color)
         self.settings.exec_()
         self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
-    self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-    self.foci_rescale_max,self.nuclei_color,self.foci_color = self.settings.getSettings()
+        self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
+        self.foci_rescale_max,self.nuclei_color,self.foci_color = self.settings.getSettings()
         
     def setNuclei_name(self,text):
         self.nuclei_name = text
@@ -229,11 +229,16 @@ class DarfiUI(QtGui.QWidget):
         
     def setOutfile(self,text):
         self.outfile = text
+        
 
     def selectWorkDir(self):
         self.model.unCheckAll()
         self.workDir=QtGui.QFileDialog.getExistingDirectory()
         self.fileMenu.setRootIndex(self.model.index(self.workDir))
+    
+    def selectFileName(self):
+        self.outfile=QtGui.QFileDialog.getSaveFileName()
+        print self.outfile
         
     def updateImages(self):
         try:
@@ -331,7 +336,7 @@ class DarfiUI(QtGui.QWidget):
         self.lbl6 = QtGui.QLabel(self)
         imagePreviewLayout.addWidget(self.lbl6, 2,1)
        
-################## BUTTON AREA  ########################################
+################## SETTINGS AREA  ########################################
 
         buttonArea = QtGui.QWidget(self)
         buttonLayout = QtGui.QVBoxLayout(buttonArea)
@@ -368,6 +373,10 @@ class DarfiUI(QtGui.QWidget):
         buttonLayout.addWidget(outfileFieldLabel)
         buttonLayout.addWidget(outfileField)
         
+        self.saveFile = QtGui.QPushButton("Choose save file")
+        self.saveFile.clicked.connect(self.selectFileName)
+#        buttonLayout.addWidget(self.saveFile)
+        
         self.openSettingsButton = QtGui.QPushButton("Open settings")
         self.openSettingsButton.clicked.connect(self.openSettings)
         buttonLayout.addWidget(self.openSettingsButton)
@@ -378,6 +387,7 @@ class DarfiUI(QtGui.QWidget):
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
 ################## STATUS AREA  ########################################
+
         self.statusArea = QtGui.QTableWidget(self)
         self.statusArea.setRowCount(2)
         self.statusArea.setColumnCount(7)
