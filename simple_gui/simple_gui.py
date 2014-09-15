@@ -245,6 +245,7 @@ class DarfiUI(QtGui.QWidget):
         path =  self.model.filePath(index)
         #QtCore.QStringList(filters)
         filters = ["*.TIF", "*.tif"]
+        
         imageDir = QtCore.QDir(path)
         imageDir.setNameFilters(filters)
         try:
@@ -256,6 +257,29 @@ class DarfiUI(QtGui.QWidget):
             pix2 = QtGui.QPixmap(path + "/" + imageName2)
             self.lbl2.setPixmap(pix2.scaledToWidth(300))
             self.lbl2.update()
+        except IndexError:
+            print "No data image"
+            
+        filters2 = ["*.jpg", "*.JPG"]
+        imageDir2 = QtCore.QDir(path)
+        imageDir2.setNameFilters(filters2)
+        try:
+            imageName1 = imageDir2.entryList()[0]
+            imageName2 = imageDir2.entryList()[1]
+            imageName3 = imageDir2.entryList()[2]
+            imageName4 = imageDir2.entryList()[3]
+            pix1 = QtGui.QPixmap(path + "/" + imageName1)
+            self.lbl3.setPixmap(pix1.scaledToWidth(300))
+            self.lbl3.update()
+            pix2 = QtGui.QPixmap(path + "/" + imageName2)
+            self.lbl4.setPixmap(pix2.scaledToWidth(300))
+            self.lbl4.update()
+            pix3 = QtGui.QPixmap(path + "/" + imageName3)
+            self.lbl5.setPixmap(pix3.scaledToWidth(300))
+            self.lbl5.update()
+            pix4 = QtGui.QPixmap(path + "/" + imageName4)
+            self.lbl6.setPixmap(pix4.scaledToWidth(300))
+            self.lbl6.update()
         except IndexError:
             print "No data image"
         
@@ -288,16 +312,40 @@ class DarfiUI(QtGui.QWidget):
         
 
         imagePreviewArea = QtGui.QWidget(self)
-        imagePreviewLayout = QtGui.QHBoxLayout(imagePreviewArea)
-        imagePreviewLayout.setAlignment(QtCore.Qt.AlignTop)
+        imagePreviewLayout = QtGui.QVBoxLayout(imagePreviewArea)
+        imagePreviewLayout.setSpacing(0)
+       
+        
+        #imagePreviewLayout.setAlignment(QtCore.Qt.AlignTop)
         #imagePreviewArea.setFrameShape(QtGui.QFrame.StyledPanel)
-
-
+        imagePreviewArea1 = QtGui.QWidget(self)
+        imagePreviewLayout1 = QtGui.QHBoxLayout(imagePreviewArea1)
         self.lbl1 = QtGui.QLabel(self)
         self.lbl2 = QtGui.QLabel(self)
 
-        imagePreviewLayout.addWidget(self.lbl1)
-        imagePreviewLayout.addWidget(self.lbl2)
+        imagePreviewLayout1.addWidget(self.lbl1)
+        imagePreviewLayout1.addWidget(self.lbl2)
+        
+        imagePreviewArea2 = QtGui.QWidget(self)
+        imagePreviewLayout2 = QtGui.QHBoxLayout(imagePreviewArea2)
+        self.lbl3 = QtGui.QLabel(self)
+        self.lbl4 = QtGui.QLabel(self)
+
+        imagePreviewLayout2.addWidget(self.lbl3)
+        imagePreviewLayout2.addWidget(self.lbl4)
+        
+        imagePreviewArea3 = QtGui.QWidget(self)
+        imagePreviewLayout3 = QtGui.QHBoxLayout(imagePreviewArea3)
+        self.lbl5 = QtGui.QLabel(self)
+        self.lbl6 = QtGui.QLabel(self)
+
+        imagePreviewLayout3.addWidget(self.lbl5)
+        imagePreviewLayout3.addWidget(self.lbl6)
+        
+        imagePreviewLayout.addWidget(imagePreviewArea1)
+        imagePreviewLayout.addWidget(imagePreviewArea2)
+        imagePreviewLayout.addWidget(imagePreviewArea3)
+        
 
 
         buttonArea = QtGui.QWidget(self)
