@@ -364,10 +364,10 @@ class image_dir(cell_set):
     def write_all_pic_files(self, nuclei_color = 0.66, foci_color = 0.33):
         '''Write all calculated pics to files'''
 
-        pic_colored_nuclei_path = os.path.join(self.dir_path,'colored_nuclei.jpg')
-        pic_merged_path         = os.path.join(self.dir_path,'merged.jpg')
-        pic_seeds_path          = os.path.join(self.dir_path,'seeds_foci.jpg')
-        pic_rescaled_foci_path  = os.path.join(self.dir_path,'rescaled_foci.jpg')
+        pic_colored_nuclei_path = os.path.join(self.dir_path,u'colored_nuclei.jpg')
+        pic_merged_path         = os.path.join(self.dir_path,u'merged.jpg')
+        pic_seeds_path          = os.path.join(self.dir_path,u'seeds_foci.jpg')
+        pic_rescaled_foci_path  = os.path.join(self.dir_path,u'rescaled_foci.jpg')
 
         rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged = \
                 self.get_all_pics(nuclei_color, foci_color)
