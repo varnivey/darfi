@@ -209,7 +209,7 @@ class DarfiUI(QtGui.QWidget):
     
     def __init__(self):
         super(DarfiUI, self).__init__()
-        self.workDir=QtCore.QDir.homePath()
+        self.workDir=QtCore.QDir.currentPath()
         self.nuclei_name = u'3DAPI.TIF'
         self.foci_name = u'3FITС.TIF'
         self.outfile = u'result.txt'
@@ -251,8 +251,13 @@ class DarfiUI(QtGui.QWidget):
 
     def selectWorkDir(self):
         self.model.unCheckAll()
-        self.workDir=QtGui.QFileDialog.getExistingDirectory()
-        self.fileMenu.setRootIndex(self.model.index(self.workDir))
+        
+        #self.workDir=
+        tempDir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
+        print type(tempDir)
+        if tempDir != "":
+            self.workDir=tempDir
+            self.fileMenu.setRootIndex(self.model.index(self.workDir))
     
     def selectFileName(self):
         self.outfile=QtGui.QFileDialog.getSaveFileName()
