@@ -390,6 +390,10 @@ class DarfiUI(QtGui.QWidget):
         self.openSettingsButton = QtGui.QPushButton("Open settings")
         self.openSettingsButton.clicked.connect(self.openSettings)
         buttonLayout.addWidget(self.openSettingsButton)
+        self.pbar = QtGui.QProgressBar(self)
+        
+        self.pbar.hide()
+        buttonLayout.addWidget(self.pbar)
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
         self.statusArea = QtGui.QTableWidget(self)
@@ -455,6 +459,10 @@ class DarfiUI(QtGui.QWidget):
         cell_set = pic_an.cell_set(name=name, cells=[])
 
         remained = len(image_dirs)
+        pbarval = 0
+        self.pbar.show()
+        self.pbar.setValue(pbarval)
+        pbarstep = 100 / remained
 
         print "We have", remained, 'images to load for', name
 
@@ -462,7 +470,8 @@ class DarfiUI(QtGui.QWidget):
 
         for image_dir in image_dirs:
             image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-
+            pbarval +=pbarstep
+            self.pbar.setValue(pbarval)
             remained -= 1
 
             if remained == 0:
@@ -481,6 +490,7 @@ class DarfiUI(QtGui.QWidget):
         cell_set.rescale_nuclei()
         cell_set.rescale_foci((None, None))
         self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
+        self.pbar.setValue(100)
 
 
     def runCalc(self):
@@ -506,14 +516,18 @@ class DarfiUI(QtGui.QWidget):
         cell_set = pic_an.cell_set(name=name, cells=[])
 
         remained = len(image_dirs)
-
+        pbarval = 0
+        self.pbar.show()
+        self.pbar.setValue(pbarval)
+        pbarstep = 100 / remained
         print "We have", remained, 'images to load for', name
 
         print "Image loading have started for", name
 
         for image_dir in image_dirs:
             image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-
+            pbarval +=pbarstep
+            self.pbar.setValue(pbarval)
             remained -= 1
 
             if remained == 0:
@@ -544,6 +558,7 @@ class DarfiUI(QtGui.QWidget):
         for image_dir in image_dirs:
             image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
         self.statusArea.show()
+        self.pbar.setValue(100)
 
         #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
