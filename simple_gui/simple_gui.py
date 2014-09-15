@@ -1,4 +1,22 @@
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
+
+#    This file is a part of DARFI project (dna Damage And Repair Foci Imager)
+#    Copyright (C) 2014  Ivan V. Ozerov, Grigoriy A. Armeev
+#
+#    This program is free software; you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License version 2 as·
+#    published by the Free Software Foundation.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License v2 for more details.
+#
+#    You should have received a copy of the GNU General Public License along
+#    with this program; if not, write to the Free Software Foundation, Inc.,
+#    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
+
 import sys,os,functools
 sys.path.append('../engine')
 import pic_an
@@ -558,6 +576,7 @@ class DarfiUI(QtGui.QWidget):
             image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
         self.statusArea.show()
         self.pbar.setValue(100)
+        self.updateImages()
 
         #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
