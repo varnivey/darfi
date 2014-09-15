@@ -193,13 +193,13 @@ class DarfiUI(QtGui.QWidget):
     def __init__(self):
         super(DarfiUI, self).__init__()
         self.workDir=QtCore.QDir.homePath()
-        self.nuclei_name = '3DAPI.TIF'
-        self.foci_name = '3FITС.TIF'
-        self.outfile = 'result.txt'
+        self.nuclei_name = u'3DAPI.TIF'
+        self.foci_name = u'3FITС.TIF'
+        self.outfile = u'result.txt'
         self.sensitivity = 8.0
         self.min_cell_size = 1500
-        self.peak_min_val_perc = 60
-        self.foci_min_val_perc = 90
+        self.peak_min_val_perc = 60.
+        self.foci_min_val_perc = 90.
         self.foci_radius = 10
         self.foci_min_level_on_bg = 40
         self.foci_rescale_min = None
