@@ -253,11 +253,12 @@ class DarfiUI(QtGui.QWidget):
             try:
                 imageName1 = imageDir.entryList()[0]
                 imageName2 = imageDir.entryList()[1]
-                pix1 = QtGui.QPixmap(path + "/" + imageName1)
-                self.lbl1.setPixmap(pix1.scaledToWidth(300))
+                pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
+                self.lbl1.setPixmap(pix1)
+                
                 self.lbl1.update()
-                pix2 = QtGui.QPixmap(path + "/" + imageName2)
-                self.lbl2.setPixmap(pix2.scaledToWidth(300))
+                pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
+                self.lbl2.setPixmap(pix2)
                 self.lbl2.update()
             except IndexError:
                 print "No data image"
@@ -270,17 +271,17 @@ class DarfiUI(QtGui.QWidget):
                 imageName2 = imageDir2.entryList()[1]
                 imageName3 = imageDir2.entryList()[2]
                 imageName4 = imageDir2.entryList()[3]
-                pix1 = QtGui.QPixmap(path + "/" + imageName1)
-                self.lbl3.setPixmap(pix1.scaledToWidth(300))
+                pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
+                self.lbl3.setPixmap(pix1)
                 self.lbl3.update()
-                pix2 = QtGui.QPixmap(path + "/" + imageName2)
-                self.lbl4.setPixmap(pix2.scaledToWidth(300))
+                pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
+                self.lbl4.setPixmap(pix2)
                 self.lbl4.update()
-                pix3 = QtGui.QPixmap(path + "/" + imageName3)
-                self.lbl5.setPixmap(pix3.scaledToWidth(300))
+                pix3 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName3)
+                self.lbl5.setPixmap(pix3)
                 self.lbl5.update()
-                pix4 = QtGui.QPixmap(path + "/" + imageName4)
-                self.lbl6.setPixmap(pix4.scaledToWidth(300))
+                pix4 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName4)
+                self.lbl6.setPixmap(pix4)
                 self.lbl6.update()
             except IndexError:
                 print "No data image"
@@ -315,41 +316,34 @@ class DarfiUI(QtGui.QWidget):
         fileMenuLayout.addWidget(self.fileMenu)
         
 
-        imagePreviewArea = QtGui.QWidget(self)
-        imagePreviewLayout = QtGui.QVBoxLayout(imagePreviewArea)
-        imagePreviewLayout.setSpacing(0)
-       
-        
-        #imagePreviewLayout.setAlignment(QtCore.Qt.AlignTop)
-        #imagePreviewArea.setFrameShape(QtGui.QFrame.StyledPanel)
-        imagePreviewArea1 = QtGui.QWidget(self)
-        imagePreviewLayout1 = QtGui.QHBoxLayout(imagePreviewArea1)
+        imagePreviewArea = QtGui.QScrollArea(self)
+        imagePreviewLayout = QtGui.QGridLayout(imagePreviewArea)
+        #imagePreviewLayout.setSpacing(0)
         self.lbl1 = QtGui.QLabel(self)
+        #self.lbl1.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
+        self.lbl1.setScaledContents(True)
+        imagePreviewLayout.addWidget(self.lbl1, 0,0)
         self.lbl2 = QtGui.QLabel(self)
-
-        imagePreviewLayout1.addWidget(self.lbl1)
-        imagePreviewLayout1.addWidget(self.lbl2)
-        
-        imagePreviewArea2 = QtGui.QWidget(self)
-        imagePreviewLayout2 = QtGui.QHBoxLayout(imagePreviewArea2)
+        self.lbl2.setScaledContents(True)
+        #self.lbl2.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
+        imagePreviewLayout.addWidget(self.lbl2, 0,1)
         self.lbl3 = QtGui.QLabel(self)
+        self.lbl3.setScaledContents(True)
+        #self.lbl3.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
+        imagePreviewLayout.addWidget(self.lbl3, 1,0)
         self.lbl4 = QtGui.QLabel(self)
-
-        imagePreviewLayout2.addWidget(self.lbl3)
-        imagePreviewLayout2.addWidget(self.lbl4)
-        
-        imagePreviewArea3 = QtGui.QWidget(self)
-        imagePreviewLayout3 = QtGui.QHBoxLayout(imagePreviewArea3)
+        self.lbl4.setScaledContents(True)
+        #self.lbl4.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
+        imagePreviewLayout.addWidget(self.lbl4, 1,1)
         self.lbl5 = QtGui.QLabel(self)
+        self.lbl5.setScaledContents(True)
+        #self.lbl5.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
+        imagePreviewLayout.addWidget(self.lbl5, 2,0)
         self.lbl6 = QtGui.QLabel(self)
-
-        imagePreviewLayout3.addWidget(self.lbl5)
-        imagePreviewLayout3.addWidget(self.lbl6)
-        
-        imagePreviewLayout.addWidget(imagePreviewArea1)
-        imagePreviewLayout.addWidget(imagePreviewArea2)
-        imagePreviewLayout.addWidget(imagePreviewArea3)
-        
+        self.lbl6.setScaledContents(True)
+        #self.lbl6.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
+        imagePreviewLayout.addWidget(self.lbl6, 2,1)
+       
 
 
         buttonArea = QtGui.QWidget(self)
