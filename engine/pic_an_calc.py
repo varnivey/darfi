@@ -297,7 +297,7 @@ def color_objects(pic_grey,labels):
     pic_shape = list(val.shape)
     pic_shape.append(3)
 
-    hsv_result = np.hstack((hue,sat,val))
+    hsv_result = np.dstack((hue,sat,val))
 
     hsv_result.resize(pic_shape)
 
@@ -328,7 +328,7 @@ def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., c
 
     sat = nuclei*1.
 
-    hsv_result = np.hstack((hue,sat,val))
+    hsv_result = np.dstack((hue,sat,val))
 
     hsv_result.resize(pic_shape)
 
