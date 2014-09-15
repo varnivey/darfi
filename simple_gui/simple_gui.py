@@ -344,8 +344,20 @@ class DarfiUI(QtGui.QWidget):
         buttonLayout.addWidget(self.openSettingsButton)
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
-        statusArea = QtGui.QFrame(self)
-        statusArea.setFrameShape(QtGui.QFrame.StyledPanel)
+        self.statusArea = QtGui.QTableWidget(self)
+        self.statusArea.setRowCount(2)
+        self.statusArea.setColumnCount(7)
+        self.statusArea.setHorizontalHeaderItem(0, QtGui.QTableWidgetItem("Cell number"))
+        self.statusArea.setHorizontalHeaderItem(1, QtGui.QTableWidgetItem("Abs foci number"))
+        self.statusArea.setHorizontalHeaderItem(2, QtGui.QTableWidgetItem("Abs foci area"))
+        self.statusArea.setHorizontalHeaderItem(3, QtGui.QTableWidgetItem("Abs foci soid"))
+        self.statusArea.setHorizontalHeaderItem(4, QtGui.QTableWidgetItem("Rel foci number"))
+        self.statusArea.setHorizontalHeaderItem(5, QtGui.QTableWidgetItem("Rel foci area"))
+        self.statusArea.setHorizontalHeaderItem(6, QtGui.QTableWidgetItem("Rel foci soid"))
+        self.statusArea.setVerticalHeaderItem(0, QtGui.QTableWidgetItem("Mean"))
+        self.statusArea.setVerticalHeaderItem(1, QtGui.QTableWidgetItem("MSE"))
+        #self.statusArea.setItem(1,1,QtCore.QString("dfdff"))
+        #statusArea.setFrameShape(QtGui.QFrame.StyledPanel)
         
 
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
@@ -355,8 +367,8 @@ class DarfiUI(QtGui.QWidget):
 
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter2.addWidget(splitter1)
-        splitter2.addWidget(statusArea)
-        splitter2.setSizes([windowInitHeight*3/4,windowInitHeight/4])
+        splitter2.addWidget(self.statusArea)
+        splitter2.setSizes([windowInitHeight*7/8,windowInitHeight/8])
         
         splitter3 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter3.addWidget(fileMenuArea)
@@ -475,9 +487,15 @@ class DarfiUI(QtGui.QWidget):
         cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
         cell_set.calculate_foci_parameters()
         cell_set.write_parameters(absoutfile)
-
+        params = cell_set.get_parameters()
+        self.statusArea.hide()
+        self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
+        for i in xrange(1,13):
+            self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
+        #self.update()
         for image_dir in image_dirs:
             image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
+        self.statusArea.show()
 
         #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 

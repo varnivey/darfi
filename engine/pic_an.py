@@ -223,7 +223,17 @@ class cell_set:
         self.rel_foci_area_param  = mean_and_MSE(rel_foci_areas)
         self.rel_foci_soid_param  = mean_and_MSE(rel_foci_soids)
 
+    def get_parameters(self):
+        '''Metod returns list with set parameters'''
 
+        params = [len(self.cells)]
+        params.extend(self.abs_foci_num_param)
+        params.extend(self.abs_foci_area_param)
+        params.extend(self.abs_foci_soid_param)
+        params.extend(self.rel_foci_num_param)
+        params.extend(self.rel_foci_area_param)
+        params.extend(self.rel_foci_soid_param)
+        return params
 
     def write_parameters(self, outfilename):
         '''Write file with set parameters'''
