@@ -386,7 +386,7 @@ class image_dir(cell_set):
 
 
 
-def mean_and_MSE(value_list):
+def mean_and_MSE(value_list, precision = 2):
     '''Returns list with the mean value and MSE for value_list in 10-90 percentile'''
 
     if(len(value_list) == 0):
@@ -400,9 +400,9 @@ def mean_and_MSE(value_list):
 
     new_values = np.extract(match_10_90, np_value_list)
 
-    mean = np.mean(new_values)
+    mean = np.round(np.mean(new_values), precision)
 
-    MSE = np.power(np.sum(np.power(new_values - mean, 2)/len(new_values)), 0.5)
+    MSE = np.round(np.power(np.sum(np.power(new_values - mean, 2)/len(new_values)), 0.5), precision)
 
     return [mean, MSE]
 
