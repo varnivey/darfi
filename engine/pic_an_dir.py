@@ -64,10 +64,10 @@ def calc_foci_in_dirlist(dir_path, dir_list, nuclei_name='3DAPI.TIF', foci_name=
 
     path1,name2 = os.path.split(dir_path)
     name1       = os.path.split(path1)[1]
-
+    print name1, name2, path1
     name = name1 + '_' + name2
     absoutfile = os.path.join(dir_path,outfile)
-
+    print name
     cell_set = pic_an.cell_set(name=name, cells=[])
 
     remained = len(image_dirs)
