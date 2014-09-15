@@ -240,48 +240,52 @@ class DarfiUI(QtGui.QWidget):
 
         
     def updateImages(self):
-        index = self.fileMenu.selectedIndexes()[0]
-        #print QtGui.QDirModel.rowCount(index)
-        path =  self.model.filePath(index)
-        #QtCore.QStringList(filters)
-        filters = ["*.TIF", "*.tif"]
+        try:
+            index = self.fileMenu.selectedIndexes()[0]
         
-        imageDir = QtCore.QDir(path)
-        imageDir.setNameFilters(filters)
-        try:
-            imageName1 = imageDir.entryList()[0]
-            imageName2 = imageDir.entryList()[1]
-            pix1 = QtGui.QPixmap(path + "/" + imageName1)
-            self.lbl1.setPixmap(pix1.scaledToWidth(300))
-            self.lbl1.update()
-            pix2 = QtGui.QPixmap(path + "/" + imageName2)
-            self.lbl2.setPixmap(pix2.scaledToWidth(300))
-            self.lbl2.update()
-        except IndexError:
-            print "No data image"
+            #print QtGui.QDirModel.rowCount(index)
+            path =  self.model.filePath(index)
+            #QtCore.QStringList(filters)
+            filters = ["*.TIF", "*.tif"]
             
-        filters2 = ["*.jpg", "*.JPG"]
-        imageDir2 = QtCore.QDir(path)
-        imageDir2.setNameFilters(filters2)
-        try:
-            imageName1 = imageDir2.entryList()[0]
-            imageName2 = imageDir2.entryList()[1]
-            imageName3 = imageDir2.entryList()[2]
-            imageName4 = imageDir2.entryList()[3]
-            pix1 = QtGui.QPixmap(path + "/" + imageName1)
-            self.lbl3.setPixmap(pix1.scaledToWidth(300))
-            self.lbl3.update()
-            pix2 = QtGui.QPixmap(path + "/" + imageName2)
-            self.lbl4.setPixmap(pix2.scaledToWidth(300))
-            self.lbl4.update()
-            pix3 = QtGui.QPixmap(path + "/" + imageName3)
-            self.lbl5.setPixmap(pix3.scaledToWidth(300))
-            self.lbl5.update()
-            pix4 = QtGui.QPixmap(path + "/" + imageName4)
-            self.lbl6.setPixmap(pix4.scaledToWidth(300))
-            self.lbl6.update()
+            imageDir = QtCore.QDir(path)
+            imageDir.setNameFilters(filters)
+            try:
+                imageName1 = imageDir.entryList()[0]
+                imageName2 = imageDir.entryList()[1]
+                pix1 = QtGui.QPixmap(path + "/" + imageName1)
+                self.lbl1.setPixmap(pix1.scaledToWidth(300))
+                self.lbl1.update()
+                pix2 = QtGui.QPixmap(path + "/" + imageName2)
+                self.lbl2.setPixmap(pix2.scaledToWidth(300))
+                self.lbl2.update()
+            except IndexError:
+                print "No data image"
+                
+            filters2 = ["*.jpg", "*.JPG"]
+            imageDir2 = QtCore.QDir(path)
+            imageDir2.setNameFilters(filters2)
+            try:
+                imageName1 = imageDir2.entryList()[0]
+                imageName2 = imageDir2.entryList()[1]
+                imageName3 = imageDir2.entryList()[2]
+                imageName4 = imageDir2.entryList()[3]
+                pix1 = QtGui.QPixmap(path + "/" + imageName1)
+                self.lbl3.setPixmap(pix1.scaledToWidth(300))
+                self.lbl3.update()
+                pix2 = QtGui.QPixmap(path + "/" + imageName2)
+                self.lbl4.setPixmap(pix2.scaledToWidth(300))
+                self.lbl4.update()
+                pix3 = QtGui.QPixmap(path + "/" + imageName3)
+                self.lbl5.setPixmap(pix3.scaledToWidth(300))
+                self.lbl5.update()
+                pix4 = QtGui.QPixmap(path + "/" + imageName4)
+                self.lbl6.setPixmap(pix4.scaledToWidth(300))
+                self.lbl6.update()
+            except IndexError:
+                print "No data image"
         except IndexError:
-            print "No data image"
+            ()
         
         #print imageDir.entryList()[0]
         #print imageList[1].absolutePath()
@@ -490,6 +494,7 @@ class DarfiUI(QtGui.QWidget):
         cell_set.rescale_nuclei()
         cell_set.rescale_foci((None, None))
         self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
+        print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
         self.pbar.setValue(100)
 
 
