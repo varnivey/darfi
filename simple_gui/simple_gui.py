@@ -25,12 +25,11 @@ class CheckableDirModel(QtGui.QDirModel):
             return self.checks[index]
         else:
             return QtCore.Qt.Unchecked
-#TODO FIXME I'M STUPID =D            
+# FIXME DOES NOT WORK     
     def checkAll(self):
         print self.rowCount()
         for index in self.checks:
             self.setData(index,QtCore.QVariant(2),QtCore.Qt.CheckStateRole)
-            
             
     def unCheckAll(self):
         for index in self.checks:
@@ -49,28 +48,10 @@ class CheckableDirModel(QtGui.QDirModel):
 
 
 class SettingsWindow(QtGui.QDialog):
-
-    def getSettings(self):
-        
-        sensitivity = self.sensitivityField.value()
-        min_cell_size = self.min_cell_sizeField.value()
-        peak_min_val_perc = self.peak_min_val_percField.value()
-        foci_min_val_perc = self.foci_min_val_percField.value()
-        foci_radius = self.foci_radiusField.value()
-        foci_min_level_on_bg = self.foci_min_level_on_bgField.value()
-        foci_rescale_min = self.foci_rescale_minField.value()
-        foci_rescale_min = None if foci_rescale_min == -1 else foci_rescale_min
-        foci_rescale_max = self.foci_rescale_maxField.value()
-        foci_rescale_max = None if foci_rescale_max == -1 else foci_rescale_max
-        nuclei_color = self.nuclei_colorField.value()
-        foci_color = self.foci_colorField.value()
-        return sensitivity,min_cell_size,peak_min_val_perc,\
-    foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
-    foci_rescale_max,nuclei_color,foci_color
-        
+      
     def __init__(self,parent,sensitivity,min_cell_size,peak_min_val_perc,\
-    foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
-    foci_rescale_max,nuclei_color,foci_color):
+        foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
+        foci_rescale_max,nuclei_color,foci_color):
         super(SettingsWindow, self).__init__(parent)
         #print DarfiUI.sensitivity
         hbox = QtGui.QHBoxLayout(self)
@@ -131,7 +112,6 @@ class SettingsWindow(QtGui.QDialog):
         
         vbox2Area = QtGui.QWidget(self)
         vbox2 = QtGui.QVBoxLayout(vbox2Area)
-        #foci_min_level_on_bg,foci_rescale_min,foci_rescale_max,nuclei_color,foci_color
         self.foci_min_level_on_bg = foci_min_level_on_bg
         foci_min_level_on_bgLabel = QtGui.QLabel(self)
         foci_min_level_on_bgLabel.setText("Foci min level on bg:")
@@ -186,7 +166,26 @@ class SettingsWindow(QtGui.QDialog):
         
         hbox.addWidget(vbox1Area)
         hbox.addWidget(vbox2Area)
-    
+
+
+    def getSettings(self):
+        
+        sensitivity = self.sensitivityField.value()
+        min_cell_size = self.min_cell_sizeField.value()
+        peak_min_val_perc = self.peak_min_val_percField.value()
+        foci_min_val_perc = self.foci_min_val_percField.value()
+        foci_radius = self.foci_radiusField.value()
+        foci_min_level_on_bg = self.foci_min_level_on_bgField.value()
+        foci_rescale_min = self.foci_rescale_minField.value()
+        foci_rescale_min = None if foci_rescale_min == -1 else foci_rescale_min
+        foci_rescale_max = self.foci_rescale_maxField.value()
+        foci_rescale_max = None if foci_rescale_max == -1 else foci_rescale_max
+        nuclei_color = self.nuclei_colorField.value()
+        foci_color = self.foci_colorField.value()
+        
+        return sensitivity,min_cell_size,peak_min_val_perc,\
+        foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
+        foci_rescale_max,nuclei_color,foci_color
     
 class DarfiUI(QtGui.QWidget):
     
@@ -206,12 +205,11 @@ class DarfiUI(QtGui.QWidget):
         self.foci_rescale_max = None
         self.nuclei_color = 0.66
         self.foci_color = 0.33
-        
-        
 
         self.initUI()
         
     def resizeEvent( self, oldsize):
+        ''' override resize event to redraw pictures'''
         self.updateImages()
     
     def openSettings(self):
@@ -231,76 +229,74 @@ class DarfiUI(QtGui.QWidget):
         
     def setOutfile(self,text):
         self.outfile = text
-        
 
     def selectWorkDir(self):
         self.model.unCheckAll()
         self.workDir=QtGui.QFileDialog.getExistingDirectory()
-        #print self.workDir
         self.fileMenu.setRootIndex(self.model.index(self.workDir))
-        #self.model.checkAll()
-
         
     def updateImages(self):
         try:
             index = self.fileMenu.selectedIndexes()[0]
-        
-            #print QtGui.QDirModel.rowCount(index)
             path =  self.model.filePath(index)
-            #QtCore.QStringList(filters)
-            filters = ["*.TIF", "*.tif"]
-            
+        #TODO may be we shold avoid using path
             imageDir = QtCore.QDir(path)
+            filters = ["*.TIF", "*.tif"]
+
             imageDir.setNameFilters(filters)
             try:
                 imageName1 = imageDir.entryList()[0]
-                imageName2 = imageDir.entryList()[1]
+
                 pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
                 self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
-                
                 self.lbl1.update()
+            except IndexError:
+                self.lbl1.clear()
+ 
+            try:
+                imageName2 = imageDir.entryList()[1]
                 pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
                 self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl2.update()
             except IndexError:
-                ()#print "No data image"
+                self.lbl2.clear()
                 
-            filters2 = ["*.jpg", "*.JPG"]
-            imageDir2 = QtCore.QDir(path)
-            imageDir2.setNameFilters(filters2)
+            filters = ["*.jpg", "*.JPG"]
+            imageDir.setNameFilters(filters)
             try:
-                imageName1 = imageDir2.entryList()[0]
-                imageName2 = imageDir2.entryList()[1]
-                imageName3 = imageDir2.entryList()[2]
-                imageName4 = imageDir2.entryList()[3]
-                pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
-                self.lbl3.setPixmap(pix1.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
+                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[0])
+                self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl3.update()
-                pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
-                self.lbl4.setPixmap(pix2.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
+            except IndexError:
+                self.lbl3.clear()
+            
+            try:    
+                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[1])
+                self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl4.update()
-                pix3 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName3)
-                self.lbl5.setPixmap(pix3.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
+            except IndexError:
+                self.lbl4.clear()
+            
+            try:    
+                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[2])
+                self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl5.update()
-                pix4 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName4)
-                self.lbl6.setPixmap(pix4.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
+            except IndexError:
+                self.lbl5.clear()
+            
+            try:    
+                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[3])
+                self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
                 self.lbl6.update()
             except IndexError:
-                ()#print "No data image"
+                self.lbl6.clear()
         except IndexError:
             ()
         
-        #print imageDir.entryList()[0]
-        #print imageList[1].absolutePath()
-
-        
     def initUI(self):      
-        
-        windowInitWidth = 1024
-        windowInitHeight = 768
-        hbox = QtGui.QHBoxLayout(self)
-        
-        
+
+################## FILEMENU AREA  ########################################
+
         fileMenuArea = QtGui.QWidget(self)
         self.model = CheckableDirModel()
         self.model.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
@@ -317,49 +313,33 @@ class DarfiUI(QtGui.QWidget):
         fileMenuLayout.addWidget(self.checkAllBox)
         fileMenuLayout.addWidget(self.fileMenu)
         
+################## IMAGE AREA  ########################################
 
-        imagePreviewArea = QtGui.QScrollArea(self)
-        imagePreviewLayout = QtGui.QGridLayout(imagePreviewArea)
-        
+        self.imagePreviewArea = QtGui.QScrollArea(self)
+        imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
             
-        #imagePreviewLayout.setSpacing(0)
         self.lbl1 = QtGui.QLabel(self)
-        #self.lbl1.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
-        #self.lbl1.setScaledContents(True)
         imagePreviewLayout.addWidget(self.lbl1, 0,0)
         self.lbl2 = QtGui.QLabel(self)
-        #self.lbl2.setScaledContents(True)
-        #self.lbl2.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl2, 0,1)
         self.lbl3 = QtGui.QLabel(self)
-        #self.lbl3.setScaledContents(True)
-        #self.lbl3.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl3, 1,0)
         self.lbl4 = QtGui.QLabel(self)
-        #self.lbl4.setScaledContents(True)
-        #self.lbl4.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl4, 1,1)
         self.lbl5 = QtGui.QLabel(self)
-        #self.lbl5.setScaledContents(True)
-        #self.lbl5.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl5, 2,0)
         self.lbl6 = QtGui.QLabel(self)
-        #self.lbl6.setScaledContents(True)
-        #self.lbl6.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Preferred)
         imagePreviewLayout.addWidget(self.lbl6, 2,1)
        
-
+################## BUTTON AREA  ########################################
 
         buttonArea = QtGui.QWidget(self)
         buttonLayout = QtGui.QVBoxLayout(buttonArea)
         rescaleButton = QtGui.QPushButton("Get scale from selection")
         
-      
-        
         runCalcButton = QtGui.QPushButton("Calculate")
         runCalcButton.clicked.connect(lambda: self.runCalc())
-        
-        
+         
         buttonLayout.addWidget(rescaleButton)
         rescaleButton.clicked.connect(lambda: self.getScale())
         buttonLayout.addWidget(runCalcButton)
@@ -371,7 +351,6 @@ class DarfiUI(QtGui.QWidget):
         nuclNameField.textChanged[str].connect(lambda: self.setNuclei_name(nuclNameField.displayText()))
         buttonLayout.addWidget(nuclNameFieldLabel)
         buttonLayout.addWidget(nuclNameField)
-        
         
         fociNameFieldLabel = QtGui.QLabel(self)
         fociNameFieldLabel.setText("Files with foci:")
@@ -398,6 +377,7 @@ class DarfiUI(QtGui.QWidget):
         buttonLayout.addWidget(self.pbar)
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
+################## STATUS AREA  ########################################
         self.statusArea = QtGui.QTableWidget(self)
         self.statusArea.setRowCount(2)
         self.statusArea.setColumnCount(7)
@@ -410,12 +390,16 @@ class DarfiUI(QtGui.QWidget):
         self.statusArea.setHorizontalHeaderItem(6, QtGui.QTableWidgetItem("Rel foci soid"))
         self.statusArea.setVerticalHeaderItem(0, QtGui.QTableWidgetItem("Mean"))
         self.statusArea.setVerticalHeaderItem(1, QtGui.QTableWidgetItem("MSE"))
-        #self.statusArea.setItem(1,1,QtCore.QString("dfdff"))
-        #statusArea.setFrameShape(QtGui.QFrame.StyledPanel)
         
 
+################## COMPOSITING  ########################################
+
+        windowInitWidth = 1024
+        windowInitHeight = 768
+        hbox = QtGui.QHBoxLayout(self)
+
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        splitter1.addWidget(imagePreviewArea)
+        splitter1.addWidget(self.imagePreviewArea)
         splitter1.addWidget(buttonArea)
         splitter1.setSizes([windowInitWidth*12/20,windowInitWidth*3/20])
 
@@ -431,13 +415,15 @@ class DarfiUI(QtGui.QWidget):
 
         hbox.addWidget(splitter3)
         self.setLayout(hbox)
-        #QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-        
+       
         self.setGeometry(0, 0,windowInitWidth, windowInitHeight)
         self.setWindowTitle('DARFI')
         self.show()
 
-#BRUTEFORCE CODING ^___^
+
+
+#BRUTEFORCE CODING ^___^ FIXME PLEASE
+
     def getScale(self):
         dirsWithImages = []
         for index,value in self.model.checks.items():
@@ -573,6 +559,7 @@ def main():
     
     app = QtGui.QApplication(sys.argv)
     ex = DarfiUI()
+    ex.showMaximized()
     sys.exit(app.exec_())
 
 
