@@ -6,7 +6,10 @@ If an issue was soved, it should be removed from the list below immediately.
 
 TODO list:
 
+- isolate settings from main widget class
 
+
+Features list:
 - enable common checkbox
 
 - save/load current settings capability. Restore settings from previous
