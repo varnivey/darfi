@@ -303,6 +303,15 @@ class image_dir(cell_set):
         pic_nuclei = self.get_source_pic_nuclei()
         pic_foci   = self.get_source_pic_foci()
 
+        if hasattr(self, 'cell_detect_params'):
+            sensitivity, min_cell_size = self.cell_detect_params
+            nuclei = self.nuclei
+
+        else:
+            nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
+
+        self.cell_detect_params = (sensitivity, min_cell_size)
+
         nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
 
         for label_num in np.arange(np.max(nuclei)) + 1:
@@ -321,6 +330,29 @@ class image_dir(cell_set):
             self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords))
 
         self.nuclei = nuclei
+
+
+    def detect_nuclei(self, sensitivity, min_cell_size):
+        '''Detect nuclei and write new pic with colored nuclei'''
+
+        pic_nuclei = self.get_source_pic_nuclei()
+
+        nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
+
+        self.nuclei = nuclei
+
+        self.write_pic_with_nuclei_colored(nuclei)
+
+
+    def get_pic_with_nuclei_colored(self):
+        '''Return pic with colored nuclei'''
+
+        pic_nuclei = self.get_source_pic_nuclei()
+
+        nuclei_colored = pic_an_old.color_objects(pic_nuclei, self.nuclei)
+
+        return nuclei_colored
+
 
 
     def get_all_pics(self, nuclei_color = 0.66, foci_color = 0.33):
@@ -359,6 +391,17 @@ class image_dir(cell_set):
         merged = nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, nuclei_color, foci_color)
 
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
+
+
+    def write_pic_with_nuclei_colored(self, pic_nuclei_colored = None):
+        '''Write pic with colored nuclei to a file'''
+
+        pic_nuclei_colored_path = os.path.join(self.dir_path,'nuclei_colored.jpg')
+
+        if (pic_nuclei_colored == None):
+            pic_nuclei_colored = self.get_pic_with_nuclei_colored()
+
+        imsave(pic_nuclei_colored_path, pic_nuclei_colored)
 
 
     def write_all_pic_files(self, nuclei_color = 0.66, foci_color = 0.33):
