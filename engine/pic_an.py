@@ -312,8 +312,6 @@ class image_dir(cell_set):
 
         self.cell_detect_params = (sensitivity, min_cell_size)
 
-        nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
-
         for label_num in np.arange(np.max(nuclei)) + 1:
 
             nucleus = (nuclei == label_num)
