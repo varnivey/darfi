@@ -18,7 +18,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 import sys,os,functools
-sys.path.append('../engine')
+sys.path.append(os.path.join('..','engine'))
 import pic_an
 from PyQt4 import QtGui, QtCore
 
