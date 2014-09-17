@@ -1,3 +1,0 @@
-Images does not resize when separator are moved
-
-
