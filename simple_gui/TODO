@@ -22,6 +22,8 @@ image should be maximized to the whole image view area. If a directory was
 clicked again, the small previews of all images from the directory should
 reappear
 
+- add "save session" feature
+
 - add explicit "detect cells" button. It should start image_dir.detect_nuclei()
 for directories selected.
 
