@@ -320,7 +320,7 @@ def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., c
 
     hue = color_nuclei*nuclei_only + foci*color_foci
 
-    foci_enhanced = 255 - np.floor((255 - source_foci)*0.8)
+    foci_enhanced = 255 - np.floor((255 - source_foci)*0.6)
 
     val = source_nuclei*nuclei_only + foci*foci_enhanced
 
