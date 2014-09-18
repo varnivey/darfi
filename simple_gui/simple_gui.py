@@ -22,7 +22,12 @@ sys.path.append(os.path.join('..','engine'))
 import pic_an
 from PyQt4 import QtGui, QtCore
 
-        
+try:
+    _fromUtf8 = QtCore.QString.fromUtf8
+except AttributeError:
+    _fromUtf8 = lambda s: s
+
+
 class CheckableDirModel(QtGui.QDirModel):
     def __init__(self, parent=None):
         QtGui.QDirModel.__init__(self, None)
@@ -429,6 +434,19 @@ class DarfiUI(QtGui.QWidget):
 
         windowInitWidth = 1024
         windowInitHeight = 768
+
+
+        icon = QtGui.QIcon()
+
+        homepath = os.path.abspath(os.path.dirname(__file__))
+        iconpath = os.path.join(os.path.dirname(homepath), 'misc', 'darfi.ico')
+
+        if os.path.isfile(iconpath):
+            icon.addPixmap(QtGui.QPixmap(_fromUtf8(iconpath)), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+        else:
+            icon.addPixmap(QtGui.QPixmap(_fromUtf8(os.path.join(homepath, 'darfi.ico'))), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+
+
         hbox = QtGui.QHBoxLayout(self)
 
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
@@ -451,6 +469,7 @@ class DarfiUI(QtGui.QWidget):
        
         self.setGeometry(0, 0,windowInitWidth, windowInitHeight)
         self.setWindowTitle('DARFI')
+        self.setWindowIcon(icon)
         self.show()
 
 
