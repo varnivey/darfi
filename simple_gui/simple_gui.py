@@ -22,6 +22,11 @@ sys.path.append(os.path.join('..','engine'))
 import pic_an
 from PyQt4 import QtGui, QtCore
 
+
+#### Uncomment these lines if building py2exe binary with window output only
+## import warnings
+## warnings.simplefilter('ignore')
+
 try:
     _fromUtf8 = QtCore.QString.fromUtf8
 except AttributeError:
@@ -437,7 +442,7 @@ class DarfiUI(QtGui.QWidget):
 
 
         icon = QtGui.QIcon()
-
+        
         homepath = os.path.abspath(os.path.dirname(os.getcwd()))
         iconpath = os.path.join(homepath, 'misc', 'darfi.ico')
 
