@@ -438,13 +438,13 @@ class DarfiUI(QtGui.QWidget):
 
         icon = QtGui.QIcon()
 
-        homepath = os.path.abspath(os.path.dirname(__file__))
-        iconpath = os.path.join(os.path.dirname(homepath), 'misc', 'darfi.ico')
+        homepath = os.path.abspath(os.path.dirname(os.getcwd()))
+        iconpath = os.path.join(homepath, 'misc', 'darfi.ico')
 
         if os.path.isfile(iconpath):
             icon.addPixmap(QtGui.QPixmap(_fromUtf8(iconpath)), QtGui.QIcon.Normal, QtGui.QIcon.Off)
         else:
-            icon.addPixmap(QtGui.QPixmap(_fromUtf8(os.path.join(homepath, 'darfi.ico'))), QtGui.QIcon.Normal, QtGui.QIcon.Off)
+            icon.addPixmap(QtGui.QPixmap(_fromUtf8(os.path.join(os.getcwd(), 'misc', 'darfi.ico'))), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
 
         hbox = QtGui.QHBoxLayout(self)

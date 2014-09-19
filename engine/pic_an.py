@@ -24,11 +24,11 @@ import numpy as np
 from skimage.exposure import rescale_intensity
 from skimage import img_as_ubyte
 
-from skimage.io import imsave
-from skimage.io import imread
+#from skimage.io import imsave
+#from skimage.io import imread
 
-#from scipy.misc import imsave
-#from scipy.misc import imread
+from scipy.misc import imsave
+from scipy.misc import imread
 
 #import pic_an_old
 from pic_an_calc import find_nuclei
