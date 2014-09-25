@@ -34,47 +34,6 @@ except AttributeError:
     _fromUtf8 = lambda s: s
 
 
-class CheckableDirModel(QtGui.QDirModel):
-    def __init__(self, parent=None):
-        QtGui.QDirModel.__init__(self, None)
-        self.checks = {}
-
-    def data(self, index, role=QtCore.Qt.DisplayRole):
-        if role != QtCore.Qt.CheckStateRole:
-            return QtGui.QDirModel.data(self, index, role)
-        else:
-            if index.column() == 0:
-                return self.checkState(index)
-
-    def flags(self, index):
-        return QtGui.QDirModel.flags(self, index) | QtCore.Qt.ItemIsUserCheckable
-
-    def checkState(self, index):
-        if index in self.checks:
-            return self.checks[index]
-        else:
-            return QtCore.Qt.Unchecked
-# FIXME DOES NOT WORK     
-    def checkAll(self):
-        print self.rowCount()
-        for index in self.checks:
-            self.setData(index,QtCore.QVariant(2),QtCore.Qt.CheckStateRole)
-            
-    def unCheckAll(self):
-        for index in self.checks:
-            self.setData(index,QtCore.QVariant(0),QtCore.Qt.CheckStateRole)
-            
-    def setData(self, index, value, role):
-        if (role == QtCore.Qt.CheckStateRole and index.column() == 0):
-            self.layoutAboutToBeChanged.emit()
-            self.checks[index] = value
-            #self.emit(QtCore.SIGNAL("dataChanged(QModelIndex,QModelIndex)"), index, index)
-            self.layoutChanged.emit()
-            return True 
-
-        return QtGui.QDirModel.setData(self, index, value, role)
-
-
 
 class SettingsWindow(QtGui.QDialog):
       
@@ -198,7 +157,6 @@ class SettingsWindow(QtGui.QDialog):
 
 
     def getSettings(self):
-        
         sensitivity = self.sensitivityField.value()
         min_cell_size = self.min_cell_sizeField.value()
         peak_min_val_perc = self.peak_min_val_percField.value()
@@ -212,9 +170,27 @@ class SettingsWindow(QtGui.QDialog):
         nuclei_color = self.nuclei_colorField.value()
         foci_color = self.foci_colorField.value()
         
-        return sensitivity,min_cell_size,peak_min_val_perc,\
-        foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
-        foci_rescale_max,nuclei_color,foci_color
+        if (sensitivity == self.sensitivity) &\
+        (min_cell_size == self.min_cell_size)&\
+        (peak_min_val_perc == self.peak_min_val_perc)&\
+        (foci_min_val_perc == self.foci_min_val_perc)&\
+        (foci_radius == self.foci_radius)&\
+        (foci_min_level_on_bg == self.foci_min_level_on_bg)&\
+        (foci_rescale_min == self.foci_rescale_min)&\
+        (foci_rescale_max == self.foci_rescale_max)&\
+        (nuclei_color == self.nuclei_color)&\
+        (foci_color == self.foci_color):
+            print "Settings had not changed"
+            return sensitivity,min_cell_size,peak_min_val_perc,\
+            foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
+            foci_rescale_max,nuclei_color,foci_color,False
+            
+        else:
+            print "Settings changed"
+            return sensitivity,min_cell_size,peak_min_val_perc,\
+            foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
+            foci_rescale_max,nuclei_color,foci_color,True
+            
     
 class DarfiUI(QtGui.QWidget):
     
@@ -241,6 +217,7 @@ class DarfiUI(QtGui.QWidget):
         self.oldFoci_rescale_min = None
         self.oldFoci_rescale_max = None
         self.lastCalc=False
+        self.settingsChanged=True
 
         self.initUI()
         
@@ -255,7 +232,7 @@ class DarfiUI(QtGui.QWidget):
         self.settings.exec_()
         self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
         self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-        self.foci_rescale_max,self.nuclei_color,self.foci_color = self.settings.getSettings()
+        self.foci_rescale_max,self.nuclei_color,self.foci_color,self.settingsChanged = self.settings.getSettings()
         
     def setNuclei_name(self,text):
         self.nuclei_name = text
@@ -518,7 +495,7 @@ class DarfiUI(QtGui.QWidget):
             return
         else:
         
-            if self.oldDirsWithImages == dirs_with_images:
+            if (self.oldDirsWithImages == dirs_with_images) & (not(self.settingsChanged)):
                 print "No changes in selection, setting values from previous calc"
                 self.foci_rescale_min = self.oldFoci_rescale_min
                 self.foci_rescale_max = self.oldFoci_rescale_max
@@ -575,6 +552,7 @@ class DarfiUI(QtGui.QWidget):
                 self.pbar.setValue(100)
                 self.oldDirsWithImages = dirs_with_images
                 self.lastCalc=False
+                self.settingsChanged=False
 
 
     def runCalc(self):
@@ -584,7 +562,7 @@ class DarfiUI(QtGui.QWidget):
         if len(dirs_with_images) == 0 :
             return
         else:
-            if (self.oldDirsWithImages == dirs_with_images) & self.lastCalc:
+            if (self.oldDirsWithImages == dirs_with_images) & self.lastCalc & (not(self.settingsChanged)):
                 print "No changes in selection"
             else:
     
@@ -648,6 +626,7 @@ class DarfiUI(QtGui.QWidget):
                 self.updateImages()
                 self.oldDirsWithImages = dirs_with_images
                 self.lastCalc=True
+                self.settingsChanged=False
                 #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
                
