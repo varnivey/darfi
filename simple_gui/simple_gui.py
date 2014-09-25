@@ -20,6 +20,7 @@
 import sys,os,functools
 sys.path.append(os.path.join('..','engine'))
 import pic_an
+import folder_widget
 from PyQt4 import QtGui, QtCore
 
 
@@ -233,6 +234,8 @@ class DarfiUI(QtGui.QWidget):
         self.foci_rescale_max = None
         self.nuclei_color = 0.66
         self.foci_color = 0.33
+        
+        self.showMiniatures=True
 
         self.initUI()
         
@@ -273,101 +276,132 @@ class DarfiUI(QtGui.QWidget):
         self.outfile=QtGui.QFileDialog.getSaveFileName()
         print self.outfile
         
-    def updateImages(self):
-        try:
-            index = self.fileMenu.selectedIndexes()[0]
-            path =  self.model.filePath(index)
-        #TODO may be we shold avoid using path
-            imageDir = QtCore.QDir(path)
-            filters = ["*.TIF", "*.tif"]
-
-            imageDir.setNameFilters(filters)
-            try:
-                imageName1 = imageDir.entryList()[0]
-
-                pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
-                self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
-                self.lbl1.update()
-            except IndexError:
-                self.lbl1.clear()
- 
-            try:
-                imageName2 = imageDir.entryList()[1]
-                pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
-                self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
-                self.lbl2.update()
-            except IndexError:
-                self.lbl2.clear()
-                
-            filters = ["*.jpg", "*.JPG"]
-            imageDir.setNameFilters(filters)
-            try:
-                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[0])
-                self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
-                self.lbl3.update()
-            except IndexError:
-                self.lbl3.clear()
-            
-            try:    
-                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[1])
-                self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
-                self.lbl4.update()
-            except IndexError:
-                self.lbl4.clear()
-            
-            try:    
-                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[2])
-                self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
-                self.lbl5.update()
-            except IndexError:
-                self.lbl5.clear()
-            
-            try:    
-                pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[3])
-                self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
-                self.lbl6.update()
-            except IndexError:
-                self.lbl6.clear()
-        except IndexError:
-            ()
+    def reUpdateImages(self):
+        self.showMiniatures=True
+        self.updateImages()
         
-    def initUI(self):      
+    def reUpdateImage(self):
+        self.showMiniatures=False
+        self.updateImages()
+        
+    def updateImages(self):
+        if self.showMiniatures:
+            try:
+                self.lbl1.clear()
+                
+                imageDir = self.fileMenuArea.selectedImageDir
+                path = imageDir.absolutePath()
+                filters = ["*.TIF", "*.tif"]
+
+                imageDir.setNameFilters(filters)
+                try:
+                    imageName1 = imageDir.entryList()[0]
+
+                    pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
+                    self.lbl1.resize(self.imagePreviewArea.size()/2)
+                    self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
+                    self.lbl1.update()
+                except IndexError:
+                    self.lbl1.clear()
+     
+                try:
+                    imageName2 = imageDir.entryList()[1]
+                    pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
+                    self.lbl2.resize(self.imagePreviewArea.size()/2)
+
+                    self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
+                    self.lbl2.update()
+                except IndexError:
+                    self.lbl2.clear()
+                    
+                filters = ["*.jpg", "*.JPG"]
+                imageDir.setNameFilters(filters)
+                try:
+                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[0])
+                    self.lbl3.resize(self.imagePreviewArea.size()/2)
+                    self.lbl3.update()
+                    self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
+                    self.lbl3.update()
+                except IndexError:
+                    self.lbl3.clear()
+                
+                try:    
+                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[1])
+                    self.lbl4.resize(self.imagePreviewArea.size()/2)
+                    self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
+                    self.lbl4.update()
+                except IndexError:
+                    self.lbl4.clear()
+                
+                try:    
+                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[2])
+                    self.lbl5.resize(self.imagePreviewArea.size()/2)
+                    self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
+                    self.lbl5.update()
+                except IndexError:
+                    self.lbl5.clear()
+                
+                try:    
+                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[3])
+                    self.lbl6.resize(self.imagePreviewArea.size()/2)
+                    self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
+                    self.lbl6.update()
+                except IndexError:
+                    self.lbl6.clear()
+            except AttributeError:
+                ()
+        else:
+            imageName = self.fileMenuArea.selectedImage
+            pix1 = QtGui.QPixmap(imageName)
+            self.lbl2.clear()
+            self.lbl3.clear()
+            self.lbl4.clear()
+            self.lbl5.clear()
+            self.lbl6.clear()
+            #self.imagePreviewLayout.hide()
+            self.lbl1.setPixmap(pix1.scaled(self.imagePreviewArea.size(), QtCore.Qt.KeepAspectRatio))
+            self.lbl1.update()
+       
+        
+    def initUI(self):
+              
 
 ################## FILEMENU AREA  ########################################
 
-        fileMenuArea = QtGui.QWidget(self)
-        self.model = CheckableDirModel()
-        self.model.setFilter(QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
-        self.fileMenu = QtGui.QListView(self)
-        self.fileMenu.setModel(self.model)
-        self.fileMenu.clicked.connect(lambda: self.updateImages())
+        self.fileMenuArea = folder_widget.FolderWidget(self.workDir)
+        self.fileMenuArea.signal_update_images.connect(self.reUpdateImages)
+        self.fileMenuArea.signal_update_image.connect(self.reUpdateImage)
+              
+        
 
-        fileMenuLayout = QtGui.QVBoxLayout(fileMenuArea)
-        selectFolderButton = QtGui.QPushButton("Select workdir")
-        selectFolderButton.clicked.connect(lambda: self.selectWorkDir())
-        self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
-        self.checkAllBox.stateChanged.connect(lambda: (self.model.checkAll() if self.checkAllBox.isChecked() else self.model.unCheckAll()))
-        fileMenuLayout.addWidget(selectFolderButton)
-        fileMenuLayout.addWidget(self.checkAllBox)
-        fileMenuLayout.addWidget(self.fileMenu)
+        #fileMenuLayout = QtGui.QVBoxLayout(fileMenuArea)
+        #selectFolderButton = QtGui.QPushButton("Select workdir")
+        #selectFolderButton.clicked.connect(lambda: self.selectWorkDir())
+        #self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
+        #self.checkAllBox.stateChanged.connect(lambda: (self.model.checkAll() if self.checkAllBox.isChecked() else self.model.unCheckAll()))
+        #fileMenuLayout.addWidget(selectFolderButton)
+        #fileMenuLayout.addWidget(self.checkAllBox)
+        #fileMenuLayout.addWidget(self.fileMenu)
         
 ################## IMAGE AREA  ########################################
 
         self.imagePreviewArea = QtGui.QScrollArea(self)
-        imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
-            
+        
+        self.imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
+
+
         self.lbl1 = QtGui.QLabel(self)
-        imagePreviewLayout.addWidget(self.lbl1, 0,0)
+        self.imagePreviewLayout.addWidget(self.lbl1, 0,0)
         self.lbl2 = QtGui.QLabel(self)
-        imagePreviewLayout.addWidget(self.lbl2, 0,1)
+        self.imagePreviewLayout.addWidget(self.lbl2, 0,1)
         self.lbl3 = QtGui.QLabel(self)
-        imagePreviewLayout.addWidget(self.lbl3, 1,0)
+        self.imagePreviewLayout.addWidget(self.lbl3, 1,0)
         self.lbl4 = QtGui.QLabel(self)
-        imagePreviewLayout.addWidget(self.lbl4, 1,1)
+        self.imagePreviewLayout.addWidget(self.lbl4, 1,1)
         self.lbl5 = QtGui.QLabel(self)
-        imagePreviewLayout.addWidget(self.lbl5, 2,0)
+        self.imagePreviewLayout.addWidget(self.lbl5, 2,0)
         self.lbl6 = QtGui.QLabel(self)
-        imagePreviewLayout.addWidget(self.lbl6, 2,1)
+        self.imagePreviewLayout.addWidget(self.lbl6, 2,1)
        
 ################## SETTINGS AREA  ########################################
 
@@ -465,7 +499,7 @@ class DarfiUI(QtGui.QWidget):
         splitter2.setSizes([windowInitHeight*7/8,windowInitHeight/8])
         
         splitter3 = QtGui.QSplitter(QtCore.Qt.Horizontal)
-        splitter3.addWidget(fileMenuArea)
+        splitter3.addWidget(self.fileMenuArea)
         splitter3.addWidget(splitter2)
         splitter3.setSizes([windowInitWidth/4,windowInitWidth*3/4])
 
@@ -482,132 +516,130 @@ class DarfiUI(QtGui.QWidget):
 #BRUTEFORCE CODING ^___^ FIXME PLEASE
 
     def getScale(self):
-        dirsWithImages = []
-        for index,value in self.model.checks.items():
-            if value.toBool():
-                dirsWithImages.append(str(self.model.filePath(index)))
-        
-        dir_path = str(self.workDir)
-        dirs_with_images = dirsWithImages
-    
-        pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
-                (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
-
-        image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
-
-        path1,name2 = os.path.split(dir_path)
-        name1       = os.path.split(path1)[1]
-        #print name1, name2, path1
-        name = name1 + '_' + name2
-        absoutfile = os.path.join(dir_path,str(self.outfile))
-        print absoutfile
-        cell_set = pic_an.cell_set(name=name, cells=[])
-
-        remained = len(image_dirs)
-        pbarval = 0
-        self.pbar.show()
-        self.pbar.setValue(pbarval)
-        pbarstep = 100 / remained
-
-        print "We have", remained, 'images to load for', name
-
-        print "Image loading have started for", name
-
-        for image_dir in image_dirs:
-            image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-            pbarval +=pbarstep
-            self.pbar.setValue(pbarval)
-            remained -= 1
-
-            if remained == 0:
-                print "Image loading have finished for", name
-            else:
-                print remained, 'images remained to load for', name
-
-            cell_set.extend(image_dir)
-
-        if len(cell_set.cells) == 0:
-            print "There are no cells in the images from ", dir_path
+ 
+        dir_path = self.fileMenuArea.getWorkDir()
+        dirs_with_images = self.fileMenuArea.getCheckedPaths()
+        if len(dirs_with_images) == 0 :
             return
+        else:
+        
+            pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
+                    (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
 
-        print "We have", len(cell_set.cells), "cells to analyze for", name
+            image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
 
-        cell_set.rescale_nuclei()
-        cell_set.rescale_foci((None, None))
-        self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
-        print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
-        self.pbar.setValue(100)
+            path1,name2 = os.path.split(dir_path)
+            name1       = os.path.split(path1)[1]
+            #print name1, name2, path1
+            name = name1 + '_' + name2
+            absoutfile = os.path.join(dir_path,str(self.outfile))
+            print absoutfile
+            cell_set = pic_an.cell_set(name=name, cells=[])
+
+            remained = len(image_dirs)
+            pbarval = 0
+            self.pbar.show()
+            self.pbar.setValue(pbarval)
+            pbarstep = 100 / remained
+
+            print "We have", remained, 'images to load for', name
+
+            print "Image loading have started for", name
+
+            for image_dir in image_dirs:
+                image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                pbarval +=pbarstep
+                self.pbar.setValue(pbarval)
+                remained -= 1
+
+                if remained == 0:
+                    print "Image loading have finished for", name
+                else:
+                    print remained, 'images remained to load for', name
+
+                cell_set.extend(image_dir)
+
+            if len(cell_set.cells) == 0:
+                print "There are no cells in the images from ", dir_path
+                return
+
+            print "We have", len(cell_set.cells), "cells to analyze for", name
+
+            cell_set.rescale_nuclei()
+            cell_set.rescale_foci((None, None))
+            self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
+            print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
+            self.pbar.setValue(100)
 
 
     def runCalc(self):
-        dirsWithImages = []
-        for index,value in self.model.checks.items():
-            if value.toBool():
-                dirsWithImages.append(str(self.model.filePath(index)))
         
-        dir_path = str(self.workDir)
-        dirs_with_images = dirsWithImages
-    
-        pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
-                (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
-
-        image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
-
-        path1,name2 = os.path.split(dir_path)
-        name1       = os.path.split(path1)[1]
-        #print name1, name2, path1
-        name = name1 + '_' + name2
-        absoutfile = os.path.join(dir_path,str(self.outfile))
-        print absoutfile
-        cell_set = pic_an.cell_set(name=name, cells=[])
-
-        remained = len(image_dirs)
-        pbarval = 0
-        self.pbar.show()
-        self.pbar.setValue(pbarval)
-        pbarstep = 100 / remained
-        print "We have", remained, 'images to load for', name
-
-        print "Image loading have started for", name
-
-        for image_dir in image_dirs:
-            image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-            pbarval +=pbarstep
-            self.pbar.setValue(pbarval)
-            remained -= 1
-
-            if remained == 0:
-                print "Image loading have finished for", name
-            else:
-                print remained, 'images remained to load for', name
-
-            cell_set.extend(image_dir)
-
-        if len(cell_set.cells) == 0:
-            print "There are no cells in the images from ", dir_path
+        dir_path = self.fileMenuArea.getWorkDir()
+        dirs_with_images = self.fileMenuArea.getCheckedPaths()
+        if len(dirs_with_images) == 0 :
             return
+        else:
+    
+            pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
+                    (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
 
-        print "We have", len(cell_set.cells), "cells to analyze for", name
+            image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
 
-        cell_set.rescale_nuclei()
-        cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
+            path1,name2 = os.path.split(dir_path)
+            name1       = os.path.split(path1)[1]
+            #print name1, name2, path1
+            name = name1 + '_' + name2
+            absoutfile = os.path.join(dir_path,str(self.outfile))
+            print absoutfile
+            cell_set = pic_an.cell_set(name=name, cells=[])
 
-        cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
-        cell_set.calculate_foci_parameters()
-        cell_set.write_parameters(absoutfile)
-        params = cell_set.get_parameters()
-        self.statusArea.hide()
-        self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
-        for i in xrange(1,13):
-            self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
-        #self.update()
-        for image_dir in image_dirs:
-            image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
-        self.statusArea.show()
-        self.pbar.setValue(100)
-        self.updateImages()
+            remained = len(image_dirs)
+            pbarval = 0
+            self.pbar.show()
+            self.pbar.setValue(pbarval)
+            pbarstep = 100 / remained
+            print "We have", remained, 'images to load for', name
 
-        #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
+            print "Image loading have started for", name
+
+            for image_dir in image_dirs:
+                image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                pbarval +=pbarstep
+                self.pbar.setValue(pbarval)
+                remained -= 1
+
+                if remained == 0:
+                    print "Image loading have finished for", name
+                else:
+                    print remained, 'images remained to load for', name
+
+                cell_set.extend(image_dir)
+
+            if len(cell_set.cells) == 0:
+                print "There are no cells in the images from ", dir_path
+                return
+
+            print "We have", len(cell_set.cells), "cells to analyze for", name
+
+            cell_set.rescale_nuclei()
+            cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
+
+            cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
+            cell_set.calculate_foci_parameters()
+            cell_set.write_parameters(absoutfile)
+            params = cell_set.get_parameters()
+            self.statusArea.hide()
+            self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
+            for i in xrange(1,13):
+                self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
+            #self.update()
+            for image_dir in image_dirs:
+                image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
+            self.statusArea.show()
+            self.pbar.setValue(100)
+            self.updateImages()
+
+            #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
                
           
