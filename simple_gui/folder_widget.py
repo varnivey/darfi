@@ -65,11 +65,13 @@ class imageFolderWidget(QtGui.QWidget):
         self.Layout = QtGui.QGridLayout(self)
         self.Layout.setSpacing(0)
         self.Layout.setContentsMargins(0,0,0,0)
-        self.Layout.setAlignment(QtCore.Qt.AlignLeft)
+        self.Layout.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
+        self.Layout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
         self.checked = QtGui.QCheckBox(self)
         self.checked.setTristate(False)
         self.checked.setChecked(True)
         self.r_button = QtGui.QPushButton(self.dir.dirName())
+        self.r_button.setIcon(self.style().standardIcon(QtGui.QStyle.SP_DirIcon))
         self.Layout.addWidget(self.checked,0,0)
         self.Layout.addWidget(self.r_button,0,1)
     
@@ -101,12 +103,12 @@ class imageFolderWidget(QtGui.QWidget):
     def hideAllImageLabels(self):
 
         self.isHidden=True
-        for i in xrange(1,len(self.labels)):
+        for i in xrange(0,len(self.labels)):
             self.labels[i].hide()
     def showAllImageLabels(self):
         self.isHidden=False
         self.signal_hideall.emit()
-        for i in xrange(1,len(self.labels)):
+        for i in xrange(0,len(self.labels)):
             self.labels[i].show()
             
     def updateImage(self,numer):
