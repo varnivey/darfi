@@ -357,7 +357,6 @@ class DarfiUI(QtGui.QWidget):
             self.lbl1.update()
            
        
-        
     def initUI(self):
               
 
@@ -374,7 +373,7 @@ class DarfiUI(QtGui.QWidget):
         self.imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
         #self.imagePreviewLayout.setMargin(0)
         #self.imagePreviewLayout.setSpacing(0)
-
+        self.connect(self.imagePreviewArea, QtCore.SIGNAL("resizeEvent()"), self.updateImages)
         self.lbl1 = QtGui.QLabel(self)
         self.imagePreviewLayout.addWidget(self.lbl1, 0,0)
         self.lbl2 = QtGui.QLabel(self)
@@ -476,17 +475,21 @@ class DarfiUI(QtGui.QWidget):
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter1.addWidget(self.imagePreviewArea)
         splitter1.addWidget(buttonArea)
-        splitter1.setSizes([windowInitWidth*12/20,windowInitWidth*3/20])
+        splitter1.setSizes([windowInitWidth-400,200])
+        splitter1.splitterMoved.connect(self.updateImages)
+        
 
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter2.addWidget(splitter1)
         splitter2.addWidget(self.statusArea)
-        splitter2.setSizes([windowInitHeight*7/8,windowInitHeight/8])
+        splitter2.setSizes([windowInitHeight-200,windowInitHeight/200])
+        splitter2.splitterMoved.connect(self.updateImages)
         
         splitter3 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter3.addWidget(self.fileMenuArea)
         splitter3.addWidget(splitter2)
-        splitter3.setSizes([windowInitWidth/4,windowInitWidth*3/4])
+        splitter3.setSizes([200,windowInitWidth-200])
+        splitter3.splitterMoved.connect(self.updateImages)
 
         hbox.addWidget(splitter3)
         self.setLayout(hbox)
