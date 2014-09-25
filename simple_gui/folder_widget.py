@@ -20,6 +20,7 @@ class FolderWidget(QtGui.QWidget):
         self.selectDirButton = QtGui.QPushButton("Select work dir")
         self.Layout.addWidget(self.selectDirButton)
         self.Layout.addWidget(self.scrollArea)
+        self.connect(self.scrollArea, QtCore.SIGNAL("mouseEvent()"), self.hideAllImageLabels)
         self.connect(self.selectDirButton, QtCore.SIGNAL("clicked()"), self.openWorkDir)
         self.setGeometry(300, 200, 200, 400)
 

@@ -285,11 +285,9 @@ class DarfiUI(QtGui.QWidget):
 
                     pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
                     self.lbl1.resize(sizex,sizey)
-                    print self.lbl1.size()
                     self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
-                    print self.lbl1.size()
                     self.lbl1.update()
-                    print self.lbl1.size()
+
                 except IndexError:
                     self.lbl1.clear()
      
@@ -357,8 +355,7 @@ class DarfiUI(QtGui.QWidget):
             self.lbl1.resize(sizex,sizey)
             self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
             self.lbl1.update()
-            print self.lbl1.size()
-            
+           
        
         
     def initUI(self):
@@ -518,25 +515,22 @@ class DarfiUI(QtGui.QWidget):
                 self.foci_rescale_max = self.oldFoci_rescale_max
                 print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
             else:
-            
+                ### move to folderMenu widget?
                 pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
                         (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
 
                 image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
+                #########################
 
-                path1,name2 = os.path.split(dir_path)
-                name1       = os.path.split(path1)[1]
-                #print name1, name2, path1
-                name = name1 + '_' + name2
-                absoutfile = os.path.join(dir_path,str(self.outfile))
-                print absoutfile
+                name = unicode(QtCore.QDir(dir_path).dirName())
+
                 cell_set = pic_an.cell_set(name=name, cells=[])
 
                 remained = len(image_dirs)
                 pbarval = 0
                 self.pbar.show()
                 self.pbar.setValue(pbarval)
-                pbarstep = 100 / remained
+                pbarstep = (100 - 10 )/ remained
 
                 print "We have", remained, 'images to load for', name
 
@@ -560,8 +554,6 @@ class DarfiUI(QtGui.QWidget):
                     return
 
                 print "We have", len(cell_set.cells), "cells to analyze for", name
-
-                cell_set.rescale_nuclei()
                 cell_set.rescale_foci((None, None))
                 self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
                 self.oldFoci_rescale_min, self.oldFoci_rescale_max = self.foci_rescale_min, self.foci_rescale_max
@@ -588,11 +580,9 @@ class DarfiUI(QtGui.QWidget):
 
                 image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
 
-                path1,name2 = os.path.split(dir_path)
-                name1       = os.path.split(path1)[1]
-                #print name1, name2, path1
-                name = name1 + '_' + name2
-                absoutfile = os.path.join(dir_path,str(self.outfile))
+                name = unicode(QtCore.QDir(dir_path).dirName())
+
+                absoutfile = os.path.join(dir_path,unicode(self.outfile))
                 print absoutfile
                 cell_set = pic_an.cell_set(name=name, cells=[])
 
@@ -600,7 +590,7 @@ class DarfiUI(QtGui.QWidget):
                 pbarval = 0
                 self.pbar.show()
                 self.pbar.setValue(pbarval)
-                pbarstep = 100 / remained
+                pbarstep = (100 - 10 )/ remained
                 print "We have", remained, 'images to load for', name
 
                 print "Image loading have started for", name
@@ -646,7 +636,7 @@ class DarfiUI(QtGui.QWidget):
                 self.settingsChanged=False
                 #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
-               
+               #os.path.dirname(unicode(__file__, sys.getfilesystemencoding( ))
           
 
         
