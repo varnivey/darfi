@@ -130,7 +130,6 @@ class imageFolderWidget(QtGui.QWidget):
             self.labels.append(ExtendedQLabel(unicode(self.dirs[-1].dirName())))
             self.connect(self.labels[-1], QtCore.SIGNAL("clicked()"), lambda key=i-2: self.highliteItem(key))
             self.Layout.addWidget(self.labels[-1],i,1)
-            #QtGui.QPalette.Highlight
             self.labels[-1].setAutoFillBackground(True)
             self.labels[-1].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;")
             self.labels[-1].setFixedHeight(20)
@@ -177,12 +176,3 @@ class ExtendedQLabel(QtGui.QLabel):
         self.emit(QtCore.SIGNAL('scroll(int)'), ev.delta())
 
 
-def run():
-
-    app = QtGui.QApplication(sys.argv)
-    ex = FolderWidget()
-    ex.show()
-    sys.exit(app.exec_())
-
-if __name__ == "__main__":
-    run()

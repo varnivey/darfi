@@ -10,22 +10,9 @@ TODO list:
 
 
 Features list:
-- enable common checkbox
 
 - save/load current settings capability. Restore settings from previous
 session
-
-- "get scale from selection" button should set the scaling parameters from the 
-last calculation if selection is unchanged instead of starting the same
-calculation again
-
-- add a plus button near each folder in the list which would cause the list of
-images in the directory appear. After a click on an image file, the respective
-image should be maximized to the whole image view area. If a directory was
-clicked again, the small previews of all images from the directory should
-reappear
-
-- add "save session" feature
 
 - add explicit "detect cells" button. It should start image_dir.detect_nuclei()
 for directories selected.

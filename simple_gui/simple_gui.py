@@ -236,6 +236,11 @@ class DarfiUI(QtGui.QWidget):
         self.foci_color = 0.33
         
         self.showMiniatures=True
+        #### vars for preventing double calculations
+        self.oldDirsWithImages=[]
+        self.oldFoci_rescale_min = None
+        self.oldFoci_rescale_max = None
+        self.lastCalc=False
 
         self.initUI()
         
@@ -371,17 +376,6 @@ class DarfiUI(QtGui.QWidget):
         self.fileMenuArea = folder_widget.FolderWidget(self.workDir)
         self.fileMenuArea.signal_update_images.connect(self.reUpdateImages)
         self.fileMenuArea.signal_update_image.connect(self.reUpdateImage)
-              
-        
-
-        #fileMenuLayout = QtGui.QVBoxLayout(fileMenuArea)
-        #selectFolderButton = QtGui.QPushButton("Select workdir")
-        #selectFolderButton.clicked.connect(lambda: self.selectWorkDir())
-        #self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
-        #self.checkAllBox.stateChanged.connect(lambda: (self.model.checkAll() if self.checkAllBox.isChecked() else self.model.unCheckAll()))
-        #fileMenuLayout.addWidget(selectFolderButton)
-        #fileMenuLayout.addWidget(self.checkAllBox)
-        #fileMenuLayout.addWidget(self.fileMenu)
         
 ################## IMAGE AREA  ########################################
 
@@ -519,57 +513,68 @@ class DarfiUI(QtGui.QWidget):
  
         dir_path = self.fileMenuArea.getWorkDir()
         dirs_with_images = self.fileMenuArea.getCheckedPaths()
+
         if len(dirs_with_images) == 0 :
             return
         else:
         
-            pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
-                    (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
+            if self.oldDirsWithImages == dirs_with_images:
+                print "No changes in selection, setting values from previous calc"
+                self.foci_rescale_min = self.oldFoci_rescale_min
+                self.foci_rescale_max = self.oldFoci_rescale_max
+                print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
+            else:
+            
+                pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
+                        (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
 
-            image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
+                image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
 
-            path1,name2 = os.path.split(dir_path)
-            name1       = os.path.split(path1)[1]
-            #print name1, name2, path1
-            name = name1 + '_' + name2
-            absoutfile = os.path.join(dir_path,str(self.outfile))
-            print absoutfile
-            cell_set = pic_an.cell_set(name=name, cells=[])
+                path1,name2 = os.path.split(dir_path)
+                name1       = os.path.split(path1)[1]
+                #print name1, name2, path1
+                name = name1 + '_' + name2
+                absoutfile = os.path.join(dir_path,str(self.outfile))
+                print absoutfile
+                cell_set = pic_an.cell_set(name=name, cells=[])
 
-            remained = len(image_dirs)
-            pbarval = 0
-            self.pbar.show()
-            self.pbar.setValue(pbarval)
-            pbarstep = 100 / remained
-
-            print "We have", remained, 'images to load for', name
-
-            print "Image loading have started for", name
-
-            for image_dir in image_dirs:
-                image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-                pbarval +=pbarstep
+                remained = len(image_dirs)
+                pbarval = 0
+                self.pbar.show()
                 self.pbar.setValue(pbarval)
-                remained -= 1
+                pbarstep = 100 / remained
 
-                if remained == 0:
-                    print "Image loading have finished for", name
-                else:
-                    print remained, 'images remained to load for', name
+                print "We have", remained, 'images to load for', name
 
-                cell_set.extend(image_dir)
+                print "Image loading have started for", name
 
-            if len(cell_set.cells) == 0:
-                print "There are no cells in the images from ", dir_path
-                return
+                for image_dir in image_dirs:
+                    image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                    pbarval +=pbarstep
+                    self.pbar.setValue(pbarval)
+                    remained -= 1
 
-            print "We have", len(cell_set.cells), "cells to analyze for", name
+                    if remained == 0:
+                        print "Image loading have finished for", name
+                    else:
+                        print remained, 'images remained to load for', name
 
-            cell_set.rescale_nuclei()
-            cell_set.rescale_foci((None, None))
-            self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
-            print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
-            self.pbar.setValue(100)
+                    cell_set.extend(image_dir)
+
+                if len(cell_set.cells) == 0:
+                    print "There are no cells in the images from ", dir_path
+                    return
+
+                print "We have", len(cell_set.cells), "cells to analyze for", name
+
+                cell_set.rescale_nuclei()
+                cell_set.rescale_foci((None, None))
+                self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
+                self.oldFoci_rescale_min, self.oldFoci_rescale_max = self.foci_rescale_min, self.foci_rescale_max
+                print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
+                self.pbar.setValue(100)
+                self.oldDirsWithImages = dirs_with_images
+                self.lastCalc=False
 
 
     def runCalc(self):
@@ -579,67 +584,71 @@ class DarfiUI(QtGui.QWidget):
         if len(dirs_with_images) == 0 :
             return
         else:
+            if (self.oldDirsWithImages == dirs_with_images) & self.lastCalc:
+                print "No changes in selection"
+            else:
     
-            pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
-                    (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
+                pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
+                        (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
 
-            image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
+                image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
 
-            path1,name2 = os.path.split(dir_path)
-            name1       = os.path.split(path1)[1]
-            #print name1, name2, path1
-            name = name1 + '_' + name2
-            absoutfile = os.path.join(dir_path,str(self.outfile))
-            print absoutfile
-            cell_set = pic_an.cell_set(name=name, cells=[])
+                path1,name2 = os.path.split(dir_path)
+                name1       = os.path.split(path1)[1]
+                #print name1, name2, path1
+                name = name1 + '_' + name2
+                absoutfile = os.path.join(dir_path,str(self.outfile))
+                print absoutfile
+                cell_set = pic_an.cell_set(name=name, cells=[])
 
-            remained = len(image_dirs)
-            pbarval = 0
-            self.pbar.show()
-            self.pbar.setValue(pbarval)
-            pbarstep = 100 / remained
-            print "We have", remained, 'images to load for', name
-
-            print "Image loading have started for", name
-
-            for image_dir in image_dirs:
-                image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-                pbarval +=pbarstep
+                remained = len(image_dirs)
+                pbarval = 0
+                self.pbar.show()
                 self.pbar.setValue(pbarval)
-                remained -= 1
+                pbarstep = 100 / remained
+                print "We have", remained, 'images to load for', name
 
-                if remained == 0:
-                    print "Image loading have finished for", name
-                else:
-                    print remained, 'images remained to load for', name
+                print "Image loading have started for", name
 
-                cell_set.extend(image_dir)
+                for image_dir in image_dirs:
+                    image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                    pbarval +=pbarstep
+                    self.pbar.setValue(pbarval)
+                    remained -= 1
 
-            if len(cell_set.cells) == 0:
-                print "There are no cells in the images from ", dir_path
-                return
+                    if remained == 0:
+                        print "Image loading have finished for", name
+                    else:
+                        print remained, 'images remained to load for', name
 
-            print "We have", len(cell_set.cells), "cells to analyze for", name
+                    cell_set.extend(image_dir)
 
-            cell_set.rescale_nuclei()
-            cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
+                if len(cell_set.cells) == 0:
+                    print "There are no cells in the images from ", dir_path
+                    return
 
-            cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
-            cell_set.calculate_foci_parameters()
-            cell_set.write_parameters(absoutfile)
-            params = cell_set.get_parameters()
-            self.statusArea.hide()
-            self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
-            for i in xrange(1,13):
-                self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
-            #self.update()
-            for image_dir in image_dirs:
-                image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
-            self.statusArea.show()
-            self.pbar.setValue(100)
-            self.updateImages()
+                print "We have", len(cell_set.cells), "cells to analyze for", name
 
-            #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
+                cell_set.rescale_nuclei()
+                cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
+                self.oldFoci_rescale_min, self.oldFoci_rescale_max = cell_set.get_foci_rescale_values()
+                cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
+                cell_set.calculate_foci_parameters()
+                cell_set.write_parameters(absoutfile)
+                params = cell_set.get_parameters()
+                self.statusArea.hide()
+                self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
+                for i in xrange(1,13):
+                    self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
+                #self.update()
+                for image_dir in image_dirs:
+                    image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
+                self.statusArea.show()
+                self.pbar.setValue(100)
+                self.updateImages()
+                self.oldDirsWithImages = dirs_with_images
+                self.lastCalc=True
+                #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
                
           
