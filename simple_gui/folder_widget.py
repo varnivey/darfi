@@ -24,9 +24,11 @@ class LayoutTest(QtGui.QWidget):
     def openWorkDir(self):
         tempDir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
         if tempDir != "":
+            #clearing from previous file selection
             for i in reversed(range(self.gridLayout.count())): 
                 self.gridLayout.itemAt(i).widget().setParent(None)
-            self.workDir=tempDir
+            self.workDir=unicode(tempDir)
+            self.selectDirButton.setText(unicode(QtCore.QDir(self.workDir).dirName()))
             folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
             self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
             self.checkAllBox.setChecked(True)
@@ -66,12 +68,13 @@ class imageFolderWidget(QtGui.QWidget):
         self.Layout.setSpacing(0)
         self.Layout.setContentsMargins(0,0,0,0)
         self.Layout.setAlignment(QtCore.Qt.AlignLeft|QtCore.Qt.AlignTop)
-        self.Layout.setSizeConstraint(QtGui.QLayout.SetFixedSize)
+        #self.Layout.setSizeConstraint(QtGui.QLayout.SetMaximumSize)
         self.checked = QtGui.QCheckBox(self)
         self.checked.setTristate(False)
         self.checked.setChecked(True)
         self.r_button = QtGui.QPushButton(self.dir.dirName())
         self.r_button.setIcon(self.style().standardIcon(QtGui.QStyle.SP_DirIcon))
+        self.r_button.setSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Minimum)
         self.Layout.addWidget(self.checked,0,0)
         self.Layout.addWidget(self.r_button,0,1)
     
