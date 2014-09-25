@@ -20,7 +20,7 @@ class FolderWidget(QtGui.QWidget):
         self.selectDirButton = QtGui.QPushButton("Select work dir")
         self.Layout.addWidget(self.selectDirButton)
         self.Layout.addWidget(self.scrollArea)
-        self.connect(self.scrollArea, QtCore.SIGNAL("mouseEvent()"), self.hideAllImageLabels)
+        self.connect(self, QtCore.SIGNAL("mouseEvent()"), self.hideAllImageLabels)
         self.connect(self.selectDirButton, QtCore.SIGNAL("clicked()"), self.openWorkDir)
         self.setGeometry(300, 200, 200, 400)
 
@@ -142,17 +142,20 @@ class imageFolderWidget(QtGui.QWidget):
     signal_show_images = QtCore.pyqtSignal()        
     
     def hideAllImageLabels(self):
-        self.isHidden=True
         for i in xrange(0,len(self.labels)):
             self.labels[i].hide()
             self.labels[i].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;");
 
     def showAllImageLabels(self):
-        self.isHidden=False
+        
         self.signal_hideall.emit()
         self.signal_show_images.emit()
-        for i in xrange(0,len(self.labels)):
-            self.labels[i].show()
+        if self.isHidden:
+            for i in xrange(0,len(self.labels)):
+                self.labels[i].show()
+            self.isHidden=False
+        else:
+            self.isHidden=True
     
     def highliteItem(self,item):
         for i in xrange(0,len(self.labels)):
