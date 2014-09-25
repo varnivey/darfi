@@ -395,10 +395,10 @@ class DarfiUI(QtGui.QWidget):
         rescaleButton = QtGui.QPushButton("Get scale from selection")
         
         runCalcButton = QtGui.QPushButton("Calculate")
-        runCalcButton.clicked.connect(lambda: self.runCalc())
+        runCalcButton.clicked.connect(self.runCalc)
          
         buttonLayout.addWidget(rescaleButton)
-        rescaleButton.clicked.connect(lambda: self.getScale())
+        rescaleButton.clicked.connect(self.getScale)
         buttonLayout.addWidget(runCalcButton)
 
         nuclNameFieldLabel = QtGui.QLabel(self)
