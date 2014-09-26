@@ -634,6 +634,7 @@ class DarfiUI(QtGui.QWidget):
                 self.statusArea.show()
                 self.pbar.setValue(100)
                 self.updateImages()
+                self.fileMenuArea.updateWorkDir()
                 self.oldDirsWithImages = dirs_with_images
                 self.lastCalc=True
                 self.settingsChanged=False

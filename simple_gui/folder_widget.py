@@ -24,7 +24,31 @@ class FolderWidget(QtGui.QWidget):
         self.setGeometry(300, 200, 200, 400)
 
     signal_update_image = QtCore.pyqtSignal()
-    signal_update_images = QtCore.pyqtSignal()        
+    signal_update_images = QtCore.pyqtSignal()
+    
+    def updateWorkDir(self):
+        for i in reversed(range(self.gridLayout.count())): 
+            self.gridLayout.itemAt(i).widget().setParent(None)
+
+        self.selectDirButton.setText(unicode(QtCore.QDir(self.workDir).dirName()))
+        folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
+        self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
+        self.checkAllBox.setChecked(True)
+        self.checkAllBox.stateChanged.connect(lambda: (self.checkAll() if self.checkAllBox.isChecked() else self.unCheckAll()))
+        self.gridLayout.addWidget(self.checkAllBox)
+        self.folderWidgets=[]
+        i=0
+        while folderIterator.hasNext():
+            
+            tempDir=QtCore.QDir(folderIterator.next())
+            
+            self.folderWidgets.append(imageFolderWidget(tempDir))
+            self.gridLayout.addWidget(self.folderWidgets[-1])
+            self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
+            self.folderWidgets[-1].signal_show_image.connect(lambda key=i: self.updateImage(key))
+            self.folderWidgets[-1].signal_show_images.connect(lambda key=i: self.updateImages(key))
+            i+=1
+        
 
     def updateImage(self,key):
         self.selectedImage = self.folderWidgets[key].selectedPic
@@ -37,29 +61,13 @@ class FolderWidget(QtGui.QWidget):
     def openWorkDir(self):
         tempDir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
         if tempDir != "":
-            #clearing from previous file selection
-            for i in reversed(range(self.gridLayout.count())): 
-                self.gridLayout.itemAt(i).widget().setParent(None)
-
             self.workDir=unicode(tempDir)
-            self.selectDirButton.setText(unicode(QtCore.QDir(self.workDir).dirName()))
-            folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
-            self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
-            self.checkAllBox.setChecked(True)
-            self.checkAllBox.stateChanged.connect(lambda: (self.checkAll() if self.checkAllBox.isChecked() else self.unCheckAll()))
-            self.gridLayout.addWidget(self.checkAllBox)
-            self.folderWidgets=[]
-            i=0
-            while folderIterator.hasNext():
+            self.updateWorkDir()
+            
+            #clearing from previous file selection
+
                 
-                tempDir=QtCore.QDir(folderIterator.next())
-                
-                self.folderWidgets.append(imageFolderWidget(tempDir))
-                self.gridLayout.addWidget(self.folderWidgets[-1])
-                self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
-                self.folderWidgets[-1].signal_show_image.connect(lambda key=i: self.updateImage(key))
-                self.folderWidgets[-1].signal_show_images.connect(lambda key=i: self.updateImages(key))
-                i+=1
+            
 
 
     def hideAllImageLabels(self):   
