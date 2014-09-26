@@ -97,7 +97,7 @@ class cell:
 class cell_set:
     '''Class representing set of cells'''
 
-    def __init__(self, name = '', cells = []):
+    def __init__(self, name = u'', cells = []):
         '''Construct set from the list of cells given'''
 
         self.cells = cells
@@ -246,11 +246,11 @@ class cell_set:
         params.extend(self.rel_foci_area_param)
         params.extend(self.rel_foci_soid_param)
 
-        str_params = [str(round(item, 4)).rjust(12) for item in params]
+        str_params = [unicode(round(item, 4)).rjust(12) for item in params]
         str_params.insert(0,self.name.rjust(20))
 
         with open(outfilename, 'w') as outfile:
-            outfile.write(' '.join(str_params))
+            outfile.write(u' '.join(str_params).encode('utf-8'))
 
 
     def append(self,new_cell):
