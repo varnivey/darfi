@@ -49,7 +49,7 @@ class DarfiUI(QtGui.QMainWindow):
         self.peak_min_val_perc = 60.
         self.foci_min_val_perc = 90.
         self.foci_radius = 10
-        self.foci_min_level_on_bg = 40
+        self.foci_min_level_on_bg = 0
         self.foci_rescale_min = None
         self.foci_rescale_max = None
         self.nuclei_color = 0.66
@@ -556,6 +556,7 @@ class DarfiUI(QtGui.QMainWindow):
                     self.pbar.setValue(100)
                     self.updateImages()
                     self.fileMenuArea.updateWorkDir()
+                    self.fileMenuArea.unCheckAll()
                     self.oldDirsWithImages = dirs_with_images
                     self.lastCalc=True
                     self.settingsChanged=False

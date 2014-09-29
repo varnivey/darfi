@@ -155,12 +155,13 @@ class imageFolderWidget(QtGui.QWidget):
         for i in xrange(0,len(self.labels)):
             self.labels[i].hide()
             self.labels[i].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;");
+            self.isHidden=True
 
     def showAllImageLabels(self):
-        
+        oldhide=self.isHidden
         self.signal_hideall.emit()
         self.signal_show_images.emit()
-        if self.isHidden:
+        if oldhide:
             for i in xrange(0,len(self.labels)):
                 self.labels[i].show()
             self.isHidden=False
