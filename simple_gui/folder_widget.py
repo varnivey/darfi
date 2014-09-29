@@ -33,7 +33,7 @@ class FolderWidget(QtGui.QWidget):
         for i in reversed(range(self.gridLayout.count())): 
             self.gridLayout.itemAt(i).widget().setParent(None)
 
-        self.selectDirButton.setText(unicode(QtCore.QDir(self.workDir).dirName()))
+        #self.selectDirButton.setText(unicode(QtCore.QDir(self.workDir).dirName()))
         folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
         self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
         self.checkAllBox.setChecked(True)
