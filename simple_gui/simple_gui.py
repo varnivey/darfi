@@ -299,6 +299,7 @@ class DarfiUI(QtGui.QMainWindow):
         
         runCalcButton = QtGui.QPushButton("Calculate")
         runCalcButton.clicked.connect(self.runCalc)
+        runCalcButton.setMinimumHeight(40)
         buttonLayout.addWidget(runCalcButton)
         
         self.pbar.hide()
