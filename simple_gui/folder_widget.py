@@ -85,7 +85,17 @@ class FolderWidget(QtGui.QWidget):
     def unCheckAll(self):
         for i in xrange(0,len(self.folderWidgets)):
             self.folderWidgets[i].checked.setChecked(False)
-            
+    
+    def setCheckedFromPaths(self,paths):
+        try:
+            for i in xrange(0,len(self.folderWidgets)):
+                if unicode(self.folderWidgets[i].dir.absolutePath()) in paths:
+                    self.folderWidgets[i].checked.setChecked(True)
+                else:
+                    self.folderWidgets[i].checked.setChecked(False)
+        except AttributeError:
+            ()
+                
     def getCheckedPaths(self):
         paths=[]
         try:

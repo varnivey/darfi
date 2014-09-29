@@ -40,7 +40,22 @@ class DarfiUI(QtGui.QMainWindow):
     
     def __init__(self):
         super(DarfiUI, self).__init__()
-        self.workDir=QtCore.QDir.currentPath()
+        
+        self.loadDefaultSettings()
+        self.showMiniatures=True
+        self.oldDirsWithImages=[]
+        self.oldFoci_rescale_min = None
+        self.oldFoci_rescale_max = None
+        self.lastCalc=False
+        self.settingsChanged=True
+        self.initUI()
+        if os.path.isfile(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi-session.dcf")):
+            self.readSettings(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi-session.dcf"))
+          
+
+    
+    def loadDefaultSettings(self,update=False):
+        self.workDir=unicode(QtCore.QDir.currentPath())
         self.nuclei_name = u'3DAPI.TIF'
         self.foci_name = u'3FITС.TIF'
         self.outfile = u'result.txt'
@@ -54,47 +69,48 @@ class DarfiUI(QtGui.QMainWindow):
         self.foci_rescale_max = None
         self.nuclei_color = 0.66
         self.foci_color = 0.33
-        
-        self.showMiniatures=True
-        #### vars for preventing double calculations
-        self.oldDirsWithImages=[]
-        self.oldFoci_rescale_min = None
-        self.oldFoci_rescale_max = None
-        self.lastCalc=False
-        self.settingsChanged=True
-
-        self.initUI()
-        
-    def dumpSettings(self):
-        #dlg=QtGui.QFileDialog( self )
-        #dlg.setWindowTitle( 'Print Things' )
-        #dlg.setViewMode( QtGui.QFileDialog.Detail )
-        #dlg.setNameFilters( 'DARFI Config File, *.dcf' )
-        #dlg.setDefaultSuffix( '.' )
-        filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Write DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
+        if update:
+            self.fociNameField.setText(self.foci_name)
+            self.nuclNameField.setText(self.nuclei_name)
+            self.outfileField.setText(self.outfile)
+            self.fileMenuArea.setWorkDir(self.workDir)
+            self.fileMenuArea.updateWorkDir()
+            
+    
+    def dumpSettings(self,filename=None):
+        if not(filename):
+            filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Write DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
         if filename != "":
             #that is rude but it works (
             if filename[-4:] != '.dcf':
                 filename+=unicode('.dcf')
-            with open(filename, 'w') as f:
+            with open(filename, 'w+') as f:
                 pickle.dump([self.fileMenuArea.workDir,self.nuclei_name,self.foci_name,\
                 self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
                 self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-                self.foci_rescale_max,self.nuclei_color,self.foci_color], f)
+                self.foci_rescale_max,self.nuclei_color,self.foci_color,self.fileMenuArea.getCheckedPaths()], f)
 
-    def readSettings(self):
-        filename=unicode(QtGui.QFileDialog.getOpenFileName(self,'Open DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
+    def closeEvent(self, event):
+        print "Closing DARFI, goodbye"
+        filename=os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi-session.dcf")
+        self.dumpSettings(filename)
+    
+
+    def readSettings(self,filename=None):
+        if not(filename):
+            filename=unicode(QtGui.QFileDialog.getOpenFileName(self,'Open DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
         if filename != "":
             with open(filename) as f:
                 self.workDir,self.nuclei_name,self.foci_name,\
                 self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
                 self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-                self.foci_rescale_max,self.nuclei_color,self.foci_color = pickle.load(f)
+                self.foci_rescale_max,self.nuclei_color,self.foci_color, paths = pickle.load(f)
                 self.fociNameField.setText(self.foci_name)
                 self.nuclNameField.setText(self.nuclei_name)
                 self.outfileField.setText(self.outfile)
                 self.fileMenuArea.setWorkDir(self.workDir)
                 self.fileMenuArea.updateWorkDir()
+                self.fileMenuArea.setCheckedFromPaths(paths)
             
             
         
@@ -387,6 +403,8 @@ class DarfiUI(QtGui.QMainWindow):
 
     def createActions(self):
         self.settingsAct = QtGui.QAction("&Settings...", self, shortcut="Ctrl+S",triggered=self.openSettings)
+        
+        self.settingsDefAct = QtGui.QAction("&Load Defaults...", self, shortcut="Ctrl+D",triggered=lambda: self.loadDefaultSettings(True))
 
         self.openSettingsAct = QtGui.QAction("&Load settings...", self, shortcut="Ctrl+R",triggered=self.readSettings)
                 
@@ -401,6 +419,7 @@ class DarfiUI(QtGui.QMainWindow):
     def createMenus(self):
         self.fileMenu = QtGui.QMenu("&File", self)
         self.fileMenu.addAction(self.settingsAct)
+        self.fileMenu.addAction(self.settingsDefAct)
         self.fileMenu.addSeparator()
         self.fileMenu.addAction(self.openSettingsAct)
         self.fileMenu.addAction(self.saveSettingsAct)
@@ -561,7 +580,7 @@ class DarfiUI(QtGui.QMainWindow):
                     self.pbar.setValue(100)
                     self.updateImages()
                     self.fileMenuArea.updateWorkDir()
-                    self.fileMenuArea.unCheckAll()
+                    self.fileMenuArea.setCheckedFromPaths(dirs_with_images)
                     self.oldDirsWithImages = dirs_with_images
                     self.lastCalc=True
                     self.settingsChanged=False
