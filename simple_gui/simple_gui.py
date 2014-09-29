@@ -17,10 +17,11 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys,os,functools
+import sys,os,functools, pickle
 sys.path.append(os.path.join('..','engine'))
 import pic_an
 import folder_widget
+import settings_window
 from PyQt4 import QtGui, QtCore
 
 
@@ -33,166 +34,9 @@ try:
 except AttributeError:
     _fromUtf8 = lambda s: s
 
-
-
-class SettingsWindow(QtGui.QDialog):
-      
-    def __init__(self,parent,sensitivity,min_cell_size,peak_min_val_perc,\
-        foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
-        foci_rescale_max,nuclei_color,foci_color):
-        super(SettingsWindow, self).__init__(parent)
-        #print DarfiUI.sensitivity
-        hbox = QtGui.QHBoxLayout(self)
-        
-        vbox1Area = QtGui.QWidget(self)
-        vbox1 = QtGui.QVBoxLayout(vbox1Area)
-        
-        self.sensitivity = sensitivity
-        sensitivityLabel = QtGui.QLabel(self)
-        sensitivityLabel.setText("Sensitivity:")
-        self.sensitivityField = QtGui.QDoubleSpinBox()
-        self.sensitivityField.setRange(0,10)
-        self.sensitivityField.setDecimals(0)
-        self.sensitivityField.setValue(self.sensitivity)
-        vbox1.addWidget(sensitivityLabel)
-        vbox1.addWidget(self.sensitivityField)
-        
-        self.min_cell_size = min_cell_size
-        min_cell_sizeLabel = QtGui.QLabel(self)
-        min_cell_sizeLabel.setText("Min cell size:")
-        self.min_cell_sizeField = QtGui.QDoubleSpinBox()
-        self.min_cell_sizeField.setRange(0,4294967296)
-        self.min_cell_sizeField.setDecimals(0)
-        self.min_cell_sizeField.setValue(self.min_cell_size)
-        vbox1.addWidget(min_cell_sizeLabel)
-        vbox1.addWidget(self.min_cell_sizeField)
-        
-        self.peak_min_val_perc = peak_min_val_perc
-        peak_min_val_percLabel = QtGui.QLabel(self)
-        peak_min_val_percLabel.setText("Peak min val perc:")
-        self.peak_min_val_percField = QtGui.QDoubleSpinBox()
-        self.peak_min_val_percField.setRange(0,100)
-        self.peak_min_val_percField.setDecimals(2)
-        self.peak_min_val_percField.setValue(self.peak_min_val_perc)
-        vbox1.addWidget(peak_min_val_percLabel)
-        vbox1.addWidget(self.peak_min_val_percField)
-        
-        self.foci_min_val_perc = foci_min_val_perc
-        foci_min_val_percLabel = QtGui.QLabel(self)
-        foci_min_val_percLabel.setText("Foci min val perc:")
-        self.foci_min_val_percField = QtGui.QDoubleSpinBox()
-        self.foci_min_val_percField.setRange(0,100)
-        self.foci_min_val_percField.setDecimals(2)
-        self.foci_min_val_percField.setValue(self.foci_min_val_perc)
-        vbox1.addWidget(foci_min_val_percLabel)
-        vbox1.addWidget(self.foci_min_val_percField)
-        
-        self.foci_radius = foci_radius
-        foci_radiusLabel = QtGui.QLabel(self)
-        foci_radiusLabel.setText("Foci radius:")
-        self.foci_radiusField = QtGui.QDoubleSpinBox()
-        self.foci_radiusField.setRange(0,4294967296)
-        self.foci_radiusField.setDecimals(0)
-        self.foci_radiusField.setValue(self.foci_radius)
-        vbox1.addWidget(foci_radiusLabel)
-        vbox1.addWidget(self.foci_radiusField)
-        
-        
-        vbox2Area = QtGui.QWidget(self)
-        vbox2 = QtGui.QVBoxLayout(vbox2Area)
-        self.foci_min_level_on_bg = foci_min_level_on_bg
-        foci_min_level_on_bgLabel = QtGui.QLabel(self)
-        foci_min_level_on_bgLabel.setText("Foci min level on bg:")
-        self.foci_min_level_on_bgField = QtGui.QDoubleSpinBox()
-        self.foci_min_level_on_bgField.setRange(0,255)
-        self.foci_min_level_on_bgField.setDecimals(0)
-        self.foci_min_level_on_bgField.setValue(self.foci_min_level_on_bg)
-        vbox2.addWidget(foci_min_level_on_bgLabel)
-        vbox2.addWidget(self.foci_min_level_on_bgField)
-        
-        self.foci_rescale_min = foci_rescale_min
-        foci_rescale_minLabel = QtGui.QLabel(self)
-        foci_rescale_minLabel.setText("Foci rescale min (-1 for autoscale):")
-        self.foci_rescale_minField = QtGui.QDoubleSpinBox()
-        self.foci_rescale_minField.setRange(-1,255)
-        try:
-            self.foci_rescale_minField.setValue(self.foci_rescale_min)
-        except TypeError:
-            self.foci_rescale_minField.setValue(-1)
-        vbox2.addWidget(foci_rescale_minLabel)
-        vbox2.addWidget(self.foci_rescale_minField)
-        
-        self.foci_rescale_max = foci_rescale_max
-        foci_rescale_maxLabel = QtGui.QLabel(self)
-        foci_rescale_maxLabel.setText("Foci rescale max (-1 for autoscale):")
-        self.foci_rescale_maxField = QtGui.QDoubleSpinBox()
-        self.foci_rescale_maxField.setRange(-1,255)
-        try:
-            self.foci_rescale_maxField.setValue(self.foci_rescale_max)
-        except TypeError:
-            self.foci_rescale_maxField.setValue(-1)
-        vbox2.addWidget(foci_rescale_maxLabel)
-        vbox2.addWidget(self.foci_rescale_maxField)
-        
-        self.nuclei_color = nuclei_color
-        nuclei_colorLabel = QtGui.QLabel(self)
-        nuclei_colorLabel.setText("Nuclei color:")
-        self.nuclei_colorField = QtGui.QDoubleSpinBox()
-        self.nuclei_colorField.setRange(0,1)
-        self.nuclei_colorField.setValue(self.nuclei_color)
-        vbox2.addWidget(nuclei_colorLabel)
-        vbox2.addWidget(self.nuclei_colorField)
-        
-        self.foci_color = foci_color
-        foci_colorLabel = QtGui.QLabel(self)
-        foci_colorLabel.setText("Foci color:")
-        self.foci_colorField = QtGui.QDoubleSpinBox()
-        self.foci_colorField.setRange(0,1)
-        self.foci_colorField.setValue(self.foci_color)
-        vbox2.addWidget(foci_colorLabel)
-        vbox2.addWidget(self.foci_colorField)
-        
-        hbox.addWidget(vbox1Area)
-        hbox.addWidget(vbox2Area)
-
-
-    def getSettings(self):
-        sensitivity = self.sensitivityField.value()
-        min_cell_size = self.min_cell_sizeField.value()
-        peak_min_val_perc = self.peak_min_val_percField.value()
-        foci_min_val_perc = self.foci_min_val_percField.value()
-        foci_radius = self.foci_radiusField.value()
-        foci_min_level_on_bg = self.foci_min_level_on_bgField.value()
-        foci_rescale_min = self.foci_rescale_minField.value()
-        foci_rescale_min = None if foci_rescale_min == -1 else foci_rescale_min
-        foci_rescale_max = self.foci_rescale_maxField.value()
-        foci_rescale_max = None if foci_rescale_max == -1 else foci_rescale_max
-        nuclei_color = self.nuclei_colorField.value()
-        foci_color = self.foci_colorField.value()
-        
-        if (sensitivity == self.sensitivity) &\
-        (min_cell_size == self.min_cell_size)&\
-        (peak_min_val_perc == self.peak_min_val_perc)&\
-        (foci_min_val_perc == self.foci_min_val_perc)&\
-        (foci_radius == self.foci_radius)&\
-        (foci_min_level_on_bg == self.foci_min_level_on_bg)&\
-        (foci_rescale_min == self.foci_rescale_min)&\
-        (foci_rescale_max == self.foci_rescale_max)&\
-        (nuclei_color == self.nuclei_color)&\
-        (foci_color == self.foci_color):
-            print "Settings had not changed"
-            return sensitivity,min_cell_size,peak_min_val_perc,\
-            foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
-            foci_rescale_max,nuclei_color,foci_color,False
-            
-        else:
-            print "Settings changed"
-            return sensitivity,min_cell_size,peak_min_val_perc,\
-            foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
-            foci_rescale_max,nuclei_color,foci_color,True
-            
+          
     
-class DarfiUI(QtGui.QWidget):
+class DarfiUI(QtGui.QMainWindow):
     
     def __init__(self):
         super(DarfiUI, self).__init__()
@@ -221,12 +65,40 @@ class DarfiUI(QtGui.QWidget):
 
         self.initUI()
         
+    def dumpSettings(self):
+        
+        filename=unicode(QtGui.QFileDialog.getSaveFileName(filter='DARFI Config File, *.dcf'))
+        if filename != "":
+            #that is rude but it works (
+            if filename[-4:] != '.dcf':
+                filename+=unicode('.dcf')
+            with open(filename, 'w') as f:
+                pickle.dump([self.fileMenuArea.workDir,self.nuclei_name,self.foci_name,\
+                self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
+                self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
+                self.foci_rescale_max,self.nuclei_color,self.foci_color], f)
+    def readSettings(self):
+        filename=unicode(QtGui.QFileDialog.getOpenFileName(filter='DARFI Config File, *.dcf'))
+        if filename != "":
+            with open(filename) as f:
+                self.workDir,self.nuclei_name,self.foci_name,\
+                self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
+                self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
+                self.foci_rescale_max,self.nuclei_color,self.foci_color = pickle.load(f)
+                self.fociNameField.setText(self.foci_name)
+                self.nuclNameField.setText(self.nuclei_name)
+                self.outfileField.setText(self.outfile)
+                self.fileMenuArea.setWorkDir(self.workDir)
+                self.fileMenuArea.updateWorkDir()
+            
+            
+        
     def resizeEvent( self, oldsize):
         ''' override resize event to redraw pictures'''
         self.updateImages()
     
     def openSettings(self):
-        self.settings = SettingsWindow(self,self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
+        self.settings = settings_window.SettingsWindow(self,self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
         self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
         self.foci_rescale_max,self.nuclei_color,self.foci_color)
         self.settings.exec_()
@@ -235,13 +107,13 @@ class DarfiUI(QtGui.QWidget):
         self.foci_rescale_max,self.nuclei_color,self.foci_color,self.settingsChanged = self.settings.getSettings()
         
     def setNuclei_name(self,text):
-        self.nuclei_name = text
+        self.nuclei_name = unicode(text)
         
     def setFoci_name(self,text):
-        self.foci_name = text
+        self.foci_name = unicode(text)
         
     def setOutfile(self,text):
-        self.outfile = text
+        self.outfile = unicode(text)
         
 
     def selectWorkDir(self):
@@ -255,8 +127,8 @@ class DarfiUI(QtGui.QWidget):
             self.fileMenu.setRootIndex(self.model.index(self.workDir))
     
     def selectFileName(self):
-        self.outfile=QtGui.QFileDialog.getSaveFileName()
-        print self.outfile
+        filename=QtGui.QFileDialog.getSaveFileName()
+        print filename
         
     def reUpdateImages(self):
         self.showMiniatures=True
@@ -391,47 +263,44 @@ class DarfiUI(QtGui.QWidget):
 
         buttonArea = QtGui.QWidget(self)
         buttonLayout = QtGui.QVBoxLayout(buttonArea)
-        rescaleButton = QtGui.QPushButton("Get scale from selection")
         
-        runCalcButton = QtGui.QPushButton("Calculate")
-        runCalcButton.clicked.connect(self.runCalc)
-         
-        buttonLayout.addWidget(rescaleButton)
-        rescaleButton.clicked.connect(self.getScale)
-        buttonLayout.addWidget(runCalcButton)
-
-        nuclNameFieldLabel = QtGui.QLabel(self)
-        nuclNameFieldLabel.setText("Files with nuclei:")
-        nuclNameField = QtGui.QLineEdit()
-        nuclNameField.setText(self.nuclei_name)
-        nuclNameField.textChanged[str].connect(lambda: self.setNuclei_name(nuclNameField.displayText()))
-        buttonLayout.addWidget(nuclNameFieldLabel)
-        buttonLayout.addWidget(nuclNameField)
-        
-        fociNameFieldLabel = QtGui.QLabel(self)
-        fociNameFieldLabel.setText("Files with foci:")
-        fociNameField = QtGui.QLineEdit()
-        fociNameField.setText(self.foci_name)
-        fociNameField.textChanged[str].connect(lambda: self.setFoci_name(fociNameField.displayText()))
-        buttonLayout.addWidget(fociNameFieldLabel)
-        buttonLayout.addWidget(fociNameField)
-        
-        outfileFieldLabel = QtGui.QLabel(self)
-        outfileFieldLabel.setText("Outfile name:")
-        outfileField = QtGui.QLineEdit()
-        outfileField.setText(self.outfile)
-        outfileField.textChanged[str].connect(lambda: self.setOutfile(outfileField.displayText()))
-        buttonLayout.addWidget(outfileFieldLabel)
-        buttonLayout.addWidget(outfileField)
-        
-        self.saveFile = QtGui.QPushButton("Choose save file")
-        self.saveFile.clicked.connect(self.selectFileName)
-#        buttonLayout.addWidget(self.saveFile)
-        
-        self.openSettingsButton = QtGui.QPushButton("Open settings")
+        self.openSettingsButton = QtGui.QPushButton("Settings")
         self.openSettingsButton.clicked.connect(self.openSettings)
         buttonLayout.addWidget(self.openSettingsButton)
         self.pbar = QtGui.QProgressBar(self)
+
+        nuclNameFieldLabel = QtGui.QLabel(self)
+        nuclNameFieldLabel.setText("Files with nuclei:")
+        self.nuclNameField = QtGui.QLineEdit()
+        self.nuclNameField.setText(self.nuclei_name)
+        self.nuclNameField.textChanged[str].connect(lambda: self.setNuclei_name(self.nuclNameField.displayText()))
+        buttonLayout.addWidget(nuclNameFieldLabel)
+        buttonLayout.addWidget(self.nuclNameField)
+        
+        fociNameFieldLabel = QtGui.QLabel(self)
+        fociNameFieldLabel.setText("Files with foci:")
+        self.fociNameField = QtGui.QLineEdit()
+        self.fociNameField.setText(self.foci_name)
+        self.fociNameField.textChanged[str].connect(lambda: self.setFoci_name(self.fociNameField.displayText()))
+        buttonLayout.addWidget(fociNameFieldLabel)
+        buttonLayout.addWidget(self.fociNameField)
+        
+        outfileFieldLabel = QtGui.QLabel(self)
+        outfileFieldLabel.setText("Outfile name:")
+        self.outfileField = QtGui.QLineEdit()
+        self.outfileField.setText(self.outfile)
+        self.outfileField.textChanged[str].connect(lambda: self.setOutfile(self.outfileField.displayText()))
+        buttonLayout.addWidget(outfileFieldLabel)
+        buttonLayout.addWidget(self.outfileField)
+        
+        rescaleButton = QtGui.QPushButton("Get scale from selection")
+        rescaleButton.clicked.connect(self.getScale)
+        buttonLayout.addWidget(rescaleButton)
+        
+        runCalcButton = QtGui.QPushButton("Calculate")
+        runCalcButton.clicked.connect(self.runCalc)
+        runCalcButton.setMinimumHeight(40)
+        buttonLayout.addWidget(runCalcButton)
         
         self.pbar.hide()
         buttonLayout.addWidget(self.pbar)
@@ -452,8 +321,14 @@ class DarfiUI(QtGui.QWidget):
         self.statusArea.setVerticalHeaderItem(0, QtGui.QTableWidgetItem("Mean"))
         self.statusArea.setVerticalHeaderItem(1, QtGui.QTableWidgetItem("MSE"))
         
+     
+        
+
+        
 
 ################## COMPOSITING  ########################################
+
+
 
         windowInitWidth = 1024
         windowInitHeight = 768
@@ -469,8 +344,7 @@ class DarfiUI(QtGui.QWidget):
         else:
             icon.addPixmap(QtGui.QPixmap(_fromUtf8(os.path.join(os.getcwd(), 'misc', 'darfi.ico'))), QtGui.QIcon.Normal, QtGui.QIcon.Off)
 
-
-        hbox = QtGui.QHBoxLayout(self)
+        hbox = QtGui.QHBoxLayout()
 
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter1.addWidget(self.imagePreviewArea)
@@ -492,13 +366,56 @@ class DarfiUI(QtGui.QWidget):
         splitter3.splitterMoved.connect(self.updateImages)
 
         hbox.addWidget(splitter3)
-        self.setLayout(hbox)
+
+        hboxWidget=QtGui.QWidget(self)
+        hboxWidget.setLayout(hbox)
+        self.setCentralWidget(hboxWidget)
        
         self.setGeometry(0, 0,windowInitWidth, windowInitHeight)
         self.setWindowTitle('DARFI')
         self.setWindowIcon(icon)
+        self.createActions()
+        self.createMenus()
         self.show()
+        
+    ################## MAIN MENU AREA  ########################################
 
+    def createActions(self):
+        self.settingsAct = QtGui.QAction("&Settings...", self, shortcut="Ctrl+S",triggered=self.openSettings)
+
+        self.openSettingsAct = QtGui.QAction("&Load settings...", self, shortcut="Ctrl+R",triggered=self.readSettings)
+                
+        self.saveSettingsAct = QtGui.QAction("&Write settings...", self, shortcut="Ctrl+W",triggered=self.dumpSettings)
+
+        self.exitAct = QtGui.QAction("E&xit", self, shortcut="Ctrl+Q",triggered=self.close)
+
+        self.aboutAct = QtGui.QAction("&About", self, triggered=self.about)
+
+        self.aboutQtAct = QtGui.QAction("About &Qt", self,triggered=QtGui.qApp.aboutQt)
+
+    def createMenus(self):
+        self.fileMenu = QtGui.QMenu("&File", self)
+        self.fileMenu.addAction(self.settingsAct)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.openSettingsAct)
+        self.fileMenu.addAction(self.saveSettingsAct)
+        self.fileMenu.addSeparator()
+        self.fileMenu.addAction(self.exitAct)
+
+        self.helpMenu = QtGui.QMenu("&About", self)
+        self.helpMenu.addAction(self.aboutAct)
+        self.helpMenu.addAction(self.aboutQtAct)
+
+        self.menuBar().addMenu(self.fileMenu)
+        self.menuBar().addMenu(self.helpMenu)
+
+    def about(self):
+        QtGui.QMessageBox.about(self, "About DARFI",
+                "<p><b>DARFI</b> is short of dna Damage And Repair Foci Imager <br>"
+                "Copyright (C) 2014  Ivan V. Ozerov<br>"
+                "This program is free software; you can redistribute it and/or modify "
+                "it under the terms of the GNU General Public License version 2 as "
+                "published by the Free Software Foundation.</p>")
 
 
 #BRUTEFORCE CODING ^___^ FIXME PLEASE
@@ -530,41 +447,44 @@ class DarfiUI(QtGui.QWidget):
                 cell_set = pic_an.cell_set(name=name, cells=[])
 
                 remained = len(image_dirs)
-                pbarval = 0
-                self.pbar.show()
-                self.pbar.setValue(pbarval)
-                pbarstep = (100 - 10 )/ remained
-
-                print "We have", remained, 'images to load for', name
-
-                print "Image loading have started for", name
-
-                for image_dir in image_dirs:
-                    image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-                    pbarval +=pbarstep
+                if remained != 0:
+                    pbarval = 0
+                    self.pbar.show()
                     self.pbar.setValue(pbarval)
-                    remained -= 1
+                    pbarstep = (100 - 10 )/ remained
 
-                    if remained == 0:
-                        print "Image loading have finished for", name
-                    else:
-                        print remained, 'images remained to load for', name
+                    print "We have", remained, 'images to load for', name
 
-                    cell_set.extend(image_dir)
+                    print "Image loading have started for", name
 
-                if len(cell_set.cells) == 0:
-                    print "There are no cells in the images from ", dir_path
-                    return
+                    for image_dir in image_dirs:
+                        image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                        pbarval +=pbarstep
+                        self.pbar.setValue(pbarval)
+                        remained -= 1
 
-                print "We have", len(cell_set.cells), "cells to analyze for", name
-                cell_set.rescale_foci((None, None))
-                self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
-                self.oldFoci_rescale_min, self.oldFoci_rescale_max = self.foci_rescale_min, self.foci_rescale_max
-                print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
-                self.pbar.setValue(100)
-                self.oldDirsWithImages = dirs_with_images
-                self.lastCalc=False
-                self.settingsChanged=False
+                        if remained == 0:
+                            print "Image loading have finished for", name
+                        else:
+                            print remained, 'images remained to load for', name
+
+                        cell_set.extend(image_dir)
+
+                    if len(cell_set.cells) == 0:
+                        print "There are no cells in the images from ", dir_path
+                        return
+
+                    print "We have", len(cell_set.cells), "cells to analyze for", name
+                    cell_set.rescale_foci((None, None))
+                    self.foci_rescale_min, self.foci_rescale_max = cell_set.get_foci_rescale_values()
+                    self.oldFoci_rescale_min, self.oldFoci_rescale_max = self.foci_rescale_min, self.foci_rescale_max
+                    print "Foci rescale min max", self.foci_rescale_min, self.foci_rescale_max
+                    self.pbar.setValue(100)
+                    self.oldDirsWithImages = dirs_with_images
+                    self.lastCalc=False
+                    self.settingsChanged=False
+                else:
+                    print "no images is dataset"
 
 
     def runCalc(self):
@@ -590,54 +510,57 @@ class DarfiUI(QtGui.QWidget):
                 cell_set = pic_an.cell_set(name=name, cells=[])
 
                 remained = len(image_dirs)
-                pbarval = 0
-                self.pbar.show()
-                self.pbar.setValue(pbarval)
-                pbarstep = (100 - 10 )/ remained
-                print "We have", remained, 'images to load for', name
-
-                print "Image loading have started for", name
-
-                for image_dir in image_dirs:
-                    image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-                    pbarval +=pbarstep
+                if remained != 0:
+                    pbarval = 0
+                    self.pbar.show()
                     self.pbar.setValue(pbarval)
-                    remained -= 1
+                    pbarstep = (100 - 10 )/ remained
+                    print "We have", remained, 'images to load for', name
 
-                    if remained == 0:
-                        print "Image loading have finished for", name
-                    else:
-                        print remained, 'images remained to load for', name
+                    print "Image loading have started for", name
 
-                    cell_set.extend(image_dir)
+                    for image_dir in image_dirs:
+                        image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                        pbarval +=pbarstep
+                        self.pbar.setValue(pbarval)
+                        remained -= 1
 
-                if len(cell_set.cells) == 0:
-                    print "There are no cells in the images from ", dir_path
-                    return
+                        if remained == 0:
+                            print "Image loading have finished for", name
+                        else:
+                            print remained, 'images remained to load for', name
 
-                print "We have", len(cell_set.cells), "cells to analyze for", name
+                        cell_set.extend(image_dir)
 
-                cell_set.rescale_nuclei()
-                cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
-                self.oldFoci_rescale_min, self.oldFoci_rescale_max = cell_set.get_foci_rescale_values()
-                cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
-                cell_set.calculate_foci_parameters()
-                cell_set.write_parameters(absoutfile)
-                params = cell_set.get_parameters()
-                self.statusArea.hide()
-                self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
-                for i in xrange(1,13):
-                    self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
-                #self.update()
-                for image_dir in image_dirs:
-                    image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
-                self.statusArea.show()
-                self.pbar.setValue(100)
-                self.updateImages()
-                self.fileMenuArea.updateWorkDir()
-                self.oldDirsWithImages = dirs_with_images
-                self.lastCalc=True
-                self.settingsChanged=False
+                    if len(cell_set.cells) == 0:
+                        print "There are no cells in the images from ", dir_path
+                        return
+
+                    print "We have", len(cell_set.cells), "cells to analyze for", name
+
+                    cell_set.rescale_nuclei()
+                    cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
+                    self.oldFoci_rescale_min, self.oldFoci_rescale_max = cell_set.get_foci_rescale_values()
+                    cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
+                    cell_set.calculate_foci_parameters()
+                    cell_set.write_parameters(absoutfile)
+                    params = cell_set.get_parameters()
+                    self.statusArea.hide()
+                    self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
+                    for i in xrange(1,13):
+                        self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
+                    #self.update()
+                    for image_dir in image_dirs:
+                        image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
+                    self.statusArea.show()
+                    self.pbar.setValue(100)
+                    self.updateImages()
+                    self.fileMenuArea.updateWorkDir()
+                    self.oldDirsWithImages = dirs_with_images
+                    self.lastCalc=True
+                    self.settingsChanged=False
+                else:
+                    print "no images is dataset"
                 #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
                #os.path.dirname(unicode(__file__, sys.getfilesystemencoding( ))
