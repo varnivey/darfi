@@ -113,8 +113,6 @@ def get_markers(foci_pic, nucleus, peak_min_val_perc = 60):
 #    foci_pic_blured = img_as_ubyte(gaussian_filter(foci_pic, 1))
     foci_pic_blured = np.floor(gaussian_filter(foci_pic, 1)*255).astype(np.uint8)
 
-    print np.max(foci_pic_blured), np.min(foci_pic_blured)
-
     foci_values = np.extract(nucleus, foci_pic)
 
     min_peak_val = np.percentile(foci_values, (peak_min_val_perc))
