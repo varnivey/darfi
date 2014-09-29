@@ -25,6 +25,9 @@ class FolderWidget(QtGui.QWidget):
 
     signal_update_image = QtCore.pyqtSignal()
     signal_update_images = QtCore.pyqtSignal()
+
+    def setWorkDir(self,workDir):
+        self.workDir=workDir
     
     def updateWorkDir(self):
         for i in reversed(range(self.gridLayout.count())): 
