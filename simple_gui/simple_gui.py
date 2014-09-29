@@ -137,6 +137,7 @@ class DarfiUI(QtGui.QMainWindow):
         self.outfile = unicode(text)
         
 
+    
     def selectWorkDir(self):
         self.model.unCheckAll()
         
@@ -322,6 +323,8 @@ class DarfiUI(QtGui.QMainWindow):
         runCalcButton.clicked.connect(self.runCalc)
         runCalcButton.setMinimumHeight(40)
         buttonLayout.addWidget(runCalcButton)
+        
+
         
         self.pbar.hide()
         buttonLayout.addWidget(self.pbar)
