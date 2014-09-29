@@ -66,8 +66,12 @@ class DarfiUI(QtGui.QMainWindow):
         self.initUI()
         
     def dumpSettings(self):
-        
-        filename=unicode(QtGui.QFileDialog.getSaveFileName(filter='DARFI Config File, *.dcf'))
+        #dlg=QtGui.QFileDialog( self )
+        #dlg.setWindowTitle( 'Print Things' )
+        #dlg.setViewMode( QtGui.QFileDialog.Detail )
+        #dlg.setNameFilters( 'DARFI Config File, *.dcf' )
+        #dlg.setDefaultSuffix( '.' )
+        filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Write DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
         if filename != "":
             #that is rude but it works (
             if filename[-4:] != '.dcf':
@@ -77,8 +81,9 @@ class DarfiUI(QtGui.QMainWindow):
                 self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
                 self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
                 self.foci_rescale_max,self.nuclei_color,self.foci_color], f)
+
     def readSettings(self):
-        filename=unicode(QtGui.QFileDialog.getOpenFileName(filter='DARFI Config File, *.dcf'))
+        filename=unicode(QtGui.QFileDialog.getOpenFileName(self,'Open DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
         if filename != "":
             with open(filename) as f:
                 self.workDir,self.nuclei_name,self.foci_name,\
