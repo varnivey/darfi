@@ -49,8 +49,8 @@ class DarfiUI(QtGui.QMainWindow):
         self.lastCalc=False
         self.settingsChanged=True
         self.initUI()
-        if os.path.isfile(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi-session.dcf")):
-            self.readSettings(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi-session.dcf"))
+        if os.path.isfile(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf")):
+            self.readSettings(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf"))
           
 
     
@@ -92,7 +92,7 @@ class DarfiUI(QtGui.QMainWindow):
 
     def closeEvent(self, event):
         print "Closing DARFI, goodbye"
-        filename=os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi-session.dcf")
+        filename=os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf")
         self.dumpSettings(filename)
     
 
