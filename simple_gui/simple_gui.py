@@ -166,69 +166,77 @@ class DarfiUI(QtGui.QMainWindow):
                 self.lbl1.clear()
                 
                 imageDir = self.fileMenuArea.selectedImageDir
-                path = imageDir.absolutePath()
-                filters = ["*.TIF", "*.tif"]
-
-                imageDir.setNameFilters(filters)
-                
-                #FIXME use margins e.t.c
-                sizex=self.imagePreviewArea.width()/2-10
-                sizey=self.imagePreviewArea.height()/3-10
-                try:
-                    imageName1 = imageDir.entryList()[0]
-
-                    pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
-                    self.lbl1.resize(sizex,sizey)
-                    self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
-                    self.lbl1.update()
-
-                except IndexError:
+                if imageDir=="":
                     self.lbl1.clear()
-     
-                try:
-                    imageName2 = imageDir.entryList()[1]
-                    pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
-                    self.lbl2.resize(sizex,sizey)
-
-                    self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
-                    self.lbl2.update()
-                except IndexError:
                     self.lbl2.clear()
-                    
-                filters = ["*.jpg", "*.JPG"]
-                imageDir.setNameFilters(filters)
-                try:
-                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[0])
-                    self.lbl3.resize(sizex,sizey)
-                    self.lbl3.update()
-                    self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
-                    self.lbl3.update()
-                except IndexError:
                     self.lbl3.clear()
-                
-                try:    
-                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[1])
-                    self.lbl4.resize(sizex,sizey)
-                    self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
-                    self.lbl4.update()
-                except IndexError:
                     self.lbl4.clear()
-                
-                try:    
-                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[2])
-                    self.lbl5.resize(sizex,sizey)
-                    self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
-                    self.lbl5.update()
-                except IndexError:
                     self.lbl5.clear()
-                
-                try:    
-                    pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[3])
-                    self.lbl6.resize(sizex,sizey)
-                    self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
-                    self.lbl6.update()
-                except IndexError:
                     self.lbl6.clear()
+                else:
+                    path = imageDir.absolutePath()
+                    filters = ["*.TIF", "*.tif"]
+
+                    imageDir.setNameFilters(filters)
+                    
+                    #FIXME use margins e.t.c
+                    sizex=self.imagePreviewArea.width()/2-10
+                    sizey=self.imagePreviewArea.height()/3-10
+                    try:
+                        imageName1 = imageDir.entryList()[0]
+
+                        pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
+                        self.lbl1.resize(sizex,sizey)
+                        self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
+                        self.lbl1.update()
+
+                    except IndexError:
+                        self.lbl1.clear()
+         
+                    try:
+                        imageName2 = imageDir.entryList()[1]
+                        pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
+                        self.lbl2.resize(sizex,sizey)
+
+                        self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
+                        self.lbl2.update()
+                    except IndexError:
+                        self.lbl2.clear()
+                        
+                    filters = ["*.jpg", "*.JPG"]
+                    imageDir.setNameFilters(filters)
+                    try:
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[0])
+                        self.lbl3.resize(sizex,sizey)
+                        self.lbl3.update()
+                        self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
+                        self.lbl3.update()
+                    except IndexError:
+                        self.lbl3.clear()
+                    
+                    try:    
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[1])
+                        self.lbl4.resize(sizex,sizey)
+                        self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
+                        self.lbl4.update()
+                    except IndexError:
+                        self.lbl4.clear()
+                    
+                    try:    
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[2])
+                        self.lbl5.resize(sizex,sizey)
+                        self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
+                        self.lbl5.update()
+                    except IndexError:
+                        self.lbl5.clear()
+                    
+                    try:    
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[3])
+                        self.lbl6.resize(sizex,sizey)
+                        self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
+                        self.lbl6.update()
+                    except IndexError:
+                        self.lbl6.clear()
             except AttributeError:
                 ()
         else:

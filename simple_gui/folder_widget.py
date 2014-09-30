@@ -32,7 +32,9 @@ class FolderWidget(QtGui.QWidget):
     def updateWorkDir(self):
         for i in reversed(range(self.gridLayout.count())): 
             self.gridLayout.itemAt(i).widget().setParent(None)
-
+        self.selectedImage=""
+        self.selectedImageDir=""
+        
         #self.selectDirButton.setText(unicode(QtCore.QDir(self.workDir).dirName()))
         folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
         self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
@@ -51,6 +53,11 @@ class FolderWidget(QtGui.QWidget):
             self.folderWidgets[-1].signal_show_image.connect(lambda key=i: self.updateImage(key))
             self.folderWidgets[-1].signal_show_images.connect(lambda key=i: self.updateImages(key))
             i+=1
+        try:
+            self.updateImages(0)
+        except IndexError:
+            self.signal_update_images.emit()
+        
         
 
     def updateImage(self,key):

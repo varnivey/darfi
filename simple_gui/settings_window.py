@@ -111,7 +111,6 @@ class SettingsWindow(QtGui.QDialog):
         self.foci_color=foci_color        
         self.fociColorSlider = hsv_qslider.slider()
         self.fociColorSlider.setPos(self.foci_color)
-        
         foci_colorLabel = QtGui.QLabel(self)
         foci_colorLabel.setText("Foci color:")
         vbox2.addWidget(foci_colorLabel)
