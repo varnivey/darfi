@@ -1,4 +1,5 @@
 from PyQt4 import QtGui, QtCore
+import hsv_qslider
 
 class SettingsWindow(QtGui.QDialog):
       
@@ -99,38 +100,27 @@ class SettingsWindow(QtGui.QDialog):
         vbox2.addWidget(foci_rescale_maxLabel)
         vbox2.addWidget(self.foci_rescale_maxField)
         
-        self.nuclei_color_old=self.nuclei_color=nuclei_color
-        nucleiColorButton = QtGui.QPushButton("Set color")
-        nucleiColorButton.clicked.connect(lambda: self.set_nuclei_color(self.nuclei_color))
+        self.nuclei_color=nuclei_color
+        self.nucleiColorSlider = hsv_qslider.slider()
+        self.nucleiColorSlider.setPos(self.nuclei_color)
         nuclei_colorLabel = QtGui.QLabel(self)
         nuclei_colorLabel.setText("Nuclei color:")
         vbox2.addWidget(nuclei_colorLabel)
-        vbox2.addWidget(nucleiColorButton)
+        vbox2.addWidget(self.nucleiColorSlider)
         
-        self.foci_color_old=self.foci_color=foci_color
+        self.foci_color=foci_color        
+        self.fociColorSlider = hsv_qslider.slider()
+        self.fociColorSlider.setPos(self.foci_color)
         
-        fociColorButton = QtGui.QPushButton("Set color")
-        fociColorButton.clicked.connect(lambda: self.set_foci_color(self.foci_color_old))
         foci_colorLabel = QtGui.QLabel(self)
         foci_colorLabel.setText("Foci color:")
         vbox2.addWidget(foci_colorLabel)
-        vbox2.addWidget(fociColorButton)
+        vbox2.addWidget(self.fociColorSlider)
         
         hbox.addWidget(vbox1Area)
         hbox.addWidget(vbox2Area)
-    
-    def set_nuclei_color(self,hue):
-        self.nuclei_color=self.getcolor(hue)
-        
-    def set_foci_color(self,hue):
-        self.foci_color=self.getcolor(hue)
-        
-    def getcolor(self,hue):
-        color=QtGui.QColor()
-        color.setHsvF(hue,1,1,1)
-        color = QtGui.QColorDialog.getColor(color)
-        return color.hsvHueF()
 
+    
 
     def getSettings(self):
         sensitivity = self.sensitivityField.value()
@@ -143,8 +133,8 @@ class SettingsWindow(QtGui.QDialog):
         foci_rescale_min = None if foci_rescale_min == -1 else foci_rescale_min
         foci_rescale_max = self.foci_rescale_maxField.value()
         foci_rescale_max = None if foci_rescale_max == -1 else foci_rescale_max
-        nuclei_color = self.nuclei_color
-        foci_color = self.foci_color
+        nuclei_color = self.nucleiColorSlider.getPos()
+        foci_color = self.fociColorSlider.getPos()
         
         if (sensitivity == self.sensitivity) &\
         (min_cell_size == self.min_cell_size)&\
@@ -154,8 +144,8 @@ class SettingsWindow(QtGui.QDialog):
         (foci_min_level_on_bg == self.foci_min_level_on_bg)&\
         (foci_rescale_min == self.foci_rescale_min)&\
         (foci_rescale_max == self.foci_rescale_max)&\
-        (abs(nuclei_color - self.nuclei_color_old) < 0.001 )&\
-        (abs(foci_color - self.foci_color_old) < 0.001 ):
+        (nuclei_color == self.nuclei_color)&\
+        (foci_color == self.foci_color):
             print "Settings had not changed"
             return sensitivity,min_cell_size,peak_min_val_perc,\
             foci_min_val_perc,foci_radius,foci_min_level_on_bg,foci_rescale_min,\
