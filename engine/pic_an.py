@@ -23,6 +23,7 @@ import numpy as np
 
 from skimage.exposure import rescale_intensity
 from skimage import img_as_ubyte
+from skimage.color import hsv2rgb
 
 #from skimage.io import imsave
 #from skimage.io import imread
@@ -30,14 +31,12 @@ from skimage import img_as_ubyte
 from scipy.misc import imsave
 from scipy.misc import imread
 
-#import pic_an_old
 from pic_an_calc import find_nuclei
-from pic_an_calc import color_objects
 from pic_an_calc import nice_merged_pic
 
-#from pic_an_old import foci_plm
 from pic_an_calc import foci_plm
 from pic_an_calc import join_peaces
+from pic_an_calc import join_peaces_3d
 from pic_an_calc import peace
 
 class cell:
@@ -173,7 +172,7 @@ class cell_set:
 
         name = self.name
 
-        print 'Foci calculation have started for', name
+        print 'Foci calculation has started for', name
 
         for cur_cell in self.cells:
             cur_cell.calculate_foci(peak_min_val_perc, foci_min_val_perc, foci_radius, foci_min_level_on_bg)
@@ -181,7 +180,7 @@ class cell_set:
             remained -= 1
 
             if remained == 0:
-                print 'Foci calculation have finished for', name
+                print 'Foci calculation has finished for', name
 
             elif (remained == 1):
                 print remained, 'nucleus remained for', name
@@ -347,9 +346,37 @@ class image_dir(cell_set):
 
         pic_nuclei = self.get_source_pic_nuclei()
 
-        nuclei_colored = pic_an_old.color_objects(pic_nuclei, self.nuclei)
+        x_max, y_max = pic_nuclei.shape
 
-        return nuclei_colored
+        cell_number = self.number_of_cells()
+
+        if cell_number == 0:
+
+            return np.dstack((pic_nuclei, pic_nuclei, pic_nuclei))
+
+        hue_step = 0.29
+
+        colored_nuclei_peaces = []
+
+        for cur_cell, cur_num in zip(self.cells, range(cell_number)):
+
+            pic_nucleus = cur_cell.pic_nucleus
+
+            pic_nucleus_3d = np.dstack((pic_nucleus, pic_nucleus, pic_nucleus))
+
+            rgb_koef = hsv2rgb(np.array([hue_step*cur_num, 0.5, 1.]).reshape((1,1,3))).reshape(3)
+
+            colored_nuclei_peaces.append(peace(np.floor(pic_nucleus_3d*rgb_koef).astype(np.uint8),cur_cell.coords))
+
+        pic_bg = pic_nuclei*np.logical_not(self.nuclei)
+
+        pic_bg_3d = np.dstack((pic_bg, pic_bg, pic_bg))
+
+        colored_nuclei_only = join_peaces_3d(colored_nuclei_peaces, x_max, y_max, dtype = np.uint8)
+
+        colored_nuclei = pic_bg_3d + colored_nuclei_only
+
+        return colored_nuclei
 
 
 
@@ -385,7 +412,7 @@ class image_dir(cell_set):
         seeds               = (255*join_peaces(seed_peaces, x_max, y_max)).astype(np.uint8)
         foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
 
-        nuclei_colored = color_objects(pic_nuclei, self.nuclei)
+        nuclei_colored = self.get_pic_with_nuclei_colored()
         merged = nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, nuclei_color, foci_color)
 
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
@@ -394,7 +421,7 @@ class image_dir(cell_set):
     def write_pic_with_nuclei_colored(self, pic_nuclei_colored = None):
         '''Write pic with colored nuclei to a file'''
 
-        pic_nuclei_colored_path = os.path.join(self.dir_path,'nuclei_colored.jpg')
+        pic_nuclei_colored_path = os.path.join(self.dir_path, u'colored_nuclei.jpg')
 
         if (pic_nuclei_colored == None):
             pic_nuclei_colored = self.get_pic_with_nuclei_colored()
