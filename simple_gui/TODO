@@ -3,16 +3,7 @@
 This file contains the list of GUI related things to do in near future.
 If an issue was soved, it should be removed from the list below immediately.
 
-
-TODO list:
-
-- isolate settings from main widget class
-
-
 Features list:
-
-- save/load current settings capability. Restore settings from previous
-session
 
 - add explicit "detect cells" button. It should start image_dir.detect_nuclei()
 for directories selected.
