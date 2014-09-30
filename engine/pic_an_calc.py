@@ -289,36 +289,5 @@ def clear_border(pic_labeled):
 
 
 
-def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., color_foci=0.33):
-    '''Returns enchanced picture with black bg and merged channels inside the objects'''
-
-
-    pic_shape = list(nuclei.shape)
-    pic_shape.append(3)
-
-    nuclei = (nuclei != 0)
-    foci   = (foci   != 0)
-
-    nuclei_only = nuclei - foci
-
-    hue = color_nuclei*nuclei_only + foci*color_foci
-
-    foci_enhanced = 255 - np.floor((255 - source_foci)*0.6)
-
-    val = source_nuclei*nuclei_only + foci*foci_enhanced
-
-#    val = nuclei*((source_nuclei > foci_enhanced)*source_nuclei + (source_nuclei < foci_enhanced)*foci_enhanced)
-
-    sat = nuclei*1.
-
-    hsv_result = np.dstack((hue,sat,val))
-
-    hsv_result.resize(pic_shape)
-
-    rgb_result = hsv2rgb(hsv_result).astype(np.uint8)
-
-#    rgb_blured = ndimage.gaussian_filter(rgb_result, 3)
-
-    return rgb_result
 
 

@@ -32,7 +32,6 @@ from scipy.misc import imsave
 from scipy.misc import imread
 
 from pic_an_calc import find_nuclei
-from pic_an_calc import nice_merged_pic
 
 from pic_an_calc import foci_plm
 from pic_an_calc import join_peaces
@@ -379,6 +378,53 @@ class image_dir(cell_set):
         return colored_nuclei
 
 
+    def get_merged_pic(self, nuclei_color = 0.66, foci_color = 0.33):
+        '''Return merged pic with foci and nuclei'''
+
+        x_max, y_max = self.nuclei.shape
+
+        cell_number = self.number_of_cells()
+
+        if cell_number == 0:
+
+            return np.zeros((x_max, y_max, 3), dtype = np.uint8)
+
+        merged_pic_peaces = []
+
+        nuclei_rgb_koef = hsv2rgb(np.array([nuclei_color, 1., 1.]).reshape((1,1,3))).reshape(3)
+
+        foci_rgb_koef = hsv2rgb(np.array([foci_color, 1., 1.]).reshape((1,1,3))).reshape(3)
+
+        for cur_cell in self.cells:
+
+            foci = cur_cell.foci_binary
+
+            nucleus_only = cur_cell.nucleus - foci
+
+            pic_foci_enhanced = 255 - np.floor((255 - cur_cell.pic_foci)*0.6)
+
+            pic_foci_enhanced = foci*pic_foci_enhanced
+
+            pic_nucleus_only = cur_cell.pic_nucleus*nucleus_only
+
+            pic_foci_enhanced_3d = np.dstack((pic_foci_enhanced, pic_foci_enhanced, pic_foci_enhanced))
+
+            pic_nucleus_only_3d = np.dstack((pic_nucleus_only, pic_nucleus_only, pic_nucleus_only))
+
+            pic_foci_rgb = pic_foci_enhanced_3d*foci_rgb_koef
+
+            pic_nucleus_only_rgb = pic_nucleus_only_3d*nuclei_rgb_koef
+
+            pic_merged_rgb = np.floor(pic_foci_rgb + pic_nucleus_only_rgb).astype(np.uint8)
+
+            merged_pic_peaces.append(peace(pic_merged_rgb, cur_cell.coords))
+
+        merged_pic = join_peaces_3d(merged_pic_peaces, x_max, y_max, dtype = np.uint8)
+
+        return merged_pic
+
+
+
 
     def get_all_pics(self, nuclei_color = 0.66, foci_color = 0.33):
         '''Return all calculated pics'''
@@ -413,7 +459,7 @@ class image_dir(cell_set):
         foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
 
         nuclei_colored = self.get_pic_with_nuclei_colored()
-        merged = nice_merged_pic(rescaled_nuclei_pic, rescaled_foci_pic, self.nuclei, foci_binary, nuclei_color, foci_color)
+        merged = self.get_merged_pic(nuclei_color, foci_color)
 
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
 
