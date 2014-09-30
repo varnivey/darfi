@@ -163,6 +163,20 @@ def join_peaces(peace_list, x_max, y_max, dtype = bool):
     return result
 
 
+def join_peaces_3d(peace_list, x_max, y_max, dtype = bool):
+    '''Join peaces into single image with (x_max, y_max, 3) size'''
+
+    result = np.zeros((x_max, y_max, 3),dtype = dtype)
+
+    for peace_item in peace_list:
+
+        up,down,right,left = peace_item.coords
+
+        result[left:right, down:up] += peace_item.image
+
+    return result
+
+
 
 
 ############################################################################
@@ -273,38 +287,6 @@ def clear_border(pic_labeled):
 
     return pic_labeled
 
-def color_objects(pic_grey,labels):
-    '''Return image with colored nuclei'''
-
-
-#    hsv_source = color.rgb2hsv(pic_source)
-
-    if np.max(labels) == 0:
-        return pic_grey
-
-    try:
-        hue_step = 1./np.max(labels)
-    except:
-        return pic_grey
-    hue = labels*hue_step
-
-    val = pic_grey
-
-    sat = (labels != 0)*0.5
-#    sat = (labels != 0)
-
-#    sat.resize(val.shape)
-
-    pic_shape = list(val.shape)
-    pic_shape.append(3)
-
-    hsv_result = np.dstack((hue,sat,val))
-
-    hsv_result.resize(pic_shape)
-
-    rgb_result = hsv2rgb(hsv_result).astype(np.uint8)
-
-    return rgb_result
 
 
 def nice_merged_pic(source_nuclei, source_foci, nuclei, foci, color_nuclei=0., color_foci=0.33):
