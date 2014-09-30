@@ -14,32 +14,33 @@
 import sys
 from PyQt4 import QtGui, QtCore
 
-class Example(QtGui.QWidget):
+class slider(QtGui.QWidget):
     
     def __init__(self):
-        super(Example, self).__init__()
-        
-        self.initUI()
-        
-    def initUI(self):      
+        super(slider, self).__init__()
+            
         style = """QSlider::groove:horizontal {
 border: 1px solid #bbb;
 background: qlineargradient(x1: 0, x2: 1,
     stop: 0 red, stop: 0.166666667 #ff0, stop: 0.333333333 #0f0, stop: 0.5 #0ff, stop: 0.666666667 #00f, stop: 0.833333333 #f0f, stop: 1.0 #f00);
-height: 15px;
-
+height: 13px;
+margin-left: 5px;
+margin-right: 5px;
+border-radius: 4px;
 }
 
 QSlider::sub-page:horizontal {
 border: 1px solid #777;
 height: 10px;
 border-radius: 4px;
+margin-left: 5px;
 }
 
 QSlider::add-page:horizontal {
 border: 1px solid #777;
 height: 10px;
 border-radius: 4px;
+margin-right: 5px;
 }
 
 QSlider::handle:horizontal {
@@ -47,10 +48,11 @@ background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
     stop:0 #eee, stop:1 #ccc);
 border: 1px solid #777;
 width: 10px;
+height: 7px;
 margin-left: -5px;
 margin-right: -5px;
 margin-top: 5px;
-margin-bottom: -5px;
+margin-bottom: -1px;
 border-radius: 2px;
 }
 
@@ -78,20 +80,28 @@ border-radius: 4px;
 }
 
 """
-        sld = QtGui.QSlider(QtCore.Qt.Horizontal, self)
-        #sld.setFocusPolicy(QtCore.Qt.NoFocus)
-        sld.setGeometry(30, 40, 200, 30)
-        sld.setStyleSheet(style)
+        self.sld = QtGui.QSlider(QtCore.Qt.Horizontal, self)
+        self.sld.setGeometry(0, 0, 190, 16)
+        self.sld.setStyleSheet(style)
+        #self.sld.valueChanged.connect(self.getPos)
+       
+        
+        
        
 
-        self.setWindowTitle('QtGui.QSlider')
+        #self.setWindowTitle('QtGui.QSlider')
         self.show()
-        
-        
+
+    def setPos(self,pos):    
+        self.sld.setValue(pos*99.0)
+
+    def getPos(self):    
+        return self.sld.sliderPosition()/99.0
+    
 def main():
     
     app = QtGui.QApplication(sys.argv)
-    ex = Example()
+    ex = slider()
     sys.exit(app.exec_())
 
 
