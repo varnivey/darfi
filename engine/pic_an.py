@@ -188,6 +188,18 @@ class cell_set:
                 print remained, 'nuclei  remained for', name
 
 
+    def mean_cell_size(self):
+        '''Return mean cell size'''
+
+        cell_size_list = []
+
+        for cur_cell in self.cells:
+
+            cell_size_list.append(cur_cell.area)
+
+        return np.mean(cell_size_list)
+
+
     def calculate_foci_parameters(self):
         '''Calculate absolute and relative foci number, area and soid in 10-90 percent interval'''
 
@@ -199,6 +211,10 @@ class cell_set:
         rel_foci_areas = []
         rel_foci_soids = []
 
+#        mean_cell_size = self.mean_cell_size()
+
+        mean_cell_size = 8100
+
         for cur_cell in self.cells:
 
             abs_foci_nums.append(  cur_cell.foci_number)
@@ -206,9 +222,9 @@ class cell_set:
             abs_foci_soids.append( cur_cell.foci_soid  )
 
             try:
-                rel_foci_nums.append(  cur_cell.foci_number*2000/np.float(cur_cell.area))
-                rel_foci_areas.append( cur_cell.foci_area*2000/  np.float(cur_cell.area))
-                rel_foci_soids.append( cur_cell.foci_soid*2000/  np.float(cur_cell.area))
+                rel_foci_nums.append(  cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area))
+                rel_foci_areas.append( cur_cell.foci_area*  mean_cell_size/np.float(cur_cell.area))
+                rel_foci_soids.append( cur_cell.foci_soid*  mean_cell_size/np.float(cur_cell.area))
             except:
                 pass
 
