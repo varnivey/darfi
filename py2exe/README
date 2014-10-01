@@ -50,6 +50,11 @@ console output when application runs:
 
     console = [{'script': script}],
 
+and comment
+
+#    windows=[{'script':script}],
+
+
 If console output is off, the warnings should be suppressed in simple_gui.py
 
 

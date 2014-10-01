@@ -25,6 +25,7 @@ import PyQt4
 
 sys.argv.append('py2exe')
 sys.path.append(os.path.join('..','engine'))
+sys.path.append(os.path.join('..','simple_gui'))
 
 rootdir = os.path.dirname(os.getcwd())
 script = os.path.join(rootdir, 'simple_gui', 'simple_gui.py')
