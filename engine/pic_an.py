@@ -448,7 +448,7 @@ class image_dir(cell_set):
         if self.number_of_cells() == 0:
             print "No cells found in " + self.dir_path
 
-            return (None, None, None, None, None)
+#            return (None, None, None, None, None)
 
         rescaled_nuclei_peaces = []
         rescaled_foci_peaces   = []
