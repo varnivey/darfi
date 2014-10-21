@@ -20,7 +20,7 @@
 
 import numpy as np
 
-#from scipy.ndimage import distance_transform_edt
+from scipy.ndimage import distance_transform_edt
 
 
 from skimage import img_as_ubyte
@@ -31,7 +31,7 @@ from skimage.feature import peak_local_max
 from skimage.measure import label as measure_label
 from skimage.morphology import binary_dilation, binary_erosion
 from skimage.morphology import remove_small_objects, watershed
-from skimage.morphology import medial_axis
+#from skimage.morphology import medial_axis
 from skimage.segmentation import relabel_sequential
 from skimage.color import hsv2rgb
 
@@ -225,26 +225,35 @@ def binarize_canny(pic_source, sensitivity = 5.):
 
     bg = np.argmax(labelcount)
 
-    edges[labels != bg] = 255
+    edges[labels != bg] = True
 
     selem_med = np.ones((3,3), dtype = bool)
 
     binary = median_filter(edges, selem_med)
 
-    for i in (1,2,3):
-        binary = binary_erosion(edges, selem_morph)
+#    for i in (1,2,3):
+#        binary = binary_erosion(binary, selem_morph)
 
-    return edges
+    binary = binary_erosion(binary, selem_morph)
+
+#    for i in (1,2):
+#        binary = binary_dilation(binary, selem_morph)
+
+    return binary
 
 
 def label_nuclei(binary, min_size):
     '''Label, watershed and remove small objects'''
 
-    distance = medial_axis(binary, return_distance=True)[1]
+#    distance = medial_axis(binary, return_distance=True)[1]
+
+    distance = distance_transform_edt(binary)
+
+    selem = np.ones((3,3), dtype = bool)
 
     distance_blured = gaussian_filter(distance, 5)
 
-    local_maxi = peak_local_max(distance_blured, indices=False, labels=binary, min_distance = 30)
+    local_maxi = peak_local_max(distance_blured, footprint=selem, indices=False, labels=binary, min_distance = 30)
 
     markers = measure_label(local_maxi)
 
