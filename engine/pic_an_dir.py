@@ -36,7 +36,7 @@ def calc_multiple_dirs(dir_path, nuclei_name=u'3DAPI.TIF', foci_name=u'3FITС.TI
         print 'Calculation has FINISHED in', os.path.split(subdir)[0]
 
 def calc_foci_in_dir(dir_path, nuclei_name=u'3DAPI.TIF', foci_name=u'3FITС.TIF', outfile = u'result.txt',\
-        sensitivity = 8., min_cell_size = 1500, peak_min_val_perc = 60, foci_min_val_perc = 90,\
+        sensitivity = 4., min_cell_size = 4000, peak_min_val_perc = 60, foci_min_val_perc = 90,\
         foci_radius = 10, foci_min_level_on_bg = 40, foci_rescale_min = None, foci_rescale_max = None,\
         nuclei_color = 0.66, foci_color = 0.33):
     '''Calculates foci from dir list'''
@@ -86,8 +86,11 @@ def calc_foci_in_dirlist(dir_path, dir_list, nuclei_name=u'3DAPI.TIF', foci_name
         else:
             print remained, 'images remained to load for', name
 
+        image_dir.write_pic_with_nuclei_colored()
+
         cell_set.extend(image_dir)
 
+'''
     if len(cell_set.cells) == 0:
         print "There are no cells in the images from ", dir_path
         return
@@ -103,7 +106,7 @@ def calc_foci_in_dirlist(dir_path, dir_list, nuclei_name=u'3DAPI.TIF', foci_name
 
     for image_dir in image_dirs:
         image_dir.write_all_pic_files(nuclei_color, foci_color)
-
+'''
 
 
 

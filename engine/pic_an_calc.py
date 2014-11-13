@@ -21,14 +21,21 @@
 import numpy as np
 
 from scipy.ndimage import distance_transform_edt
+#from scipy.ndimage import binary_fill_holes
 
+from scipy.misc import imsave
 
 from skimage import img_as_ubyte
+from skimage import img_as_float
 from skimage.filter import gaussian_filter
 from skimage.filter import canny as canny_filter
-from skimage.filter.rank import median as median_filter
+#from skimage.filter import threshold_adaptive
+from skimage.filter import threshold_otsu as global_otsu
+from skimage.filter.rank import otsu as local_otsu
+#from skimage.filter.rank import median as median_filter
 from skimage.feature import peak_local_max
 from skimage.measure import label as measure_label
+from skimage.morphology import disk
 from skimage.morphology import binary_dilation, binary_erosion
 from skimage.morphology import remove_small_objects, watershed
 #from skimage.morphology import medial_axis
@@ -193,31 +200,88 @@ def find_nuclei(pic_with_nuclei, sensitivity = 5., min_cell_size = 1500, frame_s
 
 #    binary = binarize_otsu(pic_with_nuclei, frame_size, cutoff_shift)
     binary = binarize_canny(pic_with_nuclei, sensitivity)
+#    binary = binarize_adaptive(pic_with_nuclei)
 #    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', binary)
 
-    labels = label_nuclei(binary, min_cell_size)
+#    labels = label_nuclei(binary, min_cell_size)
 
-    return labels
+    return binary
 
 #    print np.max(labels)
+
+def binarize_adaptive(pic_source):
+
+#    binary = threshold_adaptive(pic_source,1000,param = 5.)
+
+    koef = 0.2
+    radius = 10
+
+    thres_glb = global_otsu(pic_source)
+    thres_loc = local_otsu(pic_source, disk(radius))
+
+    thres_loc[thres_loc < thres_glb*(1-koef)] = thres_glb*(1-koef)
+#    thres_loc[thres_loc > thres_glb*(1+koef)] = thres_glb*(1+koef)
+
+    binary = pic_source > thres_loc
+
+#    binary = binary_fill_holes(binary)
+
+    labels = measure_label(binary)
+
+    labelcount = np.bincount(labels.ravel())
+
+    bg = np.argmax(labelcount)
+
+    binary[labels != bg] = True
+
+#    bin_glb = pic_source > thres_glb
+
+
+
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary.jpg', binary)
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_global.jpg', bin_glb)
+    return binary
+
+def sharpen_image(pic_source):
+
+    blur_size = 8
+    koef = 0.8
+
+    image = img_as_float(pic_source)
+    blurred = gaussian_filter(image, blur_size)
+    highpass = image - koef * blurred
+    sharp = image + highpass
+
+    sharp[sharp > 1] = 1.
+
+    sharp = img_as_ubyte(sharp)
+
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/sharp.jpg', sharp)
+
+    return sharp
+
 
 
 def binarize_canny(pic_source, sensitivity = 5.):
 
-    ht = 5. + ((10 - sensitivity)/5.)*20.
+    ht = 5. + ((10 - sensitivity)/5.)*25.
+    lt = (10 - sensitivity)*2.
 
 #    print ht
 
-    edges = canny_filter(pic_source, sigma = 3, high_threshold = ht, low_threshold = 2.)
+    sharp = sharpen_image(pic_source)
+
+    edges = canny_filter(sharp, sigma = 1, high_threshold = ht, low_threshold = lt)
 
     selem_morph = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
 
     for i in (1,2):
+#    for i in (1,2):
         edges = binary_dilation(edges, selem_morph)
 
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', edges)
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', (edges*255).astype(np.uint8))
 
-#    binary = ndimage.binary_fill_holes(edges)
+#    edges = binary_fill_holes(edges)
 
     labels = measure_label(edges)
 
@@ -227,35 +291,67 @@ def binarize_canny(pic_source, sensitivity = 5.):
 
     edges[labels != bg] = True
 
-    selem_med = np.ones((3,3), dtype = bool)
+#    selem_med = np.ones((3,3), dtype = bool)
 
-    binary = median_filter(edges, selem_med)
+#    binary = median_filter(edges, selem_med)
 
+    for i in (1,2,3,4):
 #    for i in (1,2,3):
-#        binary = binary_erosion(binary, selem_morph)
+        binary = binary_erosion(edges, selem_morph)
 
-    binary = binary_erosion(binary, selem_morph)
+#    binary = binary_erosion(binary, selem_morph)
 
-#    for i in (1,2):
-#        binary = binary_dilation(binary, selem_morph)
+    for i in (1,2):
+        binary = binary_dilation(binary, selem_morph)
 
     return binary
 
 
-def label_nuclei(binary, min_size):
-    '''Label, watershed and remove small objects'''
+def split_label(binary):
+    '''Split label using watershed algorithm'''
+
+    distance = distance_transform_edt(binary)
+    distance_blured = gaussian_filter(distance, 8)
+
+#    selem = disk(2)
+
+    local_maxi = peak_local_max(distance_blured, indices=False, labels=binary, min_distance = 10, exclude_border = False)
+    markers = measure_label(local_maxi)
+
+    labels_ws = watershed(-distance, markers, mask=binary)
+
+#    selem_morph = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
+
+#    for i in (1,2):
+#        maxi = binary_dilation(local_maxi, selem_morph)
+
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/distance.jpg', distance)
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/maxi.jpg', local_maxi*255)
+
+    return labels_ws
+
+
+
+#def label_nuclei(binary, min_size):
+#    '''Label, watershed and remove small objects'''
+
+#    labels = measure_label(binary)
+
+#    labels = remove_small_objects(labels, min_size)
+
+
 
 #    distance = medial_axis(binary, return_distance=True)[1]
 
-    distance = distance_transform_edt(binary)
+#    distance = distance_transform_edt(binary)
 
-    selem = np.ones((3,3), dtype = bool)
+#    selem = np.ones((3,3), dtype = bool)
 
-    distance_blured = gaussian_filter(distance, 5)
+#    distance_blured = gaussian_filter(distance, 5)
 
-    local_maxi = peak_local_max(distance_blured, footprint=selem, indices=False, labels=binary, min_distance = 30)
+#    local_maxi = peak_local_max(distance_blured, footprint=selem, indices=False, labels=binary, min_distance = 30)
 
-    markers = measure_label(local_maxi)
+#    markers = measure_label(local_maxi)
 
 #    markers[~binary] = -1
 
@@ -265,18 +361,18 @@ def label_nuclei(binary, min_size):
 
 #    labels_rw = segmentation.relabel_sequential(labels_rw)
 
-    labels_ws = watershed(-distance, markers, mask=binary)
+#    labels_ws = watershed(-distance, markers, mask=binary)
 
-    labels_large = remove_small_objects(labels_ws,min_size)
+#    labels_large = remove_small_objects(labels_ws,min_size)
 
-    labels_clean_border = clear_border(labels_large)
+#    labels_clean_border = clear_border(labels_large)
 
-    labels_from_one = relabel_sequential(labels_clean_border)
+#    labels_from_one = relabel_sequential(labels_clean_border)
 
 #    plt.imshow(ndimage.morphology.binary_dilation(markers))
 #    plt.show()
 
-    return labels_from_one[0]
+#    return labels_from_one[0]
 
 
 def clear_border(pic_labeled):

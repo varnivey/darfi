@@ -25,6 +25,9 @@ from skimage.exposure import rescale_intensity
 from skimage import img_as_ubyte
 from skimage.color import hsv2rgb
 
+from skimage.measure import label as measure_label
+from skimage.morphology import remove_small_objects
+
 #from skimage.io import imsave
 #from skimage.io import imread
 
@@ -32,6 +35,7 @@ from scipy.misc import imsave
 from scipy.misc import imread
 
 from pic_an_calc import find_nuclei
+from pic_an_calc import split_label
 
 from pic_an_calc import foci_plm
 from pic_an_calc import join_peaces
@@ -45,8 +49,8 @@ class cell:
         '''Construct cell from mask and channel pics'''
 
         self.nucleus      = nucleus
-        self.pic_nucleus  = pic_nucleus
-        self.pic_foci     = pic_foci
+        self.pic_nucleus  = nucleus*pic_nucleus
+        self.pic_foci     = nucleus*pic_foci
         self.coords       = coords
         self.area         = np.sum(nucleus)
 
@@ -290,6 +294,7 @@ class image_dir(cell_set):
         self.cells = []
         self.nuclei_name = nuclei_name
         self.foci_name   = foci_name
+        self.bg = 0
 
 
     def get_source_pic_nuclei(self):
@@ -311,11 +316,23 @@ class image_dir(cell_set):
 
         return pic_foci
 
+    def active_nuclei(self):
+        '''Return binary image with active nuclei'''
+
+        x_max, y_max = self.shape
+        nuclei_peaces = []
+
+        for cur_cell in self.cells:
+            nuclei_peaces.append(peace(cur_cell.nucleus, cur_cell.coords))
+
+        return join_peaces(nuclei_peaces, x_max, y_max)
+
+
     def load_separate_images(self, sensitivity = 5., min_cell_size = 1500):
         '''Load nuclei and foci from separate images'''
 
         pic_nuclei = self.get_source_pic_nuclei()
-        pic_foci   = self.get_source_pic_foci()
+        self.shape = pic_nuclei.shape
 
         if hasattr(self, 'cell_detect_params'):
             sensitivity, min_cell_size = self.cell_detect_params
@@ -326,34 +343,90 @@ class image_dir(cell_set):
 
         self.cell_detect_params = (sensitivity, min_cell_size)
 
-        for label_num in np.arange(np.max(nuclei)) + 1:
+        labels = measure_label(nuclei)
 
-            nucleus = (nuclei == label_num)
-            cell_pic_nucleus = nucleus*pic_nuclei
-            cell_pic_foci    = nucleus*pic_foci
+        labelcount = np.bincount(labels.ravel())
+
+        bg = np.argmax(labelcount)
+
+        labels += 1
+
+        labels[labels == bg + 1] = 0
+
+        labels = remove_small_objects(labels, min_cell_size)
+
+        self.nuclei = labels
+
+        self.create_cells_from_nuclei(pic_nuclei)
+
+
+
+    def create_cells_from_nuclei(self, pic_nuclei):
+        '''Turns binary self.nuclei picture to cells'''
+
+        pic_foci   = self.get_source_pic_foci()
+        min_size = self.cell_detect_params[1]
+
+        labels = self.nuclei
+
+        x_max, y_max = self.shape
+
+        for label_num in np.unique(labels):
+
+            if (label_num == 0):
+                continue
+
+            nucleus = (labels == label_num)
+#            cell_pic_nucleus = nucleus*pic_nuclei
+#            cell_pic_foci    = nucleus*pic_foci
 
             coords = find_cell_coords(nucleus)
             up,down,right,left = coords
 
-            nucleus          =          nucleus[left:right,down:up]
-            cell_pic_nucleus = cell_pic_nucleus[left:right,down:up]
-            cell_pic_foci    =    cell_pic_foci[left:right,down:up]
-
-            self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords))
-
-        self.nuclei = nuclei
+            nucleus          =              nucleus[left:right,down:up]
+            cell_pic_nucleus =           pic_nuclei[left:right,down:up]
+            cell_pic_foci    =             pic_foci[left:right,down:up]
 
 
-    def detect_nuclei(self, sensitivity, min_cell_size):
-        '''Detect nuclei and write new pic with colored nuclei'''
+            if split_required(coords, min_size, x_max, y_max):
+                self.split_cell(nucleus, cell_pic_nucleus, cell_pic_foci, left, down)
 
-        pic_nuclei = self.get_source_pic_nuclei()
+            else:
+                self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords))
 
-        nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
 
-        self.nuclei = nuclei
+    def split_cell(self, nuclei, pic_nuclei, pic_foci, left_glob, down_glob):
+        '''Split label using watershed algorithm'''
 
-        self.write_pic_with_nuclei_colored(nuclei)
+        x_max, y_max = self.shape
+        min_size = self.cell_detect_params[1]
+        labels = split_label(nuclei)
+
+        for label_num in np.unique(labels):
+
+            if (label_num == 0):
+                continue
+
+            nucleus = (labels == label_num)
+
+            coords = find_cell_coords(nucleus)
+            up,down,right,left = coords
+
+            nucleus          =              nucleus[left:right,down:up]
+
+            if np.sum(nucleus) < min_size:
+                continue
+
+            coords_glob = (up+down_glob, down+down_glob, right+left_glob, left+left_glob)
+
+            if at_border(coords_glob, x_max, y_max):
+                continue
+
+            cell_pic_nucleus =           pic_nuclei[left:right,down:up]
+            cell_pic_foci    =             pic_foci[left:right,down:up]
+
+            self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords_glob))
+
 
 
     def get_pic_with_nuclei_colored(self):
@@ -361,7 +434,7 @@ class image_dir(cell_set):
 
         pic_nuclei = self.get_source_pic_nuclei()
 
-        x_max, y_max = pic_nuclei.shape
+        x_max, y_max = self.shape
 
         cell_number = self.number_of_cells()
 
@@ -383,7 +456,7 @@ class image_dir(cell_set):
 
             colored_nuclei_peaces.append(peace(np.floor(pic_nucleus_3d*rgb_koef).astype(np.uint8),cur_cell.coords))
 
-        pic_bg = pic_nuclei*np.logical_not(self.nuclei)
+        pic_bg = pic_nuclei*(self.active_nuclei() == 0)
 
         pic_bg_3d = np.dstack((pic_bg, pic_bg, pic_bg))
 
@@ -565,4 +638,29 @@ def find_cell_coords(nucleus):
 
     return (up, down, right, left)
 
+
+def split_required(coords, min_size, x_max, y_max):
+    '''Return true if cell should be split up'''
+
+    up,down,right,left = coords
+    koef = 3.5
+
+    if at_border(coords, x_max, y_max):
+        return True
+
+    if ((up - down)*(right - left) > koef*min_size):
+        return True
+
+    return False
+
+
+def at_border(coords, x_max, y_max):
+    '''Return True if coords touch the border of the image'''
+
+    up,down,right,left = coords
+
+    if ((down == 0) or (left == 0) or (right == x_max) or (up == y_max)):
+        return True
+
+    return False
 
