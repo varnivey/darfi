@@ -453,7 +453,7 @@ class DarfiUI(QtGui.QMainWindow):
                 "published by the Free Software Foundation.</p>")
 
 
-#BRUTEFORCE CODING ^___^ FIXME PLEASE
+#BRUTEFORCE CODING ^___^ FIXME PLEASE NEED TOTAL REWRITING
 
     def getScale(self):
  
@@ -532,71 +532,102 @@ class DarfiUI(QtGui.QMainWindow):
             if (self.oldDirsWithImages == dirs_with_images) & self.lastCalc & (not(self.settingsChanged)):
                 print "No changes in selection"
             else:
-    
-                pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
-                        (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
-
-                image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
-
-                name = unicode(QtCore.QDir(dir_path).dirName())
-
-                absoutfile = os.path.join(dir_path,unicode(self.outfile))
-                print absoutfile
-                cell_set = pic_an.cell_set(name=name, cells=[])
-
-                remained = len(image_dirs)
-                if remained != 0:
-                    pbarval = 0
-                    self.pbar.show()
-                    self.pbar.setValue(pbarval)
-                    pbarstep = (100 - 10 )/ remained
-                    print "We have", remained, 'images to load for', name
-
-                    print "Image loading have started for", name
-
-                    for image_dir in image_dirs:
-                        image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
-                        pbarval +=pbarstep
+                
+                if self.foci_name == "":
+                    pre_image_dirs = [image_dir for image_dir in dirs_with_images if os.path.isfile(os.path.join(image_dir,self.nuclei_name))]
+                    image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.nuclei_name) for image_dir in pre_image_dirs]
+                    name = unicode(QtCore.QDir(dir_path).dirName())
+                    cell_set = pic_an.cell_set(name=name, cells=[])
+                    remained = len(image_dirs)
+                    if remained != 0:
+                        pbarval = 0
+                        self.pbar.show()
                         self.pbar.setValue(pbarval)
-                        remained -= 1
-
-                        if remained == 0:
-                            print "Image loading have finished for", name
-                        else:
-                            print remained, 'images remained to load for', name
-
-                        cell_set.extend(image_dir)
-
-                    if len(cell_set.cells) == 0:
-                        print "There are no cells in the images from ", dir_path
-                        return
-
-                    print "We have", len(cell_set.cells), "cells to analyze for", name
-
-                    cell_set.rescale_nuclei()
-                    cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
-                    self.oldFoci_rescale_min, self.oldFoci_rescale_max = cell_set.get_foci_rescale_values()
-                    cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
-                    cell_set.calculate_foci_parameters()
-                    cell_set.write_parameters(absoutfile)
-                    params = cell_set.get_parameters()
-                    self.statusArea.hide()
-                    self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
-                    for i in xrange(1,13):
-                        self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
-                    #self.update()
-                    for image_dir in image_dirs:
-                        image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
-                    self.statusArea.show()
-                    self.pbar.setValue(100)
-                    self.updateImages()
-                    self.fileMenuArea.updateWorkDir()
-                    self.fileMenuArea.setCheckedFromPaths(dirs_with_images)
-                    self.oldDirsWithImages = dirs_with_images
-                    self.lastCalc=True
-                    self.settingsChanged=False
+                        pbarstep = (100 - 10 )/ remained
+                        
+                        for image_dir in image_dirs:
+                            image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                            cell_set.extend(image_dir)
+                            image_dir.write_pic_with_nuclei_colored()
+                            pbarval +=pbarstep
+                            self.pbar.setValue(pbarval)
+                            remained -= 1
+                        params = len(cell_set.cells)
+                        self.statusArea.hide()
+                        self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params)))
+                        for i in xrange(1,13):
+                            self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str("")))
+                        self.statusArea.show()
+                    
                 else:
-                    print "no images is dataset"
+                    pre_image_dirs = [image_dir for image_dir in dirs_with_images if \
+                            (os.path.isfile(os.path.join(image_dir,self.nuclei_name)) and os.path.isfile(os.path.join(image_dir, self.foci_name)))]
+                    image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
+                
+                    #image_dirs = [pic_an.image_dir(image_dir, self.nuclei_name, self.foci_name) for image_dir in pre_image_dirs]
+
+                    name = unicode(QtCore.QDir(dir_path).dirName())
+
+                    absoutfile = os.path.join(dir_path,unicode(self.outfile))
+                    print absoutfile
+                    cell_set = pic_an.cell_set(name=name, cells=[])
+
+                    remained = len(image_dirs)
+                    if remained != 0:
+                        pbarval = 0
+                        self.pbar.show()
+                        self.pbar.setValue(pbarval)
+                        pbarstep = (100 - 10 )/ remained
+                        print "We have", remained, 'images to load for', name
+
+                        print "Image loading have started for", name
+
+                        for image_dir in image_dirs:
+                            image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                            pbarval +=pbarstep
+                            self.pbar.setValue(pbarval)
+                            remained -= 1
+
+                            if remained == 0:
+                                print "Image loading have finished for", name
+                            else:
+                                print remained, 'images remained to load for', name
+
+                            cell_set.extend(image_dir)
+
+                        if len(cell_set.cells) == 0:
+                            print "There are no cells in the images from ", dir_path
+                            return
+
+                        print "We have", len(cell_set.cells), "cells to analyze for", name
+
+                        cell_set.rescale_nuclei()
+                        
+                        cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
+                        self.oldFoci_rescale_min, self.oldFoci_rescale_max = cell_set.get_foci_rescale_values()
+                        cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
+                        cell_set.calculate_foci_parameters()
+                        cell_set.write_parameters(absoutfile)
+                        params = cell_set.get_parameters()
+                        self.statusArea.hide()
+                        self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
+                        for i in xrange(1,13):
+                            self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
+                        #self.update()
+                        for image_dir in image_dirs:
+                            image_dir.write_all_pic_files(self.nuclei_color, self.foci_color)
+                        self.statusArea.show()
+                        
+                    
+                    else:
+                        print "no images is dataset"
+                self.updateImages()
+                self.fileMenuArea.updateWorkDir()
+                self.fileMenuArea.setCheckedFromPaths(dirs_with_images)
+                self.oldDirsWithImages = dirs_with_images
+                self.lastCalc=True
+                self.settingsChanged=False
+                self.pbar.setValue(100)
                 #Engine.calc_foci_in_dirlist(str(self.workDir),dirsWithImages)
 
                #os.path.dirname(unicode(__file__, sys.getfilesystemencoding( ))
