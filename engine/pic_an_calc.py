@@ -25,8 +25,10 @@ from scipy.ndimage import distance_transform_edt
 
 from scipy.misc import imsave
 
+
 from skimage import img_as_ubyte
 from skimage import img_as_float
+from skimage.draw import circle_perimeter
 from skimage.filter import gaussian_filter
 from skimage.filter import canny as canny_filter
 #from skimage.filter import threshold_adaptive
@@ -34,6 +36,7 @@ from skimage.filter import threshold_otsu as global_otsu
 from skimage.filter.rank import otsu as local_otsu
 #from skimage.filter.rank import median as median_filter
 from skimage.feature import peak_local_max
+from skimage.feature import blob_log
 from skimage.measure import label as measure_label
 from skimage.morphology import disk
 from skimage.morphology import binary_dilation, binary_erosion
@@ -118,7 +121,7 @@ def get_markers(foci_pic, nucleus, peak_min_val_perc = 60):
     '''Return foci markers'''
 
 #    foci_pic_blured = img_as_ubyte(gaussian_filter(foci_pic, 1))
-    foci_pic_blured = np.floor(gaussian_filter(foci_pic, 1)*255).astype(np.uint8)
+    foci_pic_blured = np.floor(gaussian_filter(foci_pic, 3)*255).astype(np.uint8)
 
     foci_values = np.extract(nucleus, foci_pic)
 
@@ -143,6 +146,62 @@ def circle_mask(radius = 10):
     circle = np.power(x - center,2) + np.power(y - center,2) < radius_2
 
     return circle
+
+
+def foci_thres(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
+    '''Find foci using thresholding'''
+
+    thres_glb = global_otsu(foci_pic)
+
+    foci_bin = foci_pic > thres_glb
+
+    markers_fin = np.zeros_like(foci_bin, dtype = np.uint8)
+
+    foci_area = np.sum(foci_bin)
+
+    return [0,foci_area,0,markers_fin,foci_bin]
+
+
+def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
+    '''Find foci using Laplacian of Gaussian'''
+
+    blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=6, num_sigma=3, threshold=.1, overlap = 1.)
+
+    markers = np.zeros_like(foci_pic, dtype = np.bool)
+
+    markers_rad = np.zeros_like(foci_pic, dtype = np.bool)
+
+    x_max, y_max = foci_pic.shape
+
+    for blob in blobs_log:
+
+        x, y, r = blob
+        r = r*np.sqrt(2)
+
+#        print x,y,r
+
+        markers[x,y] = True
+
+        rr, cc = circle_perimeter(x, y, np.round(r).astype(int))
+        rr_new, cc_new = [], []
+
+        for x_c,y_c in zip(rr,cc):
+
+            if (x_c >= 0) and (x_c < x_max) and (y_c >= 0) and (y_c < y_max):
+                rr_new.append(x_c)
+                cc_new.append(y_c)
+
+#        print rr, cc
+        markers_rad[rr_new, cc_new] = True
+
+    markers_num = blobs_log.shape[0]
+
+    selem = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
+
+    markers_fin = binary_dilation(binary_dilation(markers, selem), selem)
+    markers_rad = binary_dilation(binary_dilation(markers_rad, selem), selem)
+
+    return [markers_num,0,0,markers_fin, markers_rad]
 
 
 
@@ -201,7 +260,7 @@ def find_nuclei(pic_with_nuclei, sensitivity = 5., min_cell_size = 1500, frame_s
 #    binary = binarize_otsu(pic_with_nuclei, frame_size, cutoff_shift)
     binary = binarize_canny(pic_with_nuclei, sensitivity)
 #    binary = binarize_adaptive(pic_with_nuclei)
-#    misc.imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', binary)
+    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', (binary*255).astype(np.uint8))
 
 #    labels = label_nuclei(binary, min_cell_size)
 
@@ -279,7 +338,7 @@ def binarize_canny(pic_source, sensitivity = 5.):
 #    for i in (1,2):
         edges = binary_dilation(edges, selem_morph)
 
-#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', (edges*255).astype(np.uint8))
+    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', (edges*255).astype(np.uint8))
 
 #    edges = binary_fill_holes(edges)
 
@@ -310,7 +369,11 @@ def binarize_canny(pic_source, sensitivity = 5.):
 def split_label(binary):
     '''Split label using watershed algorithm'''
 
+#    blur_radius = np.round(np.sqrt(min_size)/8).astype(int)
+#    print blur_radius
+
     distance = distance_transform_edt(binary)
+#    distance_blured = gaussian_filter(distance, blur_radius)
     distance_blured = gaussian_filter(distance, 8)
 
 #    selem = disk(2)

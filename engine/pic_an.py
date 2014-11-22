@@ -27,6 +27,7 @@ from skimage.color import hsv2rgb
 
 from skimage.measure import label as measure_label
 from skimage.morphology import remove_small_objects
+from skimage.filter import threshold_otsu as global_otsu
 
 #from skimage.io import imsave
 #from skimage.io import imread
@@ -37,7 +38,9 @@ from scipy.misc import imread
 from pic_an_calc import find_nuclei
 from pic_an_calc import split_label
 
-from pic_an_calc import foci_plm
+#from pic_an_calc import foci_plm
+#from pic_an_calc import foci_thres
+from pic_an_calc import foci_log
 from pic_an_calc import join_peaces
 from pic_an_calc import join_peaces_3d
 from pic_an_calc import peace
@@ -60,7 +63,7 @@ class cell:
 
         nucleus_new = (self.rescaled_nucleus_pic != 0)
 
-        results = foci_plm(self.rescaled_foci_pic, nucleus_new, peak_min_val_perc,\
+        results = foci_log(self.rescaled_foci_pic, nucleus_new, peak_min_val_perc,\
                 foci_min_val_perc, foci_radius, foci_min_level_on_bg)
 
         self.foci_number    = results[0]
@@ -84,13 +87,25 @@ class cell:
 
 
     def get_foci_bg_value(self):
-        '''Return 20th percentile of foci values'''
+        '''Return argmax of foci bg values'''
 
         if not hasattr(self, 'foci_bg_value'):
 
             foci_values = np.extract(self.nucleus, self.pic_foci)
 
-            self.foci_bg_value = np.percentile(foci_values, (20))
+#            self.foci_bg_value = np.percentile(foci_values, (20))
+
+            thres = global_otsu(foci_values)
+
+            bg_values = foci_values[foci_values < thres]
+
+#            value_count = np.bincount(bg_values)
+
+#            self.foci_bg_value = np.float(np.argmax(value_count))
+
+            self.foci_bg_value = np.median(bg_values)
+
+            print np.min(foci_values), thres, np.round(100*bg_values.size/foci_values.size), self.foci_bg_value
 
         return self.foci_bg_value
 
@@ -139,19 +154,11 @@ class cell_set:
 
             foci_values = np.extract(cur_cell.nucleus, cur_cell.pic_foci)
 
-            if hasattr(cur_cell, 'foci_bg_value'):
-
-                bg_value = cur_cell.foci_bg_value
-
-            else:
-
-                bg_value = np.percentile(foci_values, (20))
-
-                cur_cell.foci_bg_value = bg_value
+            bg_value = cur_cell.get_foci_bg_value()
 
             new_foci_values.append(foci_values/bg_value)
 
-        return  tuple(np.percentile(np.concatenate(new_foci_values),(2,100)))
+        return  tuple(np.percentile(np.concatenate(new_foci_values),(2,98)))
 
 
     def rescale_foci(self, foci_rescale_values=(None, None)):
