@@ -95,9 +95,11 @@ class cell:
 
 #            self.foci_bg_value = np.percentile(foci_values, (20))
 
-            thres = global_otsu(foci_values)
+#            thres = global_otsu(foci_values)
 
-            bg_values = foci_values[foci_values < thres]
+            thres  =  np.percentile(foci_values, (20))
+
+            bg_values = foci_values[foci_values <= thres]
 
 #            value_count = np.bincount(bg_values)
 
@@ -145,7 +147,7 @@ class cell_set:
             cur_cell.rescaled_nucleus_pic = np.floor(rescaled_norm_pic*200).astype(np.uint8)
 
 
-    def get_foci_rescale_values(self):
+    def get_foci_rescale_values(self, normalize = True):
         '''Return tuple with min and max values for foci rescale'''
 
         new_foci_values = []
@@ -154,23 +156,35 @@ class cell_set:
 
             foci_values = np.extract(cur_cell.nucleus, cur_cell.pic_foci)
 
-            bg_value = cur_cell.get_foci_bg_value()
+            if normalize:
 
-            new_foci_values.append(foci_values/bg_value)
+                bg_value = cur_cell.get_foci_bg_value()
 
-        return  tuple(np.percentile(np.concatenate(new_foci_values),(2,98)))
+                new_foci_values.append(foci_values/bg_value)
+
+            else:
+
+                new_foci_values.append(foci_values/50.)
+
+        return  tuple(np.percentile(np.concatenate(new_foci_values),(2,99)))
 
 
-    def rescale_foci(self, foci_rescale_values=(None, None)):
+    def rescale_foci(self, foci_rescale_values=(None, None), normalize = False):
         '''Rescale foci in the set'''
 
         if foci_rescale_values == (None, None):
 
-            foci_rescale_values = self.get_foci_rescale_values()
+            foci_rescale_values = self.get_foci_rescale_values(normalize=False)
 
         for cur_cell in self.cells:
 
-            rescaled_norm_pic = rescale_intensity(cur_cell.pic_foci/cur_cell.get_foci_bg_value(), in_range=foci_rescale_values)
+            if normalize:
+
+                rescaled_norm_pic = rescale_intensity(cur_cell.pic_foci/cur_cell.get_foci_bg_value(), in_range=foci_rescale_values)
+
+            else:
+
+                rescaled_norm_pic = rescale_intensity(cur_cell.pic_foci/50., in_range=foci_rescale_values)
 
             cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(np.uint8)
 
@@ -671,3 +685,4 @@ def at_border(coords, x_max, y_max):
 
     return False
 
+#endif // PIC_AN_PY
