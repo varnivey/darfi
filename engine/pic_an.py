@@ -99,15 +99,19 @@ class cell:
 
             thres  =  np.percentile(foci_values, (20))
 
-            bg_values = foci_values[foci_values <= thres]
+#            thres = np.median(foci_values)
+
+#            bg_values = foci_values[foci_values <= thres]
 
 #            value_count = np.bincount(bg_values)
 
 #            self.foci_bg_value = np.float(np.argmax(value_count))
 
-            self.foci_bg_value = np.median(bg_values)
+#            self.foci_bg_value = np.median(bg_values)
 
-            print np.min(foci_values), thres, np.round(100*bg_values.size/foci_values.size), self.foci_bg_value
+            self.foci_bg_value = thres
+
+#            print np.min(foci_values), thres, np.round(100*bg_values.size/foci_values.size), self.foci_bg_value
 
         return self.foci_bg_value
 
@@ -169,12 +173,12 @@ class cell_set:
         return  tuple(np.percentile(np.concatenate(new_foci_values),(2,99)))
 
 
-    def rescale_foci(self, foci_rescale_values=(None, None), normalize = False):
+    def rescale_foci(self, foci_rescale_values=(None, None), normalize = True):
         '''Rescale foci in the set'''
 
         if foci_rescale_values == (None, None):
 
-            foci_rescale_values = self.get_foci_rescale_values(normalize=False)
+            foci_rescale_values = self.get_foci_rescale_values(normalize)
 
         for cur_cell in self.cells:
 
