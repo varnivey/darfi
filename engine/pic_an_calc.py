@@ -165,7 +165,7 @@ def foci_thres(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90
 def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
     '''Find foci using Laplacian of Gaussian'''
 
-    blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=6, num_sigma=3, threshold=.1, overlap = 1.)
+    blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=6, num_sigma=3, threshold=peak_min_val_perc/100., overlap = 1.)
 
     markers = np.zeros_like(foci_pic, dtype = np.bool)
 
