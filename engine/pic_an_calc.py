@@ -162,25 +162,42 @@ def foci_thres(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90
     return [0,foci_area,0,markers_fin,foci_bin]
 
 
-def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
+def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10,\
+        foci_min_level_on_bg = 40, return_circles = True):
     '''Find foci using Laplacian of Gaussian'''
 
     blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=6, num_sigma=3, threshold=peak_min_val_perc/100., overlap = 1.)
 
     markers = np.zeros_like(foci_pic, dtype = np.bool)
 
-    markers_rad = np.zeros_like(foci_pic, dtype = np.bool)
-
-    x_max, y_max = foci_pic.shape
-
     for blob in blobs_log:
+
+        x, y, r = blob
+
+    markers_num = blobs_log.shape[0]
+
+    selem = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
+
+    markers_fin = binary_dilation(binary_dilation(markers, selem), selem)
+
+    if return_circles:
+        foci_bin = circle_markers(blobs_log, foci_pic.shape)
+
+    return [markers_num,0,0,markers_fin, foci_bin]
+
+
+def circle_markers(blobs, pic_shape):
+
+    markers_rad = np.zeros(pic_shape, dtype = np.bool)
+
+    x_max, y_max = pic_shape
+
+    for blob in blobs:
 
         x, y, r = blob
         r = r*np.sqrt(2)
 
-#        print x,y,r
-
-        markers[x,y] = True
+        r = r*np.sqrt(2)
 
         rr, cc = circle_perimeter(x, y, np.round(r).astype(int))
         rr_new, cc_new = [], []
@@ -191,17 +208,12 @@ def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, 
                 rr_new.append(x_c)
                 cc_new.append(y_c)
 
-#        print rr, cc
         markers_rad[rr_new, cc_new] = True
 
-    markers_num = blobs_log.shape[0]
-
     selem = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
-
-    markers_fin = binary_dilation(binary_dilation(markers, selem), selem)
     markers_rad = binary_dilation(binary_dilation(markers_rad, selem), selem)
 
-    return [markers_num,0,0,markers_fin, markers_rad]
+    return markers_rad
 
 
 
