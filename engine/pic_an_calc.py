@@ -28,7 +28,7 @@ from scipy.misc import imsave
 
 from skimage import img_as_ubyte
 from skimage import img_as_float
-from skimage.draw import circle_perimeter
+from skimage.draw import circle_perimeter, circle
 from skimage.filter import gaussian_filter
 from skimage.filter import canny as canny_filter
 #from skimage.filter import threshold_adaptive
@@ -166,27 +166,105 @@ def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, 
         foci_min_level_on_bg = 40, return_circles = True):
     '''Find foci using Laplacian of Gaussian'''
 
-    blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=6, num_sigma=3, threshold=peak_min_val_perc/100., overlap = 1.)
-
-    markers = np.zeros_like(foci_pic, dtype = np.bool)
-
-    for blob in blobs_log:
-
-        x, y, r = blob
+    blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=8, num_sigma=4, threshold=peak_min_val_perc/100., overlap = 1.)
 
     markers_num = blobs_log.shape[0]
 
-    selem = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
-
-    markers_fin = binary_dilation(binary_dilation(markers, selem), selem)
 
     if return_circles:
-        foci_bin = circle_markers(blobs_log, foci_pic.shape)
+        markers_fin = circle_markers(blobs_log, foci_pic.shape)
+    else:
+        markers_fin = foci_markers(blobs_log, foci_pic.shape)
 
-    return [markers_num,0,0,markers_fin, foci_bin]
+
+    foci_bin = get_foci_bin(blobs_log, foci_pic, nucleus, 3, foci_min_val_perc)
+    foci_area = np.sum(foci_bin)
+
+    return [markers_num,foci_area,0,markers_fin, foci_bin]
+
+
+def foci_markers(blobs, pic_shape):
+    '''Return array with foci markers'''
+
+    markers = np.zeros(pic_shape, dtype = np.bool)
+
+    for blob in blobs:
+
+        x, y, r = blob
+
+        markers[x,y] = True
+
+    selem = np.array([0,1,0,1,1,1,0,1,0], dtype=bool).reshape((3,3))
+    markers = binary_dilation(binary_dilation(markers, selem), selem)
+
+    return markers
+
+
+def get_foci_bin(blobs, foci_pic, nucleus, margin = 1, corr_koef = 1):
+    '''Return binary pic with foci'''
+
+    x_max, y_max = foci_pic.shape
+    peace_list = []
+
+    for blob in blobs:
+
+        x_m, y_m, r = blob
+
+#        foci_radius_s = np.round(r*np.sqrt(2)).astype(int)
+        foci_radius_s = np.round(r*2).astype(int)
+        foci_radius_l = foci_radius_s + margin
+
+        label_circle = circle_mask(foci_radius_l)
+
+        up, down       = y_m + foci_radius_l, y_m - foci_radius_l + 1
+        right, left    = x_m + foci_radius_l, x_m - foci_radius_l + 1
+
+        if  down < 0    : down  = 0
+        if    up > y_max: up    = y_max
+        if  left < 0    : left  = 0
+        if right > x_max: right = x_max
+
+        up_c, down_c    = up - y_m + foci_radius_l - 1, foci_radius_l - 1 - (y_m - down)
+        right_c, left_c = right - x_m + foci_radius_l - 1, foci_radius_l - 1 - (x_m - left)
+
+        x_c, y_c = (up_c - down_c)/2, (right_c - left_c)/2
+
+        label          = label_circle[left_c:right_c, down_c:up_c]
+        new_pic        = foci_pic[left:right, down:up]
+        nucleus_mask   = nucleus [left:right, down:up]
+
+        label_s = np.zeros_like(label)
+        x_mx_loc, y_mx_loc = label_s.shape
+
+        rr, cc = circle(x_c, y_c, foci_radius_s)
+        rr_new, cc_new = [], []
+
+        for x_c,y_c in zip(rr,cc):
+
+            if (x_c >= 0) and (x_c < x_mx_loc) and (y_c >= 0) and (y_c < y_mx_loc):
+                rr_new.append(x_c)
+                cc_new.append(y_c)
+
+        label_s[rr_new, cc_new] = True
+
+        new_label    = nucleus_mask*label
+        new_label_s  = nucleus_mask*label_s
+
+        label_values = np.extract(new_label, new_pic)
+        local_cutoff = global_otsu(label_values)
+#        local_cutoff = np.floor(np.percentile(label_values, (foci_min_val_perc))).astype(np.uint8)
+
+        pic_label = new_label_s*new_pic
+
+        peace_list.append(peace(pic_label > corr_koef*local_cutoff, (up,down,right,left)))
+
+    return join_peaces(peace_list, x_max, y_max)
+
+
 
 
 def circle_markers(blobs, pic_shape):
+    '''Return array with circles around foci found'''
 
     markers_rad = np.zeros(pic_shape, dtype = np.bool)
 
@@ -195,7 +273,6 @@ def circle_markers(blobs, pic_shape):
     for blob in blobs:
 
         x, y, r = blob
-        r = r*np.sqrt(2)
 
         r = r*np.sqrt(2)
 
