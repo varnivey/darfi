@@ -162,7 +162,7 @@ def foci_thres(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90
     return [0,foci_area,0,markers_fin,foci_bin]
 
 
-def foci_log(foci_pic, nucleus, foci_det_sens = 75, foci_fill_perc = 90,\
+def foci_log(foci_pic, nucleus, foci_det_sens = 70, foci_fill_perc = 30,\
         min_foci_radius = 3, max_foci_radius = 12, overlap=100,\
         return_circles = True):
     '''Find foci using Laplacian of Gaussian'''
@@ -368,7 +368,7 @@ def find_nuclei(pic_with_nuclei, sensitivity = 5., min_cell_size = 1500, frame_s
 #    binary = binarize_otsu(pic_with_nuclei, frame_size, cutoff_shift)
     binary = binarize_canny(pic_with_nuclei, sensitivity)
 #    binary = binarize_adaptive(pic_with_nuclei)
-    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', (binary*255).astype(np.uint8))
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/binary_nuclei.jpg', (binary*255).astype(np.uint8))
 
 #    labels = label_nuclei(binary, min_cell_size)
 
@@ -446,7 +446,7 @@ def binarize_canny(pic_source, sensitivity = 5.):
 #    for i in (1,2):
         edges = binary_dilation(edges, selem_morph)
 
-    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', (edges*255).astype(np.uint8))
+#    imsave('/home/varnivey/Data/Biophys/Burnazyan/Experiments/fluor_calc/test/edges.jpg', (edges*255).astype(np.uint8))
 
 #    edges = binary_fill_holes(edges)
 
