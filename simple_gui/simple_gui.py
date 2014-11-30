@@ -342,14 +342,15 @@ class DarfiUI(QtGui.QMainWindow):
 
         self.statusArea = QtGui.QTableWidget(self)
         self.statusArea.setRowCount(2)
-        self.statusArea.setColumnCount(7)
+        self.statusArea.setColumnCount(8)
         self.statusArea.setHorizontalHeaderItem(0, QtGui.QTableWidgetItem("Cell number"))
-        self.statusArea.setHorizontalHeaderItem(1, QtGui.QTableWidgetItem("Abs foci number"))
-        self.statusArea.setHorizontalHeaderItem(2, QtGui.QTableWidgetItem("Rel foci number"))
-        self.statusArea.setHorizontalHeaderItem(3, QtGui.QTableWidgetItem("Foci area"))
-        self.statusArea.setHorizontalHeaderItem(4, QtGui.QTableWidgetItem("Foci intensity"))
-        self.statusArea.setHorizontalHeaderItem(5, QtGui.QTableWidgetItem("Foci soid"))
-        self.statusArea.setHorizontalHeaderItem(6, QtGui.QTableWidgetItem("Foci size"))
+        self.statusArea.setHorizontalHeaderItem(1, QtGui.QTableWidgetItem("Cell area"))
+        self.statusArea.setHorizontalHeaderItem(2, QtGui.QTableWidgetItem("Mean intensity"))
+        self.statusArea.setHorizontalHeaderItem(3, QtGui.QTableWidgetItem("Rel foci number"))
+        self.statusArea.setHorizontalHeaderItem(4, QtGui.QTableWidgetItem("Foci area"))
+        self.statusArea.setHorizontalHeaderItem(5, QtGui.QTableWidgetItem("Foci intensity"))
+        self.statusArea.setHorizontalHeaderItem(6, QtGui.QTableWidgetItem("Foci soid"))
+        self.statusArea.setHorizontalHeaderItem(7, QtGui.QTableWidgetItem("Foci size"))
         self.statusArea.setVerticalHeaderItem(0, QtGui.QTableWidgetItem("Mean"))
         self.statusArea.setVerticalHeaderItem(1, QtGui.QTableWidgetItem("MSE"))
         
@@ -555,7 +556,7 @@ class DarfiUI(QtGui.QMainWindow):
                         params = len(cell_set.cells)
                         self.statusArea.hide()
                         self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params)))
-                        for i in xrange(1,13):
+                        for i in xrange(1,15):
                             self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str("")))
                         self.statusArea.show()
                     
@@ -611,7 +612,7 @@ class DarfiUI(QtGui.QMainWindow):
                         params = cell_set.get_parameters()
                         self.statusArea.hide()
                         self.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params[0])))
-                        for i in xrange(1,13):
+                        for i in xrange(1,15):
                             self.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(params[i])))
                         #self.update()
                         for image_dir in image_dirs:

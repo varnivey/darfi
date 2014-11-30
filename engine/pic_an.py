@@ -240,6 +240,18 @@ class cell_set:
 
         return mean_and_MSE(cell_areas)
 
+    def get_foci_pic_mean_intensity_param(self):
+        '''Return foci pic mean intensity'''
+
+        mean_ints = []
+
+        for cur_cell in self.cells:
+
+            mean_ints.append(np.mean(cur_cell.pic_foci))
+
+        return mean_and_MSE(mean_ints)
+
+
 
 
     def calculate_foci_parameters(self):
@@ -313,7 +325,8 @@ class cell_set:
         '''Metod returns list with set parameters'''
 
         params = [len(self.cells)]
-        params.extend(self.abs_foci_num_param)
+        params.extend(self.get_cell_area_param())
+        params.extend(self.get_foci_pic_mean_intensity_param())
         params.extend(self.rel_foci_num_param)
         params.extend(self.rel_foci_area_param)
         params.extend(self.abs_foci_ints_param)
