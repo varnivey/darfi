@@ -71,6 +71,7 @@ class cell:
         self.foci_area      = results[2]
         self.foci_seeds     = results[3]
         self.foci_binary    = results[4]
+        self.foci_intens    = results[5]
 
 
 #    def get_nucleus_mean_value(self):
@@ -228,17 +229,32 @@ class cell_set:
 
         return np.mean(cell_size_list)
 
+    def get_cell_area_param(self):
+        '''Return mean cell area with mse'''
+
+        cell_areas     = []
+
+        for cur_cell in self.cells:
+
+            cell_areas.append(cur_cell.area)
+
+        return mean_and_MSE(cell_areas)
+
+
 
     def calculate_foci_parameters(self):
         '''Calculate absolute and relative foci number, area and soid in 10-90 percent interval'''
 
         abs_foci_nums  = []
         abs_foci_areas = []
+        abs_foci_ints  = []
         abs_foci_soids = []
 
         rel_foci_nums  = []
         rel_foci_areas = []
+        rel_foci_ints  = []
         rel_foci_soids = []
+
 
 #        mean_cell_size = self.mean_cell_size()
 
@@ -246,13 +262,15 @@ class cell_set:
 
         for cur_cell in self.cells:
 
-            abs_foci_nums.append(  cur_cell.foci_number)
+            abs_foci_nums.append ( cur_cell.foci_number)
             abs_foci_areas.append( cur_cell.foci_area  )
+            abs_foci_ints.append ( cur_cell.foci_intens)
             abs_foci_soids.append( cur_cell.foci_soid  )
 
             try:
                 rel_foci_nums.append(  cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area))
                 rel_foci_areas.append( cur_cell.foci_area*  mean_cell_size/np.float(cur_cell.area))
+#                rel_foci_ints.append(  cur_cell.foci_intens*mean_cell_size/np.float(cur_cell.area))
                 rel_foci_soids.append( cur_cell.foci_soid*  mean_cell_size/np.float(cur_cell.area))
             except:
                 pass
@@ -261,21 +279,47 @@ class cell_set:
         self.abs_foci_num_param   = mean_and_MSE(abs_foci_nums)
         self.abs_foci_area_param  = mean_and_MSE(abs_foci_areas)
         self.abs_foci_soid_param  = mean_and_MSE(abs_foci_soids)
+        self.abs_foci_ints_param  = mean_and_MSE(abs_foci_ints)
 
         self.rel_foci_num_param   = mean_and_MSE(rel_foci_nums)
         self.rel_foci_area_param  = mean_and_MSE(rel_foci_areas)
         self.rel_foci_soid_param  = mean_and_MSE(rel_foci_soids)
+
+        abs_num ,  num_err = self.abs_foci_num_param
+        abs_area, area_err = self.abs_foci_area_param
+
+        foci_size = np.round(abs_area/abs_num,2)
+        size_err  = np.round((num_err/abs_num + area_err/abs_area)*foci_size,2)
+
+        self.foci_size_param = [foci_size, size_err]
+
+
+
+#    This is original get_parameters function
+#
+#    def get_parameters(self):
+#        '''Metod returns list with set parameters'''
+#
+#        params = [len(self.cells)]
+#        params.extend(self.abs_foci_num_param)
+#        params.extend(self.abs_foci_area_param)
+#        params.extend(self.abs_foci_soid_param)
+#        params.extend(self.rel_foci_num_param)
+#        params.extend(self.rel_foci_area_param)
+#        params.extend(self.rel_foci_soid_param)
+#        return params
 
     def get_parameters(self):
         '''Metod returns list with set parameters'''
 
         params = [len(self.cells)]
         params.extend(self.abs_foci_num_param)
-        params.extend(self.abs_foci_area_param)
-        params.extend(self.abs_foci_soid_param)
         params.extend(self.rel_foci_num_param)
         params.extend(self.rel_foci_area_param)
+        params.extend(self.abs_foci_ints_param)
         params.extend(self.rel_foci_soid_param)
+        params.extend(self.foci_size_param)
+
         return params
 
     def write_parameters(self, outfilename):

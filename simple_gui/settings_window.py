@@ -35,27 +35,27 @@ class SettingsWindow(QtGui.QDialog):
         
         self.peak_min_val_perc = peak_min_val_perc
         peak_min_val_percLabel = QtGui.QLabel(self)
-        peak_min_val_percLabel.setText("Peak min val perc:")
+        peak_min_val_percLabel.setText("Foci lookup sensitivity")
         self.peak_min_val_percField = QtGui.QDoubleSpinBox()
         self.peak_min_val_percField.setRange(0,100)
-        self.peak_min_val_percField.setDecimals(2)
+        self.peak_min_val_percField.setDecimals(0)
         self.peak_min_val_percField.setValue(self.peak_min_val_perc)
         vbox1.addWidget(peak_min_val_percLabel)
         vbox1.addWidget(self.peak_min_val_percField)
         
         self.foci_min_val_perc = foci_min_val_perc
         foci_min_val_percLabel = QtGui.QLabel(self)
-        foci_min_val_percLabel.setText("Foci min val perc:")
+        foci_min_val_percLabel.setText("Foci area fill percent")
         self.foci_min_val_percField = QtGui.QDoubleSpinBox()
         self.foci_min_val_percField.setRange(0,100)
-        self.foci_min_val_percField.setDecimals(2)
+        self.foci_min_val_percField.setDecimals(0)
         self.foci_min_val_percField.setValue(self.foci_min_val_perc)
         vbox1.addWidget(foci_min_val_percLabel)
         vbox1.addWidget(self.foci_min_val_percField)
         
         self.foci_radius = foci_radius
         foci_radiusLabel = QtGui.QLabel(self)
-        foci_radiusLabel.setText("Foci radius:")
+        foci_radiusLabel.setText("Min foci radius")
         self.foci_radiusField = QtGui.QDoubleSpinBox()
         self.foci_radiusField.setRange(0,4294967296)
         self.foci_radiusField.setDecimals(0)
@@ -68,9 +68,9 @@ class SettingsWindow(QtGui.QDialog):
         vbox2 = QtGui.QVBoxLayout(vbox2Area)
         self.foci_min_level_on_bg = foci_min_level_on_bg
         foci_min_level_on_bgLabel = QtGui.QLabel(self)
-        foci_min_level_on_bgLabel.setText("Foci min level on bg:")
+        foci_min_level_on_bgLabel.setText("Max foci radius")
         self.foci_min_level_on_bgField = QtGui.QDoubleSpinBox()
-        self.foci_min_level_on_bgField.setRange(0,255)
+        self.foci_min_level_on_bgField.setRange(0,4294967296)
         self.foci_min_level_on_bgField.setDecimals(0)
         self.foci_min_level_on_bgField.setValue(self.foci_min_level_on_bg)
         vbox2.addWidget(foci_min_level_on_bgLabel)

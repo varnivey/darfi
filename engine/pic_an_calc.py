@@ -167,8 +167,8 @@ def foci_log(foci_pic, nucleus, foci_det_sens = 75, foci_fill_perc = 90,\
         return_circles = True):
     '''Find foci using Laplacian of Gaussian'''
 
-    min_sigma = np.round(min_foci_radius/3.)*2
-    max_sigma = np.round(max_foci_radius/3.)*2
+    min_sigma = (min_foci_radius/3.)*2
+    max_sigma = (max_foci_radius/3.)*2
     num_sigma = max_sigma - min_sigma + 1
 
     log_thres = (100 - foci_det_sens)/200.
@@ -188,13 +188,16 @@ def foci_log(foci_pic, nucleus, foci_det_sens = 75, foci_fill_perc = 90,\
 
     foci_bin = get_foci_bin(blobs_log, foci_pic, nucleus, 3, foci_fill_perc)
     foci_area = np.sum(foci_bin)
+    foci_soid = np.sum(foci_bin*foci_pic)
 
     if foci_area != 0:
-        foci_soid = np.sum(foci_bin*foci_pic)/(1.*foci_area)
+        foci_intensity = foci_soid/(1.*foci_area)
     else:
-        foci_soid = 0.
+        foci_intensity = 0.
 
-    return [markers_num,foci_soid,foci_area,markers_fin, foci_bin]
+
+    return [markers_num,foci_soid,foci_area,markers_fin, foci_bin,\
+            foci_intensity]
 
 
 def foci_markers(blobs, pic_shape):
