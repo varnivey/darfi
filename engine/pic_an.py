@@ -492,7 +492,7 @@ class image_dir(cell_set):
         return colored_nuclei
 
 
-    def get_merged_pic(self, nuclei_color = 0.66, foci_color = 0.33):
+    def get_merged_pic(self, nuclei_color = 0.66, foci_color = 0.33, seeds = False):
         '''Return merged pic with foci and nuclei'''
 
         x_max, y_max = self.nuclei.shape
@@ -511,7 +511,10 @@ class image_dir(cell_set):
 
         for cur_cell in self.cells:
 
-            foci = cur_cell.foci_binary
+            if seeds:
+                foci = cur_cell.foci_seeds
+            else:
+                foci = cur_cell.foci_binary
 
             nucleus_only = cur_cell.nucleus - foci
 
@@ -540,7 +543,7 @@ class image_dir(cell_set):
 
 
 
-    def get_all_pics(self, nuclei_color = 0.66, foci_color = 0.33):
+    def get_all_pics(self, nuclei_color = 0.66, foci_color = 0.33, seed_circles = False):
         '''Return all calculated pics'''
 
         if self.number_of_cells() == 0:
@@ -569,8 +572,9 @@ class image_dir(cell_set):
 
         rescaled_nuclei_pic = join_peaces(rescaled_nuclei_peaces, x_max, y_max, dtype = np.uint8)
         rescaled_foci_pic   = join_peaces(rescaled_foci_peaces, x_max, y_max, dtype = np.uint8)
-        seeds               = (255*join_peaces(seed_peaces, x_max, y_max)).astype(np.uint8)
         foci_binary         = join_peaces(foci_bin_peaces, x_max, y_max)
+
+        seeds               = self.get_merged_pic(nuclei_color, foci_color, seeds = True)
 
         nuclei_colored = self.get_pic_with_nuclei_colored()
         merged = self.get_merged_pic(nuclei_color, foci_color)

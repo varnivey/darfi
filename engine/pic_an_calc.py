@@ -162,11 +162,20 @@ def foci_thres(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90
     return [0,foci_area,0,markers_fin,foci_bin]
 
 
-def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10,\
-        foci_min_level_on_bg = 40, return_circles = True):
+def foci_log(foci_pic, nucleus, foci_det_sens = 75, foci_fill_perc = 90,\
+        min_foci_radius = 3, max_foci_radius = 12, overlap=100,\
+        return_circles = True):
     '''Find foci using Laplacian of Gaussian'''
 
-    blobs_log = blob_log(foci_pic, min_sigma=2, max_sigma=8, num_sigma=4, threshold=peak_min_val_perc/100., overlap = 1.)
+    min_sigma = np.round(min_foci_radius/3.)*2
+    max_sigma = np.round(max_foci_radius/3.)*2
+    num_sigma = max_sigma - min_sigma + 1
+
+    log_thres = (100 - foci_det_sens)/200.
+    if foci_det_sens == 0.: log_thres = 1.
+
+    blobs_log = blob_log(foci_pic, min_sigma=min_sigma, max_sigma=max_sigma,\
+            num_sigma=num_sigma, threshold=log_thres, overlap = overlap/100.)
 
     markers_num = blobs_log.shape[0]
 
@@ -177,10 +186,15 @@ def foci_log(foci_pic, nucleus, peak_min_val_perc = 60, foci_min_val_perc = 90, 
         markers_fin = foci_markers(blobs_log, foci_pic.shape)
 
 
-    foci_bin = get_foci_bin(blobs_log, foci_pic, nucleus, 3, foci_min_val_perc)
+    foci_bin = get_foci_bin(blobs_log, foci_pic, nucleus, 3, foci_fill_perc)
     foci_area = np.sum(foci_bin)
 
-    return [markers_num,foci_area,0,markers_fin, foci_bin]
+    if foci_area != 0:
+        foci_soid = np.sum(foci_bin*foci_pic)/(1.*foci_area)
+    else:
+        foci_soid = 0.
+
+    return [markers_num,foci_soid,foci_area,markers_fin, foci_bin]
 
 
 def foci_markers(blobs, pic_shape):
@@ -200,11 +214,13 @@ def foci_markers(blobs, pic_shape):
     return markers
 
 
-def get_foci_bin(blobs, foci_pic, nucleus, margin = 1, corr_koef = 1):
+def get_foci_bin(blobs, foci_pic, nucleus, margin = 1, foci_val_perc = 10):
     '''Return binary pic with foci'''
 
     x_max, y_max = foci_pic.shape
     peace_list = []
+
+    foci_min_val_perc = 100 - foci_val_perc
 
     for blob in blobs:
 
@@ -251,12 +267,12 @@ def get_foci_bin(blobs, foci_pic, nucleus, margin = 1, corr_koef = 1):
         new_label_s  = nucleus_mask*label_s
 
         label_values = np.extract(new_label, new_pic)
-        local_cutoff = global_otsu(label_values)
-#        local_cutoff = np.floor(np.percentile(label_values, (foci_min_val_perc))).astype(np.uint8)
+#        local_cutoff = global_otsu(label_values)
+        local_cutoff = np.floor(np.percentile(label_values, (foci_min_val_perc))).astype(np.uint8)
 
         pic_label = new_label_s*new_pic
 
-        peace_list.append(peace(pic_label > corr_koef*local_cutoff, (up,down,right,left)))
+        peace_list.append(peace(pic_label > local_cutoff, (up,down,right,left)))
 
     return join_peaces(peace_list, x_max, y_max)
 
