@@ -56,6 +56,7 @@ class cell:
         self.pic_foci     = nucleus*pic_foci
         self.coords       = coords
         self.area         = np.sum(nucleus)
+        self.is_active       = True
 
 
     def calculate_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
@@ -127,13 +128,20 @@ class cell_set:
         self.cells = cells
         self.name  = name
 
+    def active_cells(self):
+        '''Return a list of active cells only'''
+
+        active = [cur_cell for cur_cell in self.cells if cur_cell.is_active]
+
+        return active
+
 
     def rescale_nuclei(self):
         '''Rescale nuclei in the set'''
 
         new_values = []
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             nucleus_values = np.extract(cur_cell.nucleus, cur_cell.pic_nucleus)
 
@@ -145,7 +153,7 @@ class cell_set:
 
         p2,p98 = np.percentile(np.concatenate(new_values),(2,98))
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             rescaled_norm_pic = rescale_intensity(cur_cell.pic_nucleus/cur_cell.nucleus_mean_value, in_range=(p2, p98))
 
@@ -157,7 +165,7 @@ class cell_set:
 
         new_foci_values = []
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             foci_values = np.extract(cur_cell.nucleus, cur_cell.pic_foci)
 
@@ -223,7 +231,7 @@ class cell_set:
 
         cell_size_list = []
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             cell_size_list.append(cur_cell.area)
 
@@ -234,7 +242,7 @@ class cell_set:
 
         cell_areas     = []
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             cell_areas.append(cur_cell.area)
 
@@ -245,7 +253,7 @@ class cell_set:
 
         mean_ints = []
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             mean_ints.append(np.mean(cur_cell.pic_foci))
 
@@ -272,7 +280,7 @@ class cell_set:
 
         mean_cell_size = 8100
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             abs_foci_nums.append ( cur_cell.foci_number)
             abs_foci_areas.append( cur_cell.foci_area  )
@@ -404,7 +412,7 @@ class image_dir(cell_set):
         x_max, y_max = self.shape
         nuclei_peaces = []
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
             nuclei_peaces.append(peace(cur_cell.nucleus, cur_cell.coords))
 
         return join_peaces(nuclei_peaces, x_max, y_max)
@@ -413,15 +421,14 @@ class image_dir(cell_set):
     def load_separate_images(self, sensitivity = 5., min_cell_size = 1500):
         '''Load nuclei and foci from separate images'''
 
+        if hasattr(self, 'cell_detect_params'):
+            if (sensitivity, min_cell_size) == self.cell_detect_params:
+                return
+
         pic_nuclei = self.get_source_pic_nuclei()
         self.shape = pic_nuclei.shape
 
-        if hasattr(self, 'cell_detect_params'):
-            sensitivity, min_cell_size = self.cell_detect_params
-            nuclei = self.nuclei
-
-        else:
-            nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
+        nuclei = find_nuclei(pic_nuclei, sensitivity, min_cell_size)
 
         self.cell_detect_params = (sensitivity, min_cell_size)
 
@@ -518,7 +525,9 @@ class image_dir(cell_set):
 
         x_max, y_max = self.shape
 
-        cell_number = self.number_of_cells()
+        active_cells = self.active_cells()
+
+        cell_number = len(active_cells)
 
         if cell_number == 0:
 
@@ -528,7 +537,7 @@ class image_dir(cell_set):
 
         colored_nuclei_peaces = []
 
-        for cur_cell, cur_num in zip(self.cells, range(cell_number)):
+        for cur_cell, cur_num in zip(active_cells, range(cell_number)):
 
             pic_nucleus = cur_cell.pic_nucleus
 
@@ -554,7 +563,9 @@ class image_dir(cell_set):
 
         x_max, y_max = self.nuclei.shape
 
-        cell_number = self.number_of_cells()
+        active_cells = self.active_cells()
+
+        cell_number = len(active_cells)
 
         if cell_number == 0:
 
@@ -566,7 +577,7 @@ class image_dir(cell_set):
 
         foci_rgb_koef = hsv2rgb(np.array([foci_color, 1., 1.]).reshape((1,1,3))).reshape(3)
 
-        for cur_cell in self.cells:
+        for cur_cell in active_cells:
 
             if seeds:
                 foci = cur_cell.foci_seeds
@@ -617,7 +628,7 @@ class image_dir(cell_set):
 
         x_max, y_max = self.nuclei.shape
 
-        for cur_cell in self.cells:
+        for cur_cell in self.active_cells():
 
             coords = cur_cell.coords
 
@@ -665,6 +676,28 @@ class image_dir(cell_set):
         imsave(pic_merged_path, merged)
         imsave(pic_seeds_path, seeds)
         imsave(pic_rescaled_foci_path, rescaled_foci_pic)
+
+
+    def touch_cells(self, coords):
+        '''Enable or disable clicked cell'''
+
+        x_touch, y_touch = coords
+
+        for cur_cell in self.cells:
+            up,down,right,left = cur_cell.coords
+
+            if not (x_touch >= left and x_touch < right and y_touch >= down and y_touch < up):
+                continue
+
+            x_new, y_new = x_touch - left, y_touch - down
+
+            if not cur_cell.nuclei[x_new, y_new] == True:
+                continue
+
+            cur_cell.is_active = not cur_cell.is_active
+            break
+
+
 
 
     def number_of_cells(self):
