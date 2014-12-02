@@ -127,6 +127,7 @@ class cell_set:
 
         self.cells = cells
         self.name  = name
+        self.have_foci_params = False
 
     def active_cells(self):
         '''Return a list of active cells only'''
@@ -202,7 +203,7 @@ class cell_set:
             cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(np.uint8)
 
 
-    def calculate_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
+    def find_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
         '''Calculate foci_plm for all cells'''
 
         remained = len(self.cells)
@@ -248,8 +249,19 @@ class cell_set:
 
         return mean_and_MSE(cell_areas)
 
+    def get_nuclei_pic_mean_intensity_param(self):
+        '''Return nucleus pics mean intensity'''
+
+        mean_ints = []
+
+        for cur_cell in self.active_cells():
+
+            mean_ints.append(np.mean(cur_cell.pic_nucleus))
+
+        return mean_and_MSE(mean_ints)
+
     def get_foci_pic_mean_intensity_param(self):
-        '''Return foci pic mean intensity'''
+        '''Return foci pics mean intensity'''
 
         mean_ints = []
 
@@ -272,7 +284,7 @@ class cell_set:
 
         rel_foci_nums  = []
         rel_foci_areas = []
-        rel_foci_ints  = []
+#        rel_foci_ints  = []
         rel_foci_soids = []
 
 
@@ -313,6 +325,8 @@ class cell_set:
 
         self.foci_size_param = [foci_size, size_err]
 
+        self.have_foci_params = True
+
 
 
 #    This is original get_parameters function
@@ -329,8 +343,58 @@ class cell_set:
 #        params.extend(self.rel_foci_soid_param)
 #        return params
 
+    def get_parameters_dict(self):
+        '''Retrun dictionary with cell parameters'''
+
+        params = {}
+
+        if len(self.active_cells()) == 0:
+            return params
+        params['Cell number'] = {'Mean':len(self.cells)}
+
+        cur_param = self.get_self.get_cell_area_param()
+        params['Cell area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.get_nuclei_pic_mean_intensity_param()
+        params['Mean intensity im1'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        if not self.have_foci_params:
+            return params
+
+        cur_param = self.get_foci_pic_mean_intensity_param()
+        params['Mean intensity im2'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        self.calculate_foci_parameters()
+
+        cur_param = self.abs_foci_num_param
+        params['Abs foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.abs_foci_area_param
+        params['Abs foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.abs_foci_soid_param
+        params['Abs foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.rel_foci_num_param
+        params['Rel foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.rel_foci_area_param
+        params['Rel foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.rel_foci_soid_param
+        params['Rel foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.abs_foci_ints_param
+        params['Foci intensity'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        cur_param = self.foci_size_param
+        params['Foci size'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        return params
+
+
     def get_parameters(self):
-        '''Metod returns list with set parameters'''
+        '''Return list with set parameters'''
 
         params = [len(self.cells)]
         params.extend(self.get_cell_area_param())
@@ -385,6 +449,7 @@ class image_dir(cell_set):
         self.nuclei_name = nuclei_name
         self.foci_name   = foci_name
         self.bg = 0
+        self.all_pics = False
 
 
     def get_source_pic_nuclei(self):
@@ -647,6 +712,8 @@ class image_dir(cell_set):
         nuclei_colored = self.get_pic_with_nuclei_colored()
         merged = self.get_merged_pic(nuclei_color, foci_color)
 
+        self.all_pics = True
+
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
 
 
@@ -663,6 +730,13 @@ class image_dir(cell_set):
 
     def write_all_pic_files(self, nuclei_color = 0.66, foci_color = 0.33):
         '''Write all calculated pics to files'''
+
+        if (self.number_of_cells() == 0):
+            return
+
+        if not self.all_pics:
+            self.write_pic_with_nuclei_colored()
+            return
 
         pic_colored_nuclei_path = os.path.join(self.dir_path,u'colored_nuclei.jpg')
         pic_merged_path         = os.path.join(self.dir_path,u'merged.jpg')
@@ -683,6 +757,8 @@ class image_dir(cell_set):
 
         x_touch, y_touch = coords
 
+        touch = False
+
         for cur_cell in self.cells:
             up,down,right,left = cur_cell.coords
 
@@ -695,7 +771,10 @@ class image_dir(cell_set):
                 continue
 
             cur_cell.is_active = not cur_cell.is_active
+            touch = True
             break
+
+        return touch
 
 
 

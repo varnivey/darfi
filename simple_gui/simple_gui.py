@@ -606,7 +606,7 @@ class DarfiUI(QtGui.QMainWindow):
                         
                         cell_set.rescale_foci((self.foci_rescale_min, self.foci_rescale_max))
                         self.oldFoci_rescale_min, self.oldFoci_rescale_max = cell_set.get_foci_rescale_values()
-                        cell_set.calculate_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
+                        cell_set.find_foci(self.peak_min_val_perc, self.foci_min_val_perc, self.foci_radius, self.foci_min_level_on_bg)
                         cell_set.calculate_foci_parameters()
                         cell_set.write_parameters(absoutfile)
                         params = cell_set.get_parameters()
