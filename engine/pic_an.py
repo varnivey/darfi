@@ -53,19 +53,24 @@ class cell:
 
         self.nucleus      = nucleus
         self.pic_nucleus  = nucleus*pic_nucleus
-        self.pic_foci     = nucleus*pic_foci
         self.coords       = coords
         self.area         = np.sum(nucleus)
-        self.is_active       = True
+        self.is_active    = True
+
+        if pic_foci != None:
+            self.pic_foci = nucleus*pic_foci
 
 
-    def calculate_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
-        '''Finds foci and its parameters'''
+    def calculate_foci(self, foci_det_sens = 70, foci_fill_perc = 30, \
+            min_foci_radius = 3, max_foci_radius = 12, overlap = 100, \
+            return_circles = True):
+        '''Find foci and their parameters'''
 
         nucleus_new = (self.rescaled_nucleus_pic != 0)
 
-        results = foci_log(self.rescaled_foci_pic, nucleus_new, peak_min_val_perc,\
-                foci_min_val_perc, foci_radius, foci_min_level_on_bg)
+        results = foci_log(self.rescaled_foci_pic, nucleus_new, foci_det_sens,\
+                foci_fill_perc, min_foci_radius, max_foci_radius, overlap,
+                return_circles)
 
         self.foci_number    = results[0]
         self.foci_soid      = results[1]
@@ -73,6 +78,12 @@ class cell:
         self.foci_seeds     = results[3]
         self.foci_binary    = results[4]
         self.foci_intens    = results[5]
+
+
+    def add_pic_foci(self, pic_foci):
+        '''Add pic with foci to cell'''
+
+        self.pic_foci     = self.nucleus*pic_foci
 
 
 #    def get_nucleus_mean_value(self):
@@ -127,6 +138,11 @@ class cell_set:
 
         self.cells = cells
         self.name  = name
+        self.have_foci_params = False
+
+    def reset_foci():
+        '''Set have_foci_params to False'''
+
         self.have_foci_params = False
 
     def active_cells(self):
@@ -203,8 +219,12 @@ class cell_set:
             cur_cell.rescaled_foci_pic = np.floor(rescaled_norm_pic*255).astype(np.uint8)
 
 
-    def find_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, foci_radius = 10, foci_min_level_on_bg = 40):
-        '''Calculate foci_plm for all cells'''
+### Variable names should be replaced here
+
+    def find_foci(self, peak_min_val_perc = 60, foci_min_val_perc = 90, \
+            foci_radius = 10, foci_min_level_on_bg = 40, overlap = 100, \
+            return_circles = True):
+        '''Calculate foci_log for all cells'''
 
         remained = len(self.cells)
 
@@ -213,7 +233,8 @@ class cell_set:
         print 'Foci calculation has started for', name
 
         for cur_cell in self.cells:
-            cur_cell.calculate_foci(peak_min_val_perc, foci_min_val_perc, foci_radius, foci_min_level_on_bg)
+            cur_cell.calculate_foci(peak_min_val_perc, foci_min_val_perc, \
+                    foci_radius, foci_min_level_on_bg, overlap, return_circles)
 
             remained -= 1
 
@@ -225,6 +246,20 @@ class cell_set:
 
             else:
                 print remained, 'nuclei  remained for', name
+
+###
+
+    def calculate_foci(self, foci_det_sens = 70, foci_fill_perc = 30, \
+            min_foci_radius = 3, max_foci_radius = 12, overlap=100, \
+            return_circles = True, normalize = True, \
+            foci_rescale_values = (None, None)):
+        '''Rescale foci image and find foci'''
+
+        self.rescale_foci(foci_rescale_values, normalize)
+        self.find_foci(foci_det_sens, foci_fill_perc, min_foci_radius, \
+                max_foci_radius, overlap, return_circles)
+        self.have_foci_params = True
+
 
 
     def mean_cell_size(self):
@@ -441,7 +476,7 @@ class cell_set:
 class image_dir(cell_set):
     '''Class representing directory with images'''
 
-    def __init__(self,dir_path, nuclei_name, foci_name):
+    def __init__(self,dir_path, nuclei_name, foci_name = None):
         '''Constructor'''
 
         self.dir_path = dir_path
@@ -471,6 +506,7 @@ class image_dir(cell_set):
 
         return pic_foci
 
+
     def active_nuclei(self):
         '''Return binary image with active nuclei'''
 
@@ -483,8 +519,18 @@ class image_dir(cell_set):
         return join_peaces(nuclei_peaces, x_max, y_max)
 
 
-    def load_separate_images(self, sensitivity = 5., min_cell_size = 1500):
-        '''Load nuclei and foci from separate images'''
+    def detect_cells(self, sensitivity = 5., min_cell_size = 4000, \
+            load_foci = True):
+        '''Create cells and load image with foci'''
+
+        self.load_cell_image(sensitivity, min_cell_size)
+
+        if load_foci:
+            self.load_foci_image()
+
+
+    def load_cell_image(self, sensitivity = 5., min_cell_size = 4000):
+        '''Load cell image and add cells to self'''
 
         if hasattr(self, 'cell_detect_params'):
             if (sensitivity, min_cell_size) == self.cell_detect_params:
@@ -518,7 +564,7 @@ class image_dir(cell_set):
     def create_cells_from_nuclei(self, pic_nuclei):
         '''Turns binary self.nuclei picture to cells'''
 
-        pic_foci   = self.get_source_pic_foci()
+#        pic_foci   = self.get_source_pic_foci()
         min_size = self.cell_detect_params[1]
 
         labels = self.nuclei
@@ -539,7 +585,8 @@ class image_dir(cell_set):
 
             nucleus          =              nucleus[left:right,down:up]
             cell_pic_nucleus =           pic_nuclei[left:right,down:up]
-            cell_pic_foci    =             pic_foci[left:right,down:up]
+
+            cell_pic_foci    =             None
 
 
             if split_required(coords, min_size, x_max, y_max):
@@ -577,9 +624,20 @@ class image_dir(cell_set):
                 continue
 
             cell_pic_nucleus =           pic_nuclei[left:right,down:up]
-            cell_pic_foci    =             pic_foci[left:right,down:up]
+            cell_pic_foci    =             None
 
             self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords_glob))
+
+
+    def load_foci_image(self):
+        '''Load image with foci'''
+
+        pic_foci = self.get_source_pic_foci()
+
+        for cur_cell in self.cells:
+
+            up,down,right,left = cur_cell.coords
+            cur_cell.add_pic_foci(pic_foci[left:right,down:up])
 
 
 

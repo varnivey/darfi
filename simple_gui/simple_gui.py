@@ -494,7 +494,7 @@ class DarfiUI(QtGui.QMainWindow):
                     print "Image loading have started for", name
 
                     for image_dir in image_dirs:
-                        image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                        image_dir.detect_cells(self.sensitivity, self.min_cell_size)
                         pbarval +=pbarstep
                         self.pbar.setValue(pbarval)
                         remained -= 1
@@ -547,7 +547,7 @@ class DarfiUI(QtGui.QMainWindow):
                         pbarstep = (100 - 10 )/ remained
                         
                         for image_dir in image_dirs:
-                            image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                            image_dir.detect_cells(self.sensitivity, self.min_cell_size)
                             cell_set.extend(image_dir)
                             image_dir.write_pic_with_nuclei_colored()
                             pbarval +=pbarstep
@@ -584,7 +584,7 @@ class DarfiUI(QtGui.QMainWindow):
                         print "Image loading have started for", name
 
                         for image_dir in image_dirs:
-                            image_dir.load_separate_images(self.sensitivity, self.min_cell_size)
+                            image_dir.detect_cells(self.sensitivity, self.min_cell_size)
                             pbarval +=pbarstep
                             self.pbar.setValue(pbarval)
                             remained -= 1
