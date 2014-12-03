@@ -387,7 +387,7 @@ class cell_set:
             return params
         params['Cell number'] = {'Mean':len(self.cells)}
 
-        cur_param = self.get_self.get_cell_area_param()
+        cur_param = self.get_cell_area_param()
         params['Cell area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
         cur_param = self.get_nuclei_pic_mean_intensity_param()
@@ -810,7 +810,7 @@ class image_dir(cell_set):
         imsave(pic_rescaled_foci_path, rescaled_foci_pic)
 
 
-    def touch_cells(self, coords):
+    def touch_cell(self, coords):
         '''Enable or disable clicked cell'''
 
         x_touch, y_touch = coords

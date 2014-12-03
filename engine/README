@@ -84,106 +84,132 @@ pic_an.cell_set.write_parameters(outfilename=outfile)
 The name for the calculation results for the cell_set given
 
 
-####################### sensitivity ###############################
+####################### Sensitivity ###############################
 
 type 'int'
 
 range: 0 to 10
 
-default: 8
+default: 5
 
 should be passed to:
 
-pic_an.image_dir.load_separate_images(sensitivity = sensitivity)
+pic_an.image_dir.detect_cells(sensitivity = sensitivity)
 
 The sensitivity of the cell detection algorithm. Default value is 8.
 If sensitivity is low, some blurred cell edges could be missed, but
 if the value is high the noise can cause false cell detection.
 
 
-###################### cell_min_size ##############################
+###################### Min cell size ##############################
 
 type 'int'
 
 range: 0 to 4294967296
 
-default: 8
+default: 4000
 
 should be passed to:
 
-pic_an.image_dir.load_separate_images(cell_min_size = cell_min_size)
+pic_an.image_dir.detect_cells(cell_min_size = cell_min_size)
 
 The minimum area of the cell in pixels. The objects with area below
-this level are removed during cell detection algorithm.
+this level are removed during cell detection.
 
 
-#################### peak_min_val_perc ############################
+################# Foci lookup sensitivtiy #########################
 
-type 'float'
+type 'int'
 
-range: 0. to 100.
+range: 0 to 100
 
-default: 60.
-
-should be passed to:
-
-pic_an.cell_set.calculate_foci(peak_min_val_perc = peak_min_val_perc)
-
-Only the points brighter than peak_min_val_perc percentile of the foci
-picture points can be the seeds for further foci search.
-
-
-#################### foci_min_val_perc ############################
-
-type 'float'
-
-range: 0. to 100.
-
-default: 90.
+default: 70
 
 should be passed to:
 
-pic_an.cell_set.calculate_foci(foci_min_val_perc = foci_min_val_perc)
+pic_an.cell_set.calculate_foci(foci_det_sens = foci_det_sens)
+
+Sensitivity of foci detection algorithm. Higher sensitivity means
+that more foci is found.
+
+################## Foci area fill percent #########################
+
+type 'int'
+
+range: 0 to 100
+
+default: 30
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(foci_fill_perc = foci_fill_perc)
 
 Only the points brighter than foci_min_val_perc percentile of the foci
-vicinity points can be considered as foci points.
+vicinity points can be considered as foci points. Higher foci area
+fill percent means that more points belong to each foci.
 
 
-####################### foci_radius ###############################
+##################### Min foci radius #############################
 
 type 'int'
 
 range: 0 to 4294967296
 
-default: 10
+default: 3
 
 should be passed to:
 
-pic_an.cell_set.calculate_foci(foci_radius = foci_radius)
+pic_an.cell_set.calculate_foci(min_foci_radius = min_foci_radius)
 
-The radius of the focus vicinity around the foci seed, in which foci
-point search is performed.
+Minimum allowed foci radius in pixels. All foci with shorter radius
+are ignored.
 
-
-################### foci_min_level_on_bg ##########################
+##################### Max foci radius #############################
 
 type 'int'
 
-range: 0 to 255
+range: 0 to 4294967296
 
-default: 40
+default: 12
 
 should be passed to:
 
-pic_an.cell_set.calculate_foci(foci_min_level_on_bg = foci_min_level_on_bg)
+pic_an.cell_set.calculate_foci(max_foci_radius = max_foci_radius)
 
-The minimal difference between the brightnesses of the focus points and 
-background points of the focus vicinity. The background level is equal to
-the 20th percentile brightness of the foci vicinity points.
+Minimum allowed foci radius in pixels. All foci with longer radius
+are ignored.
 
+################### Allowed Foci overlap ##########################
 
-##################### foci_rescale_min ############################
-##################### foci_rescale_max ############################
+type: 'int'
+
+range: 0 to 100
+
+default: 100
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(overlap = overlap)
+
+Defines allowed overlap between two foci. If the area of two foci 
+overlaps by percent more than allowed foci overlap the smaller 
+focus is removed.
+
+#################### Normalize intensity ##########################
+
+type: bool
+
+default: True
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(normalize = normalize)
+
+If this value is true foci images for each cell are normalized on 
+background.
+
+##################### Foci rescale min ############################
+##################### Foci rescale max ############################
 
 type 'float'
 
@@ -200,7 +226,22 @@ picture rescaling. If None is given the values are obtained using
 pic_an.cell_set.get_foci_rescale_values()
 
 
-####################### nuclei_color ##############################
+###################### Return circles #############################
+
+type: 'bool'
+
+default: True
+
+should be passed to:
+
+pic_an.cell_set.calculate_foci(return_circles = return_circles)
+
+If this value is False seeds picture contains points which 
+correspond to foci centers. If the value is True seeds picture
+contains circles. Center an radius of each circle corresponds to 
+center and radius of the focus respectively.
+
+####################### Nuclei color ##############################
 
 type 'float'
 
@@ -215,7 +256,7 @@ pic_an.image_dir.write_all_pic_files(nuclei_color=nuclei_color)
 Hue of the cell (nucleus) points on the final merged picture.
 
 
-######################## foci_color ###############################
+######################## Foci color ###############################
 
 type 'float'
 
