@@ -518,10 +518,22 @@ class image_dir(cell_set):
 
         return join_peaces(nuclei_peaces, x_max, y_max)
 
+    def reset_dir(self):
+        '''Remove all cells from dir'''
+
+        self.all_pics = False
+        self.cells = []
+
 
     def detect_cells(self, sensitivity = 5., min_cell_size = 4000, \
             load_foci = True):
         '''Create cells and load image with foci'''
+
+        if hasattr(self, 'cell_detect_params'):
+            if (sensitivity, min_cell_size) == self.cell_detect_params:
+                return
+
+        self.reset_dir()
 
         self.load_cell_image(sensitivity, min_cell_size)
 
@@ -531,10 +543,6 @@ class image_dir(cell_set):
 
     def load_cell_image(self, sensitivity = 5., min_cell_size = 4000):
         '''Load cell image and add cells to self'''
-
-        if hasattr(self, 'cell_detect_params'):
-            if (sensitivity, min_cell_size) == self.cell_detect_params:
-                return
 
         pic_nuclei = self.get_source_pic_nuclei()
         self.shape = pic_nuclei.shape
