@@ -539,6 +539,7 @@ class image_dir(cell_set):
 
         if load_foci:
             self.load_foci_image()
+            self.all_pics = True
 
 
     def load_cell_image(self, sensitivity = 5., min_cell_size = 4000):
@@ -777,8 +778,6 @@ class image_dir(cell_set):
 
         nuclei_colored = self.get_pic_with_nuclei_colored()
         merged = self.get_merged_pic(nuclei_color, foci_color)
-
-        self.all_pics = True
 
         return (rescaled_nuclei_pic, nuclei_colored, rescaled_foci_pic, seeds, merged)
 
