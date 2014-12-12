@@ -270,7 +270,13 @@ def get_foci_bin(blobs, foci_pic, nucleus, margin = 1, foci_val_perc = 10):
         new_label_s  = nucleus_mask*label_s
 
         label_values = np.extract(new_label, new_pic)
+
+        if (len(label_values) == 0):
+            continue
+
 #        local_cutoff = global_otsu(label_values)
+#        print len(label_values), np.sum(label), np.sum(nucleus_mask)
+
         local_cutoff = np.floor(np.percentile(label_values, (foci_min_val_perc))).astype(np.uint8)
 
         pic_label = new_label_s*new_pic
