@@ -295,7 +295,7 @@ class DarfiUI(QtGui.QMainWindow):
         buttonLayout.addWidget(self.outfileField)
         
         rescaleButton = QtGui.QPushButton("Get scale from selection")
-        #rescaleButton.clicked.connect(self.getScale)
+        rescaleButton.clicked.connect(self.fileMenuArea.getScaleFromSelected)
         buttonLayout.addWidget(rescaleButton)
         
         runCalcButton = QtGui.QPushButton("Calculate")

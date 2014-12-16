@@ -133,7 +133,20 @@ class FolderWidget(QtGui.QWidget):
             self.parent.statusArea.show()            
             self.signal_update_images.emit()
 
-    
+    def getScaleFromSelected(self):
+        self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
+        if len(self.folderWidgets) != 0:
+            for i in xrange(0,len(self.folderWidgets)):
+                if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
+                    #if not(self.parent.settings.foci_name):
+                    #    self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
+                    #                    self.parent.settings.min_cell_size, load_foci=False)
+                    #else:
+                    self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
+                                        self.parent.settings.min_cell_size, load_foci=True)
+                    self.cell_set.extend(self.imageDirs[i])
+            (self.parent.settings.foci_rescale_min,
+             self.parent.settings.foci_rescale_max) = self.cell_set.get_foci_rescale_values()
     def hideAllImageLabels(self):   
             
         for i in xrange(0,len(self.folderWidgets)):
