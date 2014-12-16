@@ -67,11 +67,10 @@ class FolderWidget(QtGui.QWidget):
                 
                 imageQDir=QtCore.QDir(folderIterator.next())
                 if not(self.parent.settings.foci_name):
-                    self.imageDirs.append(pic_an.image_dir(imageQDir.absolutePath(),
+                    self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name)))
                 else:
-                    print 'me'
-                    self.imageDirs.append(pic_an.image_dir(imageQDir.absolutePath(),
+                    self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name),
                                          unicode(self.parent.settings.foci_name)))
                                          
@@ -100,7 +99,6 @@ class FolderWidget(QtGui.QWidget):
                     #    self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
                     #                    self.parent.settings.min_cell_size, load_foci=False)
                     #else:
-                    print 'kuku'
                     self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
                                         self.parent.settings.min_cell_size, load_foci=True)
                     self.cell_set.extend(self.imageDirs[i])
