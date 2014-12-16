@@ -22,6 +22,7 @@ sys.path.append(os.path.join('..','engine'))
 import pic_an
 import folder_widget
 import settings_window
+from settings import Settings
 from PyQt4 import QtGui, QtCore
 
 
@@ -40,8 +41,8 @@ class DarfiUI(QtGui.QMainWindow):
     
     def __init__(self):
         super(DarfiUI, self).__init__()
-        
-        self.loadDefaultSettings()
+        self.settings=Settings()
+        self.workDir=unicode(QtCore.QDir.currentPath())
         self.showMiniatures=True
         self.oldDirsWithImages=[]
         self.oldFoci_rescale_min = None
@@ -51,30 +52,16 @@ class DarfiUI(QtGui.QMainWindow):
         self.initUI()
         if os.path.isfile(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf")):
             self.readSettings(os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf"))
-          
 
     
-    def loadDefaultSettings(self,update=False):
+    def loadDefaultSettings(self):
+        self.settings=Settings()
         self.workDir=unicode(QtCore.QDir.currentPath())
-        self.nuclei_name = u'3DAPI.TIF'
-        self.foci_name = u'3FITС.TIF'
-        self.outfile = u'result.txt'
-        self.sensitivity = 8.0
-        self.min_cell_size = 1500
-        self.peak_min_val_perc = 60.
-        self.foci_min_val_perc = 90.
-        self.foci_radius = 10
-        self.foci_min_level_on_bg = 0
-        self.foci_rescale_min = None
-        self.foci_rescale_max = None
-        self.nuclei_color = 0.66
-        self.foci_color = 0.33
-        if update:
-            self.fociNameField.setText(self.foci_name)
-            self.nuclNameField.setText(self.nuclei_name)
-            self.outfileField.setText(self.outfile)
-            self.fileMenuArea.setWorkDir(self.workDir)
-            self.fileMenuArea.updateWorkDir()
+        self.fociNameField.setText(self.settings.foci_name)
+        self.nuclNameField.setText(self.settings.nuclei_name)
+        self.outfileField.setText(self.settings.outfile)
+        self.fileMenuArea.setWorkDir(self.workDir)
+        #self.fileMenuArea.updateWorkDir()
             
     
     def dumpSettings(self,filename=None):
@@ -85,72 +72,58 @@ class DarfiUI(QtGui.QMainWindow):
             if filename[-4:] != '.dcf':
                 filename+=unicode('.dcf')
             with open(filename, 'w+') as f:
-                pickle.dump([self.fileMenuArea.workDir,self.nuclei_name,self.foci_name,\
-                self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
-                self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-                self.foci_rescale_max,self.nuclei_color,self.foci_color,self.fileMenuArea.getCheckedPaths()], f)
-
-    def closeEvent(self, event):
-        print "Closing DARFI, goodbye"
-        filename=os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf")
-        self.dumpSettings(filename)
-    
+                pickle.dump([self.fileMenuArea.workDir,self.settings,self.fileMenuArea.getCheckedPaths()], f)
 
     def readSettings(self,filename=None):
         if not(filename):
             filename=unicode(QtGui.QFileDialog.getOpenFileName(self,'Open DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
         if filename != "":
             with open(filename) as f:
-                self.workDir,self.nuclei_name,self.foci_name,\
-                self.outfile, self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
-                self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-                self.foci_rescale_max,self.nuclei_color,self.foci_color, paths = pickle.load(f)
-                self.fociNameField.setText(self.foci_name)
-                self.nuclNameField.setText(self.nuclei_name)
-                self.outfileField.setText(self.outfile)
-                self.fileMenuArea.setWorkDir(self.workDir)
-                self.fileMenuArea.updateWorkDir()
+                self.workDir,self.settings, paths = pickle.load(f)
+                self.fociNameField.setText(self.settings.foci_name)
+                self.nuclNameField.setText(self.settings.nuclei_name)
+                self.outfileField.setText(self.settings.outfile)
+                self.fileMenuArea.openWorkDir(self.workDir)
                 self.fileMenuArea.setCheckedFromPaths(paths)
-            
+                
+    def openSettings(self):
+        self.settingsWindow = settings_window.SettingsWindow(self.settings)
+        self.settingsWindow.exec_()
+        self.settings,self.settingsChanged = self.settingsWindow.getSettings()
+
+    def closeEvent(self, event):
+        print "Closing DARFI, goodbye"
+        filename=os.path.join(unicode(QtCore.QDir.currentPath()),"Darfi_session.dcf")
+        self.dumpSettings(filename)          
             
         
     def resizeEvent( self, oldsize):
         ''' override resize event to redraw pictures'''
         self.updateImages()
     
-    def openSettings(self):
-        self.settings = settings_window.SettingsWindow(self,self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
-        self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-        self.foci_rescale_max,self.nuclei_color,self.foci_color)
-        self.settings.exec_()
-        self.sensitivity,self.min_cell_size,self.peak_min_val_perc,\
-        self.foci_min_val_perc,self.foci_radius,self.foci_min_level_on_bg,self.foci_rescale_min,\
-        self.foci_rescale_max,self.nuclei_color,self.foci_color,self.settingsChanged = self.settings.getSettings()
         
     def setNuclei_name(self,text):
-        self.nuclei_name = unicode(text)
+        self.settings.nuclei_name = unicode(text)
         
     def setFoci_name(self,text):
-        self.foci_name = unicode(text)
+        self.settings.foci_name = unicode(text)
         
     def setOutfile(self,text):
-        self.outfile = unicode(text)
-        
-
-    
-    def selectWorkDir(self):
-        self.model.unCheckAll()
-        
-        #self.workDir=
-        tempDir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
-        print type(tempDir)
-        if tempDir != "":
-            self.workDir=tempDir
-            self.fileMenu.setRootIndex(self.model.index(self.workDir))
-    
-    def selectFileName(self):
-        filename=QtGui.QFileDialog.getSaveFileName()
-        print filename
+        self.settings.outfile = unicode(text)
+#            
+#    def selectWorkDir(self):
+#        self.model.unCheckAll()
+#        
+#        #self.workDir=
+#        tempDir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
+#        print type(tempDir)
+#        if tempDir != "":
+#            self.workDir=tempDir
+#            self.fileMenu.setRootIndex(self.model.index(self.workDir))
+#   
+#    def selectFileName(self):
+#        filename=QtGui.QFileDialog.getSaveFileName()
+#        print filename
         
     def reUpdateImages(self):
         self.showMiniatures=True
@@ -264,7 +237,7 @@ class DarfiUI(QtGui.QMainWindow):
 
 ################## FILEMENU AREA  ########################################
 
-        self.fileMenuArea = folder_widget.FolderWidget(self.workDir)
+        self.fileMenuArea = folder_widget.FolderWidget(self)
         self.fileMenuArea.signal_update_images.connect(self.reUpdateImages)
         self.fileMenuArea.signal_update_image.connect(self.reUpdateImage)
         
@@ -273,8 +246,6 @@ class DarfiUI(QtGui.QMainWindow):
         self.imagePreviewArea = QtGui.QScrollArea(self)
         
         self.imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
-        #self.imagePreviewLayout.setMargin(0)
-        #self.imagePreviewLayout.setSpacing(0)
         self.connect(self.imagePreviewArea, QtCore.SIGNAL("resizeEvent()"), self.updateImages)
         self.lbl1 = QtGui.QLabel(self)
         self.imagePreviewLayout.addWidget(self.lbl1, 0,0)
@@ -302,7 +273,7 @@ class DarfiUI(QtGui.QMainWindow):
         nuclNameFieldLabel = QtGui.QLabel(self)
         nuclNameFieldLabel.setText("Files with nuclei:")
         self.nuclNameField = QtGui.QLineEdit()
-        self.nuclNameField.setText(self.nuclei_name)
+        self.nuclNameField.setText(self.settings.nuclei_name)
         self.nuclNameField.textChanged[str].connect(lambda: self.setNuclei_name(self.nuclNameField.displayText()))
         buttonLayout.addWidget(nuclNameFieldLabel)
         buttonLayout.addWidget(self.nuclNameField)
@@ -310,7 +281,7 @@ class DarfiUI(QtGui.QMainWindow):
         fociNameFieldLabel = QtGui.QLabel(self)
         fociNameFieldLabel.setText("Files with foci:")
         self.fociNameField = QtGui.QLineEdit()
-        self.fociNameField.setText(self.foci_name)
+        self.fociNameField.setText(self.settings.foci_name)
         self.fociNameField.textChanged[str].connect(lambda: self.setFoci_name(self.fociNameField.displayText()))
         buttonLayout.addWidget(fociNameFieldLabel)
         buttonLayout.addWidget(self.fociNameField)
@@ -318,17 +289,17 @@ class DarfiUI(QtGui.QMainWindow):
         outfileFieldLabel = QtGui.QLabel(self)
         outfileFieldLabel.setText("Outfile name:")
         self.outfileField = QtGui.QLineEdit()
-        self.outfileField.setText(self.outfile)
+        self.outfileField.setText(self.settings.outfile)
         self.outfileField.textChanged[str].connect(lambda: self.setOutfile(self.outfileField.displayText()))
         buttonLayout.addWidget(outfileFieldLabel)
         buttonLayout.addWidget(self.outfileField)
         
         rescaleButton = QtGui.QPushButton("Get scale from selection")
-        rescaleButton.clicked.connect(self.getScale)
+        #rescaleButton.clicked.connect(self.getScale)
         buttonLayout.addWidget(rescaleButton)
         
         runCalcButton = QtGui.QPushButton("Calculate")
-        runCalcButton.clicked.connect(self.runCalc)
+        runCalcButton.clicked.connect(self.fileMenuArea.calculateSelected)
         runCalcButton.setMinimumHeight(40)
         buttonLayout.addWidget(runCalcButton)
         
@@ -416,7 +387,7 @@ class DarfiUI(QtGui.QMainWindow):
     def createActions(self):
         self.settingsAct = QtGui.QAction("&Settings...", self, shortcut="Ctrl+S",triggered=self.openSettings)
         
-        self.settingsDefAct = QtGui.QAction("&Load Defaults...", self, shortcut="Ctrl+D",triggered=lambda: self.loadDefaultSettings(True))
+        self.settingsDefAct = QtGui.QAction("&Load Defaults...", self, shortcut="Ctrl+D",triggered=self.loadDefaultSettings)
 
         self.openSettingsAct = QtGui.QAction("&Load settings...", self, shortcut="Ctrl+R",triggered=self.readSettings)
                 
