@@ -158,7 +158,7 @@ class cell_set:
 
         new_values = []
 
-        for cur_cell in self.active_cells():
+        for cur_cell in self.cells:
 
             nucleus_values = np.extract(cur_cell.nucleus, cur_cell.pic_nucleus)
 
@@ -170,7 +170,7 @@ class cell_set:
 
         p2,p98 = np.percentile(np.concatenate(new_values),(2,98))
 
-        for cur_cell in self.cells():
+        for cur_cell in self.cells:
 
             rescaled_norm_pic = rescale_intensity(cur_cell.pic_nucleus/cur_cell.nucleus_mean_value, in_range=(p2, p98))
 
