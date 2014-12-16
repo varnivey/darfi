@@ -170,7 +170,7 @@ class cell_set:
 
         p2,p98 = np.percentile(np.concatenate(new_values),(2,98))
 
-        for cur_cell in self.active_cells():
+        for cur_cell in self.cells:
 
             rescaled_norm_pic = rescale_intensity(cur_cell.pic_nucleus/cur_cell.nucleus_mean_value, in_range=(p2, p98))
 
@@ -567,6 +567,8 @@ class image_dir(cell_set):
         self.nuclei = labels
 
         self.create_cells_from_nuclei(pic_nuclei)
+
+        self.rescale_nuclei()
 
 
 
