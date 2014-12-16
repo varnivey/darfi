@@ -68,12 +68,12 @@ class FolderWidget(QtGui.QWidget):
                 imageQDir=QtCore.QDir(folderIterator.next())
                 if not(self.parent.settings.foci_name):
                     self.imageDirs.append(pic_an.image_dir(imageQDir.absolutePath(),
-                                         self.parent.settings.nuclei_name))
+                                         unicode(self.parent.settings.nuclei_name)))
                 else:
                     print 'me'
                     self.imageDirs.append(pic_an.image_dir(imageQDir.absolutePath(),
-                                         self.parent.settings.nuclei_name,
-                                         self.parent.settings.foci_name))
+                                         unicode(self.parent.settings.nuclei_name),
+                                         unicode(self.parent.settings.foci_name)))
                                          
                 self.folderWidgets.append(imageFolderWidget(imageQDir))
                 self.folderLayout.addWidget(self.folderWidgets[-1])
@@ -128,6 +128,11 @@ class FolderWidget(QtGui.QWidget):
                     self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
                                                           self.parent.settings.foci_color)
                 #self.folderWidgets[i]=imageFolderWidget(imageDirPath)
+            self.parent.statusArea.hide()
+            self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(self.params[0])))
+            for i in xrange(1,15):
+                self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
+            self.parent.statusArea.show()            
             self.signal_update_images.emit()
 
     
