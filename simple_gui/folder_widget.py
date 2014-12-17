@@ -70,6 +70,7 @@ class FolderWidget(QtGui.QWidget):
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name)))
                 else:
+                    
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name),
                                          unicode(self.parent.settings.foci_name)))
@@ -86,12 +87,17 @@ class FolderWidget(QtGui.QWidget):
                 self.updateImages(0)
             except IndexError:
                 self.signal_update_images.emit()
-            print len(self.imageDirs)
+            print str(len(self.imageDirs)) + ' dirs found in working directory'
         
     
     def calculateSelected(self):
-        
         self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
+        tasksize=len(self.getCheckedPaths())
+        self.parent.pbar.show()
+        pbarvalue=0
+        self.parent.pbar.setValue(pbarvalue)
+        pbarstep = (100 - 10 )/ tasksize
+# Calculation
         if len(self.folderWidgets) != 0:
             for i in xrange(0,len(self.folderWidgets)):
                 if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
@@ -102,7 +108,8 @@ class FolderWidget(QtGui.QWidget):
                     self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
                                         self.parent.settings.min_cell_size, load_foci=True)
                     self.cell_set.extend(self.imageDirs[i])
-                    
+                    pbarvalue+=pbarstep
+                    self.parent.pbar.setValue(pbarvalue)
             self.cell_set.calculate_foci(self.parent.settings.foci_lookup_sensivity,
                                          self.parent.settings.foci_area_fill_percent,
                                          self.parent.settings.min_foci_radius,
@@ -112,7 +119,7 @@ class FolderWidget(QtGui.QWidget):
                                          self.parent.settings.normalize_intensity,
                                          (self.parent.settings.foci_rescale_min,
                                           self.parent.settings.foci_rescale_max))
-
+# Retrieving results
             self.cell_set.calculate_foci_parameters()
             try:
                 self.params = self.cell_set.get_parameters()
@@ -126,15 +133,22 @@ class FolderWidget(QtGui.QWidget):
                     self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
                                                           self.parent.settings.foci_color)
                 #self.folderWidgets[i]=imageFolderWidget(imageDirPath)
+# Table update          
             self.parent.statusArea.hide()
             self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(self.params[0])))
             for i in xrange(1,15):
                 self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
             self.parent.statusArea.show()            
             self.signal_update_images.emit()
+            self.parent.pbar.setValue(100)
 
     def getScaleFromSelected(self):
         self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
+        tasksize=len(self.getCheckedPaths())
+        self.parent.pbar.show()
+        pbarvalue=0
+        self.parent.pbar.setValue(pbarvalue)
+        pbarstep = (100 - 10 )/ tasksize
         if len(self.folderWidgets) != 0:
             for i in xrange(0,len(self.folderWidgets)):
                 if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
@@ -145,8 +159,15 @@ class FolderWidget(QtGui.QWidget):
                     self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
                                         self.parent.settings.min_cell_size, load_foci=True)
                     self.cell_set.extend(self.imageDirs[i])
+                    pbarvalue+=pbarstep
+                    self.parent.pbar.setValue(pbarvalue)
             (self.parent.settings.foci_rescale_min,
              self.parent.settings.foci_rescale_max) = self.cell_set.get_foci_rescale_values()
+            print 'Foci rescale values changed to:\nmin: ' + str(self.parent.settings.foci_rescale_min) \
+                                                + '\nmax: '+ str(self.parent.settings.foci_rescale_max)
+            self.parent.pbar.setValue(100)
+             
+             
     def hideAllImageLabels(self):   
             
         for i in xrange(0,len(self.folderWidgets)):
