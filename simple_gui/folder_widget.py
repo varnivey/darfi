@@ -194,7 +194,7 @@ class FolderWidget(QtGui.QWidget):
         #####
         return paths
     
-################## OBSOLEETE
+##################  i think thats OBSOLEETE
     def updateImage(self,key):
         self.selectedImage = self.folderWidgets[key].selectedPic
         self.signal_update_image.emit()
@@ -247,14 +247,13 @@ class imageFolderWidget(QtGui.QWidget):
         
         filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
         self.dir.setNameFilters(filters)
-        pictureIterator=QtCore.QDirIterator(self.dir)
+        picQFileinfoList= self.dir.entryInfoList( filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
         i=1
         self.dirs=[]
         self.labels=[]
-        while pictureIterator.hasNext():
+        for picQFileinfo in picQFileinfoList:
             i+=1
-            tempDir=QtCore.QDir(pictureIterator.next())
-            
+            tempDir=QtCore.QDir(picQFileinfo.absoluteFilePath())
             self.dirs.append(tempDir)
             
             self.labels.append(ExtendedQLabel(unicode(self.dirs[-1].dirName())))
