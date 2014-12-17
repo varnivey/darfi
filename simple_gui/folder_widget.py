@@ -142,6 +142,7 @@ class FolderWidget(QtGui.QWidget):
                 self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
             self.parent.statusArea.show()            
             self.refreshImages()
+            self.updateAllImageLabels()
             self.parent.pbar.setValue(100)
 
     def getScaleFromSelected(self):
@@ -174,6 +175,11 @@ class FolderWidget(QtGui.QWidget):
             
         for i in xrange(0,len(self.folderWidgets)):
             self.folderWidgets[i].hideAllImageLabels()
+            
+    def updateAllImageLabels(self):   
+            
+        for i in xrange(0,len(self.folderWidgets)):
+            self.folderWidgets[i].updateImageLabels()
             
     def checkAll(self):
         for i in xrange(0,len(self.folderWidgets)):
@@ -261,23 +267,41 @@ class imageFolderWidget(QtGui.QWidget):
         filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
         self.dir.setNameFilters(filters)
         picQFileinfoList= self.dir.entryInfoList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
-        i=1
+        self.i=1
         self.dirs=[]
         self.labels=[]
         for picQFileinfo in picQFileinfoList:
-            i+=1
+            self.i+=1
             tempDir=QtCore.QDir(picQFileinfo.absoluteFilePath())
             self.dirs.append(tempDir)
             
             self.labels.append(ExtendedQLabel(unicode(self.dirs[-1].dirName())))
             self.connect(self.labels[-1], QtCore.SIGNAL("clicked()"),
-                         lambda key=i-2: self.selectPicture(key))
-            self.Layout.addWidget(self.labels[-1],i,1)
+                         lambda key=self.i-2: self.selectPicture(key))
+            self.Layout.addWidget(self.labels[-1],self.i,1)
             self.labels[-1].setAutoFillBackground(True)
             self.labels[-1].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;")
             self.labels[-1].setFixedHeight(20)
             self.labels[-1].hide()
-             
+    
+    def updateImageLabels(self):
+        filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
+        picQFileinfoList= self.dir.entryInfoList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
+        for picQFileinfo in picQFileinfoList:
+            
+            tempDir=QtCore.QDir(picQFileinfo.absoluteFilePath())
+            if not(tempDir in self.dirs):           
+                self.i+=1
+                self.dirs.append(tempDir)
+                
+                self.labels.append(ExtendedQLabel(unicode(self.dirs[-1].dirName())))
+                self.connect(self.labels[-1], QtCore.SIGNAL("clicked()"),
+                             lambda key=self.i-2: self.selectPicture(key))
+                self.Layout.addWidget(self.labels[-1],self.i,1)
+                self.labels[-1].setAutoFillBackground(True)
+                self.labels[-1].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;")
+                self.labels[-1].setFixedHeight(20)
+                self.labels[-1].hide()
         
     signal_hideall = QtCore.pyqtSignal()
     signal_show_image = QtCore.pyqtSignal()
