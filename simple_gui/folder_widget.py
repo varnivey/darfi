@@ -141,7 +141,7 @@ class FolderWidget(QtGui.QWidget):
             for i in xrange(1,15):
                 self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
             self.parent.statusArea.show()            
-            self.signal_update_images.emit()
+            self.refreshImages()
             self.parent.pbar.setValue(100)
 
     def getScaleFromSelected(self):
@@ -202,9 +202,20 @@ class FolderWidget(QtGui.QWidget):
         self.signal_update_image.emit()
         
     def updateImages(self,key):
-        self.selectedImageDir = self.folderWidgets[key].dir
-        self.signal_update_images.emit()
+        if not(self.folderWidgets[key].selectedPic):
+            self.selectedImageDir = self.folderWidgets[key].dir
+            self.signal_update_images.emit()
+            self.selectedImage =None
+        else:
+            self.selectedImage = self.folderWidgets[key].selectedPic
+            self.signal_update_image.emit()
 
+    def refreshImages(self):
+        if not(self.selectedImage):
+            self.signal_update_images.emit()
+        else:
+            
+            self.signal_update_image.emit()
     
     def setCheckedFromPaths(self,paths):
         try:
@@ -281,6 +292,7 @@ class imageFolderWidget(QtGui.QWidget):
     def showAllImageLabels(self):
         oldhide=self.isHidden
         self.signal_hideall.emit()
+        self.selectedPic=None
         self.signal_show_all_images.emit()
         if oldhide:
             for i in xrange(0,len(self.labels)):
@@ -294,7 +306,7 @@ class imageFolderWidget(QtGui.QWidget):
             self.labels[i].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;");
         self.labels[item].setStyleSheet( "background-color: palette(highlight); qproperty-alignment: AlignCenter;");
         self.selectedPic=unicode(self.dirs[item].absolutePath())
-        self.signal_show_image.emit()
+        self.signal_show_all_images.emit()
         
 
         
