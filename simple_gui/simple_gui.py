@@ -455,8 +455,8 @@ class Logger(object):
         self.output = output
  
     def write(self, string):
-        if not (string == "\n"):
-            trstring = QtGui.QApplication.translate("MainWindow", string.strip(), None, QtGui.QApplication.UnicodeUTF8)
+        if not (string == "\n" ):
+            trstring = QtGui.QApplication.translate("MainWindow", string.rstrip(), None, QtGui.QApplication.UnicodeUTF8)
             self.output.append(trstring)
 
         

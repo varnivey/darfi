@@ -230,7 +230,7 @@ class cell_set:
 
         name = self.name
 
-        print 'Foci calculation has started for', name
+        print('Foci calculation has started for %s' % name)
 
         for cur_cell in self.cells:
             cur_cell.calculate_foci(peak_min_val_perc, foci_min_val_perc, \
@@ -239,13 +239,13 @@ class cell_set:
             remained -= 1
 
             if remained == 0:
-                print 'Foci calculation has finished for', name
+                print('Foci calculation has finished for %s' % name)
 
             elif (remained == 1):
-                print remained, 'nucleus remained for', name
+                print('%d nucleus remained for %s' % (remained,name))
 
             else:
-                print remained, 'nuclei  remained for', name
+                print('%d nuclei remained for %s' % (remained,name))
 
 ###
 

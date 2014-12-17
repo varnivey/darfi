@@ -93,7 +93,7 @@ class FolderWidget(QtGui.QWidget):
         
     
     def calculateSelected(self):
-        self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
+        self.cell_set = pic_an.cell_set(name=QtCore.QDir(self.workDir).dirName(), cells=[])
         tasksize=len(self.getCheckedPaths())
         self.parent.pbar.show()
         pbarvalue=0
