@@ -76,6 +76,8 @@ class FolderWidget(QtGui.QWidget):
                                          unicode(self.parent.settings.foci_name)))
                                          
                 self.folderWidgets.append(imageFolderWidget(imageQDir))
+                imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
+                
                 self.folderLayout.addWidget(self.folderWidgets[-1])
                 self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
                 ##########
@@ -247,7 +249,7 @@ class imageFolderWidget(QtGui.QWidget):
         
         filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
         self.dir.setNameFilters(filters)
-        picQFileinfoList= self.dir.entryInfoList( filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
+        picQFileinfoList= self.dir.entryInfoList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
         i=1
         self.dirs=[]
         self.labels=[]

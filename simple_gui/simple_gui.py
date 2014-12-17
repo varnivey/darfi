@@ -154,14 +154,14 @@ class DarfiUI(QtGui.QMainWindow):
                     filters = ["*.TIF", "*.tif"]
 
                     imageDir.setNameFilters(filters)
-                    
+                    imageNameList=imageDir.entryList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
                     #FIXME use margins e.t.c
                     sizex=self.imagePreviewArea.width()/2-10
                     sizey=self.imagePreviewArea.height()/3-10
                     try:
-                        imageName1 = imageDir.entryList()[0]
+                        imageName1 = imageNameList[0]
 
-                        pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName1)
+                        pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.settings.nuclei_name)
                         self.lbl1.resize(sizex,sizey)
                         self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl1.update()
@@ -170,8 +170,8 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl1.clear()
          
                     try:
-                        imageName2 = imageDir.entryList()[1]
-                        pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + imageName2)
+                        imageName2 = imageNameList[1]
+                        pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.settings.foci_name)
                         self.lbl2.resize(sizex,sizey)
 
                         self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
@@ -181,8 +181,9 @@ class DarfiUI(QtGui.QMainWindow):
                         
                     filters = ["*.jpg", "*.JPG"]
                     imageDir.setNameFilters(filters)
+                    imageNameList=imageDir.entryList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
                     try:
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[0])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[0])
                         self.lbl3.resize(sizex,sizey)
                         self.lbl3.update()
                         self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
@@ -191,7 +192,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl3.clear()
                     
                     try:    
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[1])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[1])
                         self.lbl4.resize(sizex,sizey)
                         self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl4.update()
@@ -199,7 +200,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl4.clear()
                     
                     try:    
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[2])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[2])
                         self.lbl5.resize(sizex,sizey)
                         self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl5.update()
@@ -207,7 +208,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl5.clear()
                     
                     try:    
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageDir.entryList()[3])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[3])
                         self.lbl6.resize(sizex,sizey)
                         self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl6.update()
