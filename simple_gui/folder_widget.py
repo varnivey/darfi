@@ -61,6 +61,7 @@ class FolderWidget(QtGui.QWidget):
             
             self.folderWidgets=[]
             self.imageDirs=[]
+            self.nameList=[]
             self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
             i=0
             while folderIterator.hasNext():
@@ -77,7 +78,9 @@ class FolderWidget(QtGui.QWidget):
                                          
                 self.folderWidgets.append(imageFolderWidget(imageQDir))
                 imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
-                
+                for name in imageList:
+                    if not(name in self.nameList):
+                        self.nameList.append(name)
                 self.folderLayout.addWidget(self.folderWidgets[-1])
                 self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
                 ##########
@@ -90,11 +93,14 @@ class FolderWidget(QtGui.QWidget):
             except IndexError:
                 self.signal_update_images.emit()
             print str(len(self.imageDirs)) + ' dirs found in working directory'
+            print >> sys.stderr, self.nameList
         
     
     def calculateSelected(self):
-        self.cell_set = pic_an.cell_set(name=QtCore.QDir(self.workDir).dirName(), cells=[])
+        name=QtCore.QDir(self.workDir).dirName()
+        self.cell_set = pic_an.cell_set(name=name, cells=[])
         tasksize=len(self.getCheckedPaths())
+        print("We have %d images to load for %s" % (tasksize, name))
         self.parent.pbar.show()
         pbarvalue=0
         self.parent.pbar.setValue(pbarvalue)
@@ -110,8 +116,17 @@ class FolderWidget(QtGui.QWidget):
                     self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
                                         self.parent.settings.min_cell_size, load_foci=True)
                     self.cell_set.extend(self.imageDirs[i])
+                    tasksize -= 1
+                    if tasksize == 0:
+                        print("Image loading has finished for %s" % name)
+                    else:
+                        print('%d images remained to load for %s' % (tasksize, name))
                     pbarvalue+=pbarstep
                     self.parent.pbar.setValue(pbarvalue)
+            if len(self.cell_set.cells) == 0:
+                print("No cells were detected in %s" % name)
+                return
+            print("We have %d cells to analyze for %s" % (len(self.cell_set.cells), name))   
             self.cell_set.calculate_foci(self.parent.settings.foci_lookup_sensivity,
                                          self.parent.settings.foci_area_fill_percent,
                                          self.parent.settings.min_foci_radius,

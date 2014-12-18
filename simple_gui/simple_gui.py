@@ -113,26 +113,13 @@ class DarfiUI(QtGui.QMainWindow):
         
     def setOutfile(self,text):
         self.settings.outfile = unicode(text)
-#            
-#    def selectWorkDir(self):
-#        self.model.unCheckAll()
-#        
-#        #self.workDir=
-#        tempDir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
-#        print type(tempDir)
-#        if tempDir != "":
-#            self.workDir=tempDir
-#            self.fileMenu.setRootIndex(self.model.index(self.workDir))
-#   
-#    def selectFileName(self):
-#        filename=QtGui.QFileDialog.getSaveFileName()
-#        print filename
+
         
-    def reUpdateImages(self):
+    def refreshImages(self):
         self.showMiniatures=True
         self.updateImages()
         
-    def reUpdateImage(self):
+    def refreshImage(self):
         self.showMiniatures=False
         self.updateImages()
         
@@ -151,15 +138,10 @@ class DarfiUI(QtGui.QMainWindow):
                     self.lbl6.clear()
                 else:
                     path = imageDir.absolutePath()
-                    filters = ["*.TIF", "*.tif"]
-
-                    imageDir.setNameFilters(filters)
-                    imageNameList=imageDir.entryList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
                     #FIXME use margins e.t.c
                     sizex=self.imagePreviewArea.width()/2-10
                     sizey=self.imagePreviewArea.height()/3-10
                     try:
-                        imageName1 = imageNameList[0]
 
                         pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.settings.nuclei_name)
                         self.lbl1.resize(sizex,sizey)
@@ -170,7 +152,6 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl1.clear()
          
                     try:
-                        imageName2 = imageNameList[1]
                         pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.settings.foci_name)
                         self.lbl2.resize(sizex,sizey)
 
@@ -242,8 +223,8 @@ class DarfiUI(QtGui.QMainWindow):
 ################## FILEMENU AREA  ########################################
 
         self.fileMenuArea = folder_widget.FolderWidget(self)
-        self.fileMenuArea.signal_update_images.connect(self.reUpdateImages)
-        self.fileMenuArea.signal_update_image.connect(self.reUpdateImage)
+        self.fileMenuArea.signal_update_images.connect(self.refreshImages)
+        self.fileMenuArea.signal_update_image.connect(self.refreshImage)
         
 ################## IMAGE AREA  ########################################
 
@@ -320,7 +301,7 @@ class DarfiUI(QtGui.QMainWindow):
         buttonLayout.addWidget(nuclLogLabel)        
                 
         self.logText = QtGui.QTextEdit()
-        self.logText.setMaximumHeight(100)
+        self.logText.setMaximumHeight(130)
         self.logText.setReadOnly(True)
         self.logText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.logText.append("Welcome to DARFI! ")
