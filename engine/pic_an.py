@@ -548,6 +548,7 @@ class image_dir(cell_set):
             self.all_pics = True
 
 
+
     def load_cell_image(self, sensitivity = 5., min_cell_size = 4000):
         '''Load cell image and add cells to self'''
 
@@ -646,8 +647,11 @@ class image_dir(cell_set):
             self.append(cell(nucleus, cell_pic_nucleus, cell_pic_foci, coords_glob))
 
 
-    def load_foci_image(self):
+    def load_foci_image(self, new_foci_name = None):
         '''Load image with foci'''
+
+        if new_foci_name:
+            self.foci_name = new_foci_name
 
         pic_foci = self.get_source_pic_foci()
 
