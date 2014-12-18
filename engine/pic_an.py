@@ -887,7 +887,10 @@ def image_hsv_value(image_file):
 
     pic_source = img_as_ubyte(imread(image_file))
 
-    pic_grey = np.max(pic_source,2)
+    if pic_source.ndim == 3:
+        pic_grey = np.max(pic_source,2)
+    else:
+        pic_grey = pic_source
 
     return pic_grey
 
