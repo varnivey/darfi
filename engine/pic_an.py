@@ -156,6 +156,9 @@ class cell_set:
     def rescale_nuclei(self):
         '''Rescale nuclei in the set'''
 
+        if self.number_of_cells() == 0:
+            return
+
         new_values = []
 
         for cur_cell in self.cells:
@@ -355,10 +358,13 @@ class cell_set:
         abs_num ,  num_err = self.abs_foci_num_param
         abs_area, area_err = self.abs_foci_area_param
 
-        foci_size = np.round(abs_area/abs_num,2)
-        size_err  = np.round((num_err/abs_num + area_err/abs_area)*foci_size,2)
+        try:
+            foci_size = np.round(abs_area/abs_num,2)
+            size_err  = np.round((num_err/abs_num + area_err/abs_area)*foci_size,2)
 
-        self.foci_size_param = [foci_size, size_err]
+            self.foci_size_param = [foci_size, size_err]
+        except:
+            self.foci_size_param = [0, 0]
 
         self.have_foci_params = True
 
