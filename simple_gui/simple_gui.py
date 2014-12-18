@@ -56,13 +56,12 @@ class DarfiUI(QtGui.QMainWindow):
     
     def loadDefaultSettings(self):
         self.settings=Settings()
-        self.workDir=unicode(QtCore.QDir.currentPath())
-        self.fociNameField.setText(self.settings.foci_name)
-        self.nuclNameField.setText(self.settings.nuclei_name)
+        self.settings.foci_name=self.fociNameComboBox.currentText()
+        self.settings.nuclei_name=self.nuclNameComboBox.currentText()
         self.outfileField.setText(self.settings.outfile)
         self.fileMenuArea.setWorkDir(self.workDir)
         print "Default settings loaded"
-        #self.fileMenuArea.updateWorkDir()
+
             
     
     def dumpSettings(self,filename=None):
@@ -82,11 +81,14 @@ class DarfiUI(QtGui.QMainWindow):
             with open(filename) as f:
                 print "Loading previous config"
                 self.workDir,self.settings, paths = pickle.load(f)
-                self.fociNameField.setText(self.settings.foci_name)
-                self.nuclNameField.setText(self.settings.nuclei_name)
-                self.outfileField.setText(self.settings.outfile)
                 self.fileMenuArea.openWorkDir(self.workDir)
                 self.fileMenuArea.setCheckedFromPaths(paths)
+                self.outfileField.setText(self.settings.outfile)
+                if self.settings.foci_name=='--None--':
+                    self.rescaleButton.setEnabled(False)
+                else:
+                    self.rescaleButton.setEnabled(True)
+                
                 
                 
     def openSettings(self):
@@ -107,9 +109,15 @@ class DarfiUI(QtGui.QMainWindow):
         
     def setNuclei_name(self,text):
         self.settings.nuclei_name = unicode(text)
+        self.fileMenuArea.openWorkDir(self.workDir)
         
-    def setFoci_name(self,text):
+    def setFoci_name(self,text=None):
         self.settings.foci_name = unicode(text)
+        self.fileMenuArea.openWorkDir(self.workDir)
+        if self.settings.foci_name=='--None--':
+            self.rescaleButton.setEnabled(False)
+        else:
+            self.rescaleButton.setEnabled(True)
         
     def setOutfile(self,text):
         self.settings.outfile = unicode(text)
@@ -254,22 +262,25 @@ class DarfiUI(QtGui.QMainWindow):
         self.openSettingsButton.clicked.connect(self.openSettings)
         buttonLayout.addWidget(self.openSettingsButton)
         self.pbar = QtGui.QProgressBar(self)
+        
+   
+
+        
 
         nuclNameFieldLabel = QtGui.QLabel(self)
         nuclNameFieldLabel.setText("Files with nuclei:")
-        self.nuclNameField = QtGui.QLineEdit()
-        self.nuclNameField.setText(self.settings.nuclei_name)
-        self.nuclNameField.textChanged[str].connect(lambda: self.setNuclei_name(self.nuclNameField.displayText()))
+        self.nuclNameComboBox = QtGui.QComboBox(self)
+        self.nuclNameComboBox.activated[str].connect(self.setNuclei_name)
         buttonLayout.addWidget(nuclNameFieldLabel)
-        buttonLayout.addWidget(self.nuclNameField)
-        
+        buttonLayout.addWidget(self.nuclNameComboBox)
+
         fociNameFieldLabel = QtGui.QLabel(self)
-        fociNameFieldLabel.setText("Files with foci:")
-        self.fociNameField = QtGui.QLineEdit()
-        self.fociNameField.setText(self.settings.foci_name)
-        self.fociNameField.textChanged[str].connect(lambda: self.setFoci_name(self.fociNameField.displayText()))
+        fociNameFieldLabel.setText("Files with foci:")        
+        self.fociNameComboBox = QtGui.QComboBox(self)   
+        self.fociNameComboBox.addItem('--None--')
+        self.fociNameComboBox.activated[str].connect(self.setFoci_name)
         buttonLayout.addWidget(fociNameFieldLabel)
-        buttonLayout.addWidget(self.fociNameField)
+        buttonLayout.addWidget(self.fociNameComboBox)
         
         outfileFieldLabel = QtGui.QLabel(self)
         outfileFieldLabel.setText("Outfile name:")
@@ -279,9 +290,9 @@ class DarfiUI(QtGui.QMainWindow):
         buttonLayout.addWidget(outfileFieldLabel)
         buttonLayout.addWidget(self.outfileField)
         
-        rescaleButton = QtGui.QPushButton("Get scale from selection")
-        rescaleButton.clicked.connect(self.fileMenuArea.getScaleFromSelected)
-        buttonLayout.addWidget(rescaleButton)
+        self.rescaleButton = QtGui.QPushButton("Get scale from selection")
+        self.rescaleButton.clicked.connect(self.fileMenuArea.getScaleFromSelected)
+        buttonLayout.addWidget(self.rescaleButton)
         
         runCalcButton = QtGui.QPushButton("Calculate")
         runCalcButton.clicked.connect(self.fileMenuArea.calculateSelected)

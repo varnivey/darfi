@@ -67,33 +67,57 @@ class FolderWidget(QtGui.QWidget):
             while folderIterator.hasNext():
                 
                 imageQDir=QtCore.QDir(folderIterator.next())
-                if not(self.parent.settings.foci_name):
+                nucleiPath=imageQDir.absolutePath() + QtCore.QDir.separator() + self.parent.settings.nuclei_name
+                fociPath=imageQDir.absolutePath() + QtCore.QDir.separator() + self.parent.settings.foci_name
+                if ((self.parent.settings.foci_name == '--None--')&(QtCore.QFile(nucleiPath).exists())):
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name)))
-                else:
+                    
+                    self.folderWidgets.append(imageFolderWidget(imageQDir))
+                    self.folderLayout.addWidget(self.folderWidgets[-1])
+                    self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
+                    ############
+                    self.folderWidgets[-1].signal_show_image.connect(lambda key=i: self.updateImage(key))
+                    self.folderWidgets[-1].signal_show_all_images.connect(lambda key=i: self.updateImages(key))
+                    ############
+                    i+=1
+
+
+                elif ((QtCore.QFile(fociPath).exists())&(QtCore.QFile(nucleiPath).exists())):
                     
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name),
                                          unicode(self.parent.settings.foci_name)))
                                          
-                self.folderWidgets.append(imageFolderWidget(imageQDir))
+                    self.folderWidgets.append(imageFolderWidget(imageQDir))
+                    self.folderLayout.addWidget(self.folderWidgets[-1])
+                    self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
+                    ############
+                    self.folderWidgets[-1].signal_show_image.connect(lambda key=i: self.updateImage(key))
+                    self.folderWidgets[-1].signal_show_all_images.connect(lambda key=i: self.updateImages(key))
+                    ############
+                    i+=1
+
+
                 imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
                 for name in imageList:
                     if not(name in self.nameList):
                         self.nameList.append(name)
-                self.folderLayout.addWidget(self.folderWidgets[-1])
-                self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
-                ##########
-                self.folderWidgets[-1].signal_show_image.connect(lambda key=i: self.updateImage(key))
-                self.folderWidgets[-1].signal_show_all_images.connect(lambda key=i: self.updateImages(key))
-                ############
-                i+=1
             try:
                 self.updateImages(0)
             except IndexError:
                 self.signal_update_images.emit()
+
+            [self.parent.nuclNameComboBox.removeItem(0) for i in xrange(self.parent.nuclNameComboBox.count())]
+            self.parent.nuclNameComboBox.addItems(self.nameList) 
+            self.parent.nuclNameComboBox.setCurrentIndex(self.parent.nuclNameComboBox.findText(self.parent.settings.nuclei_name))
+
+            [self.parent.fociNameComboBox.removeItem(1) for i in xrange(1,self.parent.fociNameComboBox.count())]
+            self.parent.fociNameComboBox.addItems(self.nameList) 
+            self.parent.fociNameComboBox.setCurrentIndex(-1)
+            self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
             print str(len(self.imageDirs)) + ' dirs found in working directory'
-            print >> sys.stderr, self.nameList
+
         
     
     def calculateSelected(self):
@@ -106,59 +130,85 @@ class FolderWidget(QtGui.QWidget):
         self.parent.pbar.setValue(pbarvalue)
         pbarstep = (100 - 10 )/ tasksize
 # Calculation
+        
         if len(self.folderWidgets) != 0:
-            for i in xrange(0,len(self.folderWidgets)):
-                if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
-                    #if not(self.parent.settings.foci_name):
-                    #    self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
-                    #                    self.parent.settings.min_cell_size, load_foci=False)
-                    #else:
-                    self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
-                                        self.parent.settings.min_cell_size, load_foci=True)
-                    self.cell_set.extend(self.imageDirs[i])
-                    tasksize -= 1
-                    if tasksize == 0:
-                        print("Image loading has finished for %s" % name)
-                    else:
-                        print('%d images remained to load for %s' % (tasksize, name))
-                    pbarvalue+=pbarstep
-                    self.parent.pbar.setValue(pbarvalue)
-            if len(self.cell_set.cells) == 0:
-                print("No cells were detected in %s" % name)
-                return
-            print("We have %d cells to analyze for %s" % (len(self.cell_set.cells), name))   
-            self.cell_set.calculate_foci(self.parent.settings.foci_lookup_sensivity,
-                                         self.parent.settings.foci_area_fill_percent,
-                                         self.parent.settings.min_foci_radius,
-                                         self.parent.settings.max_foci_radius,
-                                         self.parent.settings.allowed_foci_overlap,
-                                         self.parent.settings.return_circles,
-                                         self.parent.settings.normalize_intensity,
-                                         (self.parent.settings.foci_rescale_min,
-                                          self.parent.settings.foci_rescale_max))
-# Retrieving results
-            self.cell_set.calculate_foci_parameters()
-            try:
-                self.params = self.cell_set.get_parameters()
-                abspath=os.path.join(self.workDir,unicode(self.parent.outfile))
-                self.cell_set.write_parameters(abspath)
-            except:
-                pass
-            
-            for i in xrange(0,len(self.folderWidgets)):
-                if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
-                    self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
-                                                          self.parent.settings.foci_color)
-                #self.folderWidgets[i]=imageFolderWidget(imageDirPath)
-# Table update          
-            self.parent.statusArea.hide()
-            self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(self.params[0])))
-            for i in xrange(1,15):
-                self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
-            self.parent.statusArea.show()            
-            self.refreshImages()
-            self.updateAllImageLabels()
-            self.parent.pbar.setValue(100)
+            if self.parent.settings.foci_name == '--None--':
+                for i in xrange(0,len(self.folderWidgets)):
+                    if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
+                        self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
+                                        self.parent.settings.min_cell_size, load_foci=False)
+                        self.cell_set.extend(self.imageDirs[i])
+                        tasksize -= 1
+                        if tasksize == 0:
+                            print("Image loading has finished for %s" % name)
+                        else:
+                            print('%d images remained to load for %s' % (tasksize, name))
+                        pbarvalue+=pbarstep
+                        self.parent.pbar.setValue(pbarvalue)
+                for i in xrange(0,len(self.folderWidgets)):
+                    if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
+                        self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
+                                                              self.parent.settings.foci_color)
+                params = len(self.cell_set.cells)
+                self.parent.statusArea.hide()
+                self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params)))
+                for i in xrange(1,15):
+                    self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str("")))
+
+                self.updateAllImageLabels()                
+                self.refreshImages()
+                self.parent.statusArea.show()
+                self.parent.pbar.setValue(100)
+
+            else:
+                for i in xrange(0,len(self.folderWidgets)):
+                    if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
+                        self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
+                                            self.parent.settings.min_cell_size, load_foci=True)
+                        self.cell_set.extend(self.imageDirs[i])
+                        tasksize -= 1
+                        if tasksize == 0:
+                            print("Image loading has finished for %s" % name)
+                        else:
+                            print('%d images remained to load for %s' % (tasksize, name))
+                        pbarvalue+=pbarstep
+                        self.parent.pbar.setValue(pbarvalue)
+                if len(self.cell_set.cells) == 0:
+                    print("No cells were detected in %s" % name)
+                    return
+                print("We have %d cells to analyze for %s" % (len(self.cell_set.cells), name))   
+                self.cell_set.calculate_foci(self.parent.settings.foci_lookup_sensivity,
+                                             self.parent.settings.foci_area_fill_percent,
+                                             self.parent.settings.min_foci_radius,
+                                             self.parent.settings.max_foci_radius,
+                                             self.parent.settings.allowed_foci_overlap,
+                                             self.parent.settings.return_circles,
+                                             self.parent.settings.normalize_intensity,
+                                             (self.parent.settings.foci_rescale_min,
+                                              self.parent.settings.foci_rescale_max))
+    # Retrieving results
+                self.cell_set.calculate_foci_parameters()
+                try:
+                    self.params = self.cell_set.get_parameters()
+                    abspath=os.path.join(self.workDir,unicode(self.parent.outfile))
+                    self.cell_set.write_parameters(abspath)
+                except:
+                    pass
+                
+                for i in xrange(0,len(self.folderWidgets)):
+                    if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
+                        self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
+                                                              self.parent.settings.foci_color)
+                    #self.folderWidgets[i]=imageFolderWidget(imageDirPath)
+    # Table update          
+                self.parent.statusArea.hide()
+                self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(self.params[0])))
+                for i in xrange(1,15):
+                    self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
+                self.parent.statusArea.show()            
+                self.refreshImages()
+                self.updateAllImageLabels()
+                self.parent.pbar.setValue(100)
 
     def getScaleFromSelected(self):
         self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
@@ -279,25 +329,10 @@ class imageFolderWidget(QtGui.QWidget):
         self.Layout.addWidget(self.r_button,0,1)
 
         
-        filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
-        self.dir.setNameFilters(filters)
-        picQFileinfoList= self.dir.entryInfoList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
         self.i=1
         self.dirs=[]
         self.labels=[]
-        for picQFileinfo in picQFileinfoList:
-            self.i+=1
-            tempDir=QtCore.QDir(picQFileinfo.absoluteFilePath())
-            self.dirs.append(tempDir)
-            
-            self.labels.append(ExtendedQLabel(unicode(self.dirs[-1].dirName())))
-            self.connect(self.labels[-1], QtCore.SIGNAL("clicked()"),
-                         lambda key=self.i-2: self.selectPicture(key))
-            self.Layout.addWidget(self.labels[-1],self.i,1)
-            self.labels[-1].setAutoFillBackground(True)
-            self.labels[-1].setStyleSheet( "background-color: none; qproperty-alignment: AlignCenter;")
-            self.labels[-1].setFixedHeight(20)
-            self.labels[-1].hide()
+        self.updateImageLabels()
     
     def updateImageLabels(self):
         filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
