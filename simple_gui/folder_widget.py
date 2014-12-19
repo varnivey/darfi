@@ -51,9 +51,36 @@ class FolderWidget(QtGui.QWidget):
             self.selectedImage=""
             self.selectedImageDir=""
             self.checkedPaths=[]
+            self.nameList=[]
             
             folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
             
+            while folderIterator.hasNext():
+                imageQDir=QtCore.QDir(folderIterator.next())
+                imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
+                for name in imageList:
+                    if not(name in self.nameList):
+                        self.nameList.append(name)
+
+
+            [self.parent.nuclNameComboBox.removeItem(0) for i in xrange(self.parent.nuclNameComboBox.count())]
+            self.parent.nuclNameComboBox.addItems(self.nameList) 
+            if self.parent.settings.nuclei_name in self.nameList:
+                self.parent.nuclNameComboBox.setCurrentIndex(self.parent.nuclNameComboBox.findText(self.parent.settings.nuclei_name))
+            else:
+                self.parent.nuclNameComboBox.setCurrentIndex(0)
+                self.parent.settings.nuclei_name=self.nameList[0]
+
+            [self.parent.fociNameComboBox.removeItem(1) for i in xrange(1,self.parent.fociNameComboBox.count())]
+            self.parent.fociNameComboBox.addItems(self.nameList) 
+
+            if self.parent.settings.foci_name in self.nameList:
+                self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
+            else:
+                self.parent.fociNameComboBox.setCurrentIndex(0)
+                self.parent.settings.foci_name='--None--'
+
+                
             self.checkAllBox = QtGui.QCheckBox('Check/Uncheck All', self)
             self.checkAllBox.setChecked(True)
             self.checkAllBox.stateChanged.connect(lambda:
@@ -63,18 +90,20 @@ class FolderWidget(QtGui.QWidget):
             
             self.folderWidgets=[]
             self.imageDirs=[]
-            self.nameList=[]
+
             self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
             i=0
+
+            folderIterator=QtCore.QDirIterator(self.workDir,QtCore.QDir.Dirs|QtCore.QDir.NoDotAndDotDot)
             while folderIterator.hasNext():
-                
+            
                 imageQDir=QtCore.QDir(folderIterator.next())
                 nucleiPath=imageQDir.absolutePath() + QtCore.QDir.separator() + self.parent.settings.nuclei_name
                 fociPath=imageQDir.absolutePath() + QtCore.QDir.separator() + self.parent.settings.foci_name
                 if ((self.parent.settings.foci_name == '--None--')&(QtCore.QFile(nucleiPath).exists())):
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name)))
-                    
+                    print 'lal'
                     self.folderWidgets.append(imageFolderWidget(imageQDir))
                     self.folderLayout.addWidget(self.folderWidgets[-1])
                     self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
@@ -86,7 +115,7 @@ class FolderWidget(QtGui.QWidget):
 
 
                 elif ((QtCore.QFile(fociPath).exists())&(QtCore.QFile(nucleiPath).exists())):
-                    
+                    print "lol"
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name),
                                          unicode(self.parent.settings.foci_name)))
@@ -100,28 +129,11 @@ class FolderWidget(QtGui.QWidget):
                     ############
                     i+=1
 
-
-                imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
-                for name in imageList:
-                    if not(name in self.nameList):
-                        self.nameList.append(name)
-
-
-            [self.parent.nuclNameComboBox.removeItem(0) for i in xrange(self.parent.nuclNameComboBox.count())]
-            self.parent.nuclNameComboBox.addItems(self.nameList) 
-            self.parent.nuclNameComboBox.setCurrentIndex(self.parent.nuclNameComboBox.findText(self.parent.settings.nuclei_name))
-
-            [self.parent.fociNameComboBox.removeItem(1) for i in xrange(1,self.parent.fociNameComboBox.count())]
-            self.parent.fociNameComboBox.addItems(self.nameList) 
-            if self.parent.settings.foci_name in self.nameList:
-                self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
-            else:
-                self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
             print str(len(self.imageDirs)) + ' dirs found in working directory'
             try:
                 self.updateImages(0)
             except IndexError:
-                self.signal_update_images.emit()
+                self.signal_update_images.emit()    
 
         
     
