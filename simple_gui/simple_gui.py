@@ -113,7 +113,7 @@ class DarfiUI(QtGui.QMainWindow):
         
     def setFoci_name(self,text=None):
         self.settings.foci_name = unicode(text)
-        self.fileMenuArea.openWorkDir(self.workDir)
+        self.fileMenuArea.changeFociImages()
         if self.settings.foci_name=='--None--':
             self.rescaleButton.setEnabled(False)
         else:

@@ -235,7 +235,16 @@ class FolderWidget(QtGui.QWidget):
                                                 + '\nmax: '+ str(self.parent.settings.foci_rescale_max)
             self.parent.pbar.setValue(100)
              
-             
+    def changeFociImages(self):
+        for i in xrange(0,len(self.folderWidgets)):
+            fociPath=self.folderWidgets[i].dir.absolutePath() + QtCore.QDir.separator() + self.parent.settings.foci_name
+            if QtCore.QFile(fociPath).exists():                
+                self.imageDirs[i].load_foci_image(fociPath)
+            else:
+                self.openWorkDir(self.parent.workDir)
+                break
+        self.refreshImages()
+                
     def hideAllImageLabels(self):   
             
         for i in xrange(0,len(self.folderWidgets)):
