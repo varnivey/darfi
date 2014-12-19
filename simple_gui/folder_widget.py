@@ -149,11 +149,8 @@ class FolderWidget(QtGui.QWidget):
                     if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
                         self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
                                                               self.parent.settings.foci_color)
-                params = len(self.cell_set.cells)
-                self.parent.statusArea.hide()
-                self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(params)))
-                for i in xrange(1,15):
-                    self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str("")))
+                params = self.cell_set.get_parameters_dict()
+                self.parent.tableWidget.buildFromDict(params)
 
                 self.updateAllImageLabels()                
                 self.refreshImages()
@@ -188,8 +185,9 @@ class FolderWidget(QtGui.QWidget):
                                               self.parent.settings.foci_rescale_max))
     # Retrieving results
                 self.cell_set.calculate_foci_parameters()
+                params = self.cell_set.get_parameters_dict()
+                self.parent.tableWidget.buildFromDict(params)
                 try:
-                    self.params = self.cell_set.get_parameters()
                     abspath=os.path.join(self.workDir,unicode(self.parent.outfile))
                     self.cell_set.write_parameters(abspath)
                 except:
@@ -200,12 +198,7 @@ class FolderWidget(QtGui.QWidget):
                         self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
                                                               self.parent.settings.foci_color)
                     #self.folderWidgets[i]=imageFolderWidget(imageDirPath)
-    # Table update          
-                self.parent.statusArea.hide()
-                self.parent.statusArea.setItem(0,0,QtGui.QTableWidgetItem(str(self.params[0])))
-                for i in xrange(1,15):
-                    self.parent.statusArea.setItem((i+1)%2,(i+1)//2,QtGui.QTableWidgetItem(str(self.params[i])))
-                self.parent.statusArea.show()            
+    # Table update         
                 self.refreshImages()
                 self.updateAllImageLabels()
                 self.parent.pbar.setValue(100)

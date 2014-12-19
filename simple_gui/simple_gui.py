@@ -17,12 +17,12 @@
 #    with this program; if not, write to the Free Software Foundation, Inc.,
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-import sys,os,functools, pickle
+import sys,os, pickle
 sys.path.append(os.path.join('..','engine'))
-import pic_an
 import folder_widget
 import settings_window
 from settings import Settings
+from tablewidget import TableWidget
 from PyQt4 import QtGui, QtCore
 
 
@@ -303,10 +303,13 @@ class DarfiUI(QtGui.QMainWindow):
         
         self.pbar.hide()
         buttonLayout.addWidget(self.pbar)
-       
         spacer=QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding) 
         buttonLayout.addSpacerItem(spacer)
         
+        self.tableWidget=TableWidget(self)
+        buttonLayout.addWidget(self.tableWidget)
+       
+       
         nuclLogLabel = QtGui.QLabel(self)
         nuclLogLabel.setText("Log:")
         buttonLayout.addWidget(nuclLogLabel)        
@@ -324,23 +327,7 @@ class DarfiUI(QtGui.QMainWindow):
 
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
-################## STATUS AREA  ########################################
-
-        self.statusArea = QtGui.QTableWidget(self)
-        self.statusArea.setRowCount(2)
-        self.statusArea.setColumnCount(8)
-        self.statusArea.setHorizontalHeaderItem(0, QtGui.QTableWidgetItem("Cell number"))
-        self.statusArea.setHorizontalHeaderItem(1, QtGui.QTableWidgetItem("Cell area"))
-        self.statusArea.setHorizontalHeaderItem(2, QtGui.QTableWidgetItem("Mean intensity"))
-        self.statusArea.setHorizontalHeaderItem(3, QtGui.QTableWidgetItem("Rel foci number"))
-        self.statusArea.setHorizontalHeaderItem(4, QtGui.QTableWidgetItem("Foci area"))
-        self.statusArea.setHorizontalHeaderItem(5, QtGui.QTableWidgetItem("Foci intensity"))
-        self.statusArea.setHorizontalHeaderItem(6, QtGui.QTableWidgetItem("Foci soid"))
-        self.statusArea.setHorizontalHeaderItem(7, QtGui.QTableWidgetItem("Foci size"))
-        self.statusArea.setVerticalHeaderItem(0, QtGui.QTableWidgetItem("Mean"))
-        self.statusArea.setVerticalHeaderItem(1, QtGui.QTableWidgetItem("MSE"))
-        
-     
+  
         
 
         
@@ -349,7 +336,7 @@ class DarfiUI(QtGui.QMainWindow):
 
 
 
-        windowInitWidth = 1024
+        windowInitWidth = 1300
         windowInitHeight = 768
 
 
@@ -368,20 +355,21 @@ class DarfiUI(QtGui.QMainWindow):
         splitter1 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter1.addWidget(self.imagePreviewArea)
         splitter1.addWidget(buttonArea)
-        splitter1.setSizes([windowInitWidth-400,200])
+        splitter1.setSizes([windowInitWidth-480,240])
         splitter1.splitterMoved.connect(self.updateImages)
         
-
+        '''
         splitter2 = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter2.addWidget(splitter1)
         splitter2.addWidget(self.statusArea)
         splitter2.setSizes([windowInitHeight-200,windowInitHeight/200])
         splitter2.splitterMoved.connect(self.updateImages)
+        '''
         
         splitter3 = QtGui.QSplitter(QtCore.Qt.Horizontal)
         splitter3.addWidget(self.fileMenuArea)
-        splitter3.addWidget(splitter2)
-        splitter3.setSizes([200,windowInitWidth-200])
+        splitter3.addWidget(splitter1)
+        splitter3.setSizes([240,windowInitWidth-240])
         splitter3.splitterMoved.connect(self.updateImages)
 
         hbox.addWidget(splitter3)
