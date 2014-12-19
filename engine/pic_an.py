@@ -244,11 +244,12 @@ class cell_set:
             if remained == 0:
                 print('Foci calculation has finished for %s' % name)
 
-            elif (remained == 1):
-                print('%d nucleus remained for %s' % (remained,name))
 
-            else:
-                print('%d nuclei remained for %s' % (remained,name))
+#            elif (remained == 1):
+#                print('%d nucleus remained for %s' % (remained,name))
+
+#            else:
+#                print('%d nuclei remained for %s' % (remained,name))
 
 ###
 
