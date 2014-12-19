@@ -38,6 +38,10 @@ class TableWidget(QtGui.QTableWidget):
 
 
     def buildFromDict(self,inDict):
+        self.setRowCount(0)
+        self.setColumnCount(0)
+       
+        
         rowOrder =self.rowOrder
         columnOrder =self.columnOrder
         for row in inDict:

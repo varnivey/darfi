@@ -154,7 +154,6 @@ class FolderWidget(QtGui.QWidget):
 
                 self.updateAllImageLabels()                
                 self.refreshImages()
-                self.parent.statusArea.show()
                 self.parent.pbar.setValue(100)
 
             else:
@@ -213,10 +212,6 @@ class FolderWidget(QtGui.QWidget):
         if len(self.folderWidgets) != 0:
             for i in xrange(0,len(self.folderWidgets)):
                 if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
-                    #if not(self.parent.settings.foci_name):
-                    #    self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
-                    #                    self.parent.settings.min_cell_size, load_foci=False)
-                    #else:
                     self.imageDirs[i].detect_cells(self.parent.settings.sensitivity, 
                                         self.parent.settings.min_cell_size, load_foci=True)
                     self.cell_set.extend(self.imageDirs[i])
