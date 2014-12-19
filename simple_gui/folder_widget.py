@@ -42,6 +42,8 @@ class FolderWidget(QtGui.QWidget):
     def openWorkDir(self,workdir=None):
         if not(workdir):
             workdir=QtGui.QFileDialog.getExistingDirectory(directory=self.workDir)
+            if workdir != "":
+                self.parent.workDir=unicode(workdir)
         if workdir != "":
             self.workDir=unicode(workdir)
             for i in reversed(range(self.folderLayout.count())): 
@@ -103,10 +105,7 @@ class FolderWidget(QtGui.QWidget):
                 for name in imageList:
                     if not(name in self.nameList):
                         self.nameList.append(name)
-            try:
-                self.updateImages(0)
-            except IndexError:
-                self.signal_update_images.emit()
+
 
             [self.parent.nuclNameComboBox.removeItem(0) for i in xrange(self.parent.nuclNameComboBox.count())]
             self.parent.nuclNameComboBox.addItems(self.nameList) 
@@ -114,9 +113,15 @@ class FolderWidget(QtGui.QWidget):
 
             [self.parent.fociNameComboBox.removeItem(1) for i in xrange(1,self.parent.fociNameComboBox.count())]
             self.parent.fociNameComboBox.addItems(self.nameList) 
-            self.parent.fociNameComboBox.setCurrentIndex(-1)
-            self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
+            if self.parent.settings.foci_name in self.nameList:
+                self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
+            else:
+                self.parent.fociNameComboBox.setCurrentIndex(self.parent.fociNameComboBox.findText(self.parent.settings.foci_name))
             print str(len(self.imageDirs)) + ' dirs found in working directory'
+            try:
+                self.updateImages(0)
+            except IndexError:
+                self.signal_update_images.emit()
 
         
     
