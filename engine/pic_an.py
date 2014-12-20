@@ -233,7 +233,7 @@ class cell_set:
 
         name = self.name
 
-        print('Foci calculation has started for %s' % name)
+#        print('Foci calculation has started for %s' % name)
 
         for cur_cell in self.cells:
             cur_cell.calculate_foci(peak_min_val_perc, foci_min_val_perc, \
@@ -241,8 +241,8 @@ class cell_set:
 
             remained -= 1
 
-            if remained == 0:
-                print('Foci calculation has finished for %s' % name)
+#            if remained == 0:
+#                print('Foci calculation has finished for %s' % name)
 
 
 #            elif (remained == 1):
