@@ -103,7 +103,7 @@ class FolderWidget(QtGui.QWidget):
                 if ((self.parent.settings.foci_name == '--None--')&(QtCore.QFile(nucleiPath).exists())):
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name)))
-                    print 'lal'
+
                     self.folderWidgets.append(imageFolderWidget(imageQDir))
                     self.folderLayout.addWidget(self.folderWidgets[-1])
                     self.folderWidgets[-1].signal_hideall.connect(self.hideAllImageLabels)
@@ -115,7 +115,7 @@ class FolderWidget(QtGui.QWidget):
 
 
                 elif ((QtCore.QFile(fociPath).exists())&(QtCore.QFile(nucleiPath).exists())):
-                    print "lol"
+
                     self.imageDirs.append(pic_an.image_dir(unicode(imageQDir.absolutePath()),
                                          unicode(self.parent.settings.nuclei_name),
                                          unicode(self.parent.settings.foci_name)))
