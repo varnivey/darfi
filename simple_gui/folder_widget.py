@@ -218,6 +218,7 @@ class FolderWidget(QtGui.QWidget):
                 self.refreshImages()
                 self.updateAllImageLabels()
                 self.parent.pbar.setValue(100)
+                print("Foci calculation has finished for %s" % name)
 
     def getScaleFromSelected(self):
         self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])
