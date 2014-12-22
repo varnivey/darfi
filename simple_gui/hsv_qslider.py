@@ -81,30 +81,17 @@ border-radius: 4px;
 
 """
         self.sld = QtGui.QSlider(QtCore.Qt.Horizontal, self)
-        self.sld.setGeometry(0, 0, 190, 16)
-        self.sld.setStyleSheet(style)
-        #self.sld.valueChanged.connect(self.getPos)
-       
-        
-        
-       
 
-        #self.setWindowTitle('QtGui.QSlider')
-        self.show()
+        self.sld.setStyleSheet(style)
+        self.sld.setGeometry(0, 0, 190, 20)
+        self.sld.setFixedSize(190,16)
+        self.sld.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Expanding)
+       
+        
+        #self.show()
 
     def setPos(self,pos):    
         self.sld.setValue(pos*99.0)
 
     def getPos(self):    
         return self.sld.sliderPosition()/99.0
-    
-def main():
-    
-    app = QtGui.QApplication(sys.argv)
-    ex = slider()
-    sys.exit(app.exec_())
-
-
-if __name__ == '__main__':
-    main()    
-
