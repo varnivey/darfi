@@ -80,15 +80,17 @@ class DarfiUI(QtGui.QMainWindow):
         if filename != "":
             with open(filename) as f:
                 print "Loading previous config"
-                self.workDir,self.settings, paths = pickle.load(f)
-                self.fileMenuArea.openWorkDir(self.workDir)
-                self.fileMenuArea.setCheckedFromPaths(paths)
-                self.outfileField.setText(self.settings.outfile)
-                if self.settings.foci_name=='--None--':
-                    self.rescaleButton.setEnabled(False)
-                else:
-                    self.rescaleButton.setEnabled(True)
-                
+                try:
+                    self.workDir,self.settings, paths = pickle.load(f)
+                    self.fileMenuArea.openWorkDir(self.workDir)
+                    self.fileMenuArea.setCheckedFromPaths(paths)
+                    self.outfileField.setText(self.settings.outfile)
+                    if self.settings.foci_name=='--None--':
+                        self.rescaleButton.setEnabled(False)
+                    else:
+                        self.rescaleButton.setEnabled(True)
+                except ValueError:
+                    print "Save file is corrupted or incompatible \n Loading default"
                 
                 
     def openSettings(self):
