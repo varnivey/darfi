@@ -167,7 +167,7 @@ class FolderWidget(QtGui.QWidget):
                         self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
                                                               self.parent.settings.foci_color)
                 params = self.cell_set.get_parameters_dict()
-                self.parent.tableWidget.buildFromDict(params)
+                self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
 
                 self.updateAllImageLabels()                
                 self.refreshImages()
@@ -202,7 +202,7 @@ class FolderWidget(QtGui.QWidget):
     # Retrieving results
                 self.cell_set.calculate_foci_parameters()
                 params = self.cell_set.get_parameters_dict()
-                self.parent.tableWidget.buildFromDict(params)
+                self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
                 try:
                     abspath=os.path.join(self.workDir,unicode(self.parent.outfile))
                     self.cell_set.write_parameters(abspath)

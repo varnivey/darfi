@@ -24,5 +24,18 @@ class Settings(object):
         self.return_circles=True # type 'bool' 
         self.nuclei_color=0.66 # type 'float' range: 0 to 1.0
         self.foci_color=0.33 # type 'float' range: 0 to 1.0
+        self.rowOrder=['Cell number',
+                    'Cell area',
+                    'Mean intensity im1',
+                    'Mean intensity im2',
+                    'Abs foci number',
+                    'Abs foci area',
+                    'Abs foci soid',
+                    'Rel foci number',
+                    'Rel foci area',
+                    'Rel foci soid',
+                    'Foci intensity',
+                    'Foci size']
+        self.columnOrder=['Mean', 'MSE']
     def __getitem__(self, item):
          return self.__dict__[item]

@@ -22,28 +22,16 @@ class TableWidget(QtGui.QTableWidget):
         self.setSizePolicy(QtGui.QSizePolicy.Minimum,QtGui.QSizePolicy.Minimum)
        
 
-        self.rowOrder=['Cell number',
-                    'Cell area',
-                    'Mean intensity im1',
-                    'Mean intensity im2',
-                    'Abs foci number',
-                    'Abs foci area',
-                    'Abs foci soid',
-                    'Rel foci number',
-                    'Rel foci area',
-                    'Rel foci soid',
-                    'Foci intensity',
-                    'Foci size']
-        self.columnOrder=['Mean', 'MSE']
+        self.rowOrder=[]
+        self.columnOrder=[]
+        self.clicked.connect(self.getOrders)
 
 
-    def buildFromDict(self,inDict):
+    def buildFromDict(self,inDict,rowOrder,columnOrder):
         self.setRowCount(0)
         self.setColumnCount(0)
        
         
-        rowOrder =self.rowOrder
-        columnOrder =self.columnOrder
         for row in inDict:
             if not(row in rowOrder):
                 rowOrder.append(row)
@@ -72,12 +60,22 @@ class TableWidget(QtGui.QTableWidget):
                     item.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)
                     self.setItem(rows.index(row),columns.index(col),item)
                 except:
-                    pass                                      
+                    pass       
+                      
         self.verticalHeader().setDefaultSectionSize(self.verticalHeader().minimumSectionSize())
+        self.rowOrder = rows
+        self.columnOrder = columns
 
 
-
-        
+    def getOrders(self):
+        try:
+            self.rowOrder = [self.verticalHeaderItem(i).text() for i in range(len(self.rowOrder))]
+            self.columnOrder = [self.verticalHeaderItem(i).text() for i in range(len(self.columnOrder))]
+            self.parent.settings.rowOrder = self.rowOrder
+            self.parent.settings.columnOrder = self.columnOrder
+            #print self.rowOrder
+        except:
+            pass
         
     def keyPressEvent(self, e):
         if (e.modifiers() & QtCore.Qt.ControlModifier):        

@@ -72,6 +72,7 @@ class DarfiUI(QtGui.QMainWindow):
             if filename[-4:] != '.dcf':
                 filename+=unicode('.dcf')
             with open(filename, 'w+') as f:
+                self.tableWidget.getOrders()
                 pickle.dump([self.fileMenuArea.workDir,self.settings,self.fileMenuArea.getCheckedPaths()], f)
 
     def readSettings(self,filename=None):
@@ -315,7 +316,7 @@ class DarfiUI(QtGui.QMainWindow):
         nuclLogLabel = QtGui.QLabel(self)
         nuclLogLabel.setText("Log:")
         buttonLayout.addWidget(nuclLogLabel)        
-       
+        
         self.logText = QtGui.QTextEdit()
         self.logText.setMaximumHeight(130)
         self.logText.setReadOnly(True)
@@ -326,7 +327,7 @@ class DarfiUI(QtGui.QMainWindow):
         sys.stdout = self.logger
         #sys.stderr = self.errors
         buttonLayout.addWidget(self.logText)
-
+        
 
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
         
