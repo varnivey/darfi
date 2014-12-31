@@ -60,12 +60,13 @@ class FolderWidget(QtGui.QWidget):
                 imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
                 for name in imageList:
                     if not(name in self.nameList):
-                        self.nameList.append(name)
+                        self.nameList.append(unicode(name))
 
 
             [self.parent.nuclNameComboBox.removeItem(0) for i in xrange(self.parent.nuclNameComboBox.count())]
             self.parent.nuclNameComboBox.addItems(self.nameList) 
             if self.parent.settings.nuclei_name in self.nameList:
+                #print self.parent.nuclNameComboBox.itemText(1) 
                 self.parent.nuclNameComboBox.setCurrentIndex(self.parent.nuclNameComboBox.findText(self.parent.settings.nuclei_name))
             else:
                 self.parent.nuclNameComboBox.setCurrentIndex(0)
