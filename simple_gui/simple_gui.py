@@ -138,8 +138,8 @@ class DarfiUI(QtGui.QMainWindow):
         if not(self.showMiniatures):
             imageName = self.fileMenuArea.selectedImage
             originalSize = QtGui.QPixmap(imageName).size()
-            coordx =(event.x()/float(self.imagePreviewArea.width()-30))*originalSize.width()
-            coordy=(event.y()/float(self.imagePreviewArea.height()-60))*originalSize.height()
+            coordx =(event.x()/float(self.lbl1.width()))*originalSize.width()
+            coordy=(event.y()/float(self.lbl1.height()))*originalSize.height()
             coord = [round(coordx),round(coordy)]
             print coord
             self.fileMenuArea.touchCellAndRedraw(coord)
