@@ -24,7 +24,7 @@ class TableWidget(QtGui.QTableWidget):
 
         self.rowOrder=[]
         self.columnOrder=[]
-        self.clicked.connect(self.getOrders)
+        #self.clicked.connect(self.getOrders)
 
 
     def buildFromDict(self,inDict,rowOrder,columnOrder):
@@ -65,6 +65,8 @@ class TableWidget(QtGui.QTableWidget):
         self.verticalHeader().setDefaultSectionSize(self.verticalHeader().minimumSectionSize())
         self.rowOrder = rows
         self.columnOrder = columns
+        print self.rowOrder
+        print self.columnOrder
 
 
     def getOrders(self):
