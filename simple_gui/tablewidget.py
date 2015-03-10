@@ -24,7 +24,8 @@ class TableWidget(QtGui.QTableWidget):
 
         self.rowOrder=[]
         self.columnOrder=[]
-        self.clicked.connect(self.getOrders)
+        self.verticalHeader().sectionMoved.connect( self.getOrders)
+        self.horizontalHeader().sectionMoved.connect( self.getOrders)
 
 
     def buildFromDict(self,inDict,rowOrder,columnOrder):
@@ -69,17 +70,22 @@ class TableWidget(QtGui.QTableWidget):
         #print self.columnOrder
 
 
-    def getOrders(self):
-        try:
-            rowOrder = [self.verticalHeaderItem(i).text() for i in range(len(self.rowOrder))]
-            columnOrder = [self.horizontalHeaderItem(i).text() for i in range(len(self.columnOrder))]
-            #print rowOrder
-            #print columnOrder
-            #self.parent.settings.rowOrder = self.rowOrder
-            #self.parent.settings.columnOrder = self.columnOrder
+    def getOrders(self,event=None):
+        #try:
+        rowNames = [str(self.verticalHeaderItem(i).text()) for i in range(len(self.rowOrder))]
+        rowIndx = [self.visualRow(i) for i in range(len(self.rowOrder))]
+        self.rowOrder = [x for (y,x) in sorted(zip(rowIndx,rowNames))]
+        
+        colNames = [str(self.horizontalHeaderItem(i).text()) for i in range(len(self.columnOrder))]
+        colIndx = [self.visualColumn(i) for i in range(len(self.columnOrder))]
+        self.columnOrder = [x for (y,x) in sorted(zip(colIndx,colNames))]
+        #print self.rowOrder
+        #print self.columnOrder
+        self.parent.settings.rowOrder = self.rowOrder
+        self.parent.settings.columnOrder = self.columnOrder
             #print self.rowOrder
-        except:
-            pass
+        #except:
+            #pass
         
     def keyPressEvent(self, e):
         if (e.modifiers() & QtCore.Qt.ControlModifier):        

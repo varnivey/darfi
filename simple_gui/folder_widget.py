@@ -179,6 +179,7 @@ class FolderWidget(QtGui.QWidget):
                 params = self.cell_set.get_parameters_dict()
                 self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
 
+
                 self.updateAllImageLabels()                
                 self.refreshImages()
                 self.parent.pbar.setValue(100)

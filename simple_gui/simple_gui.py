@@ -73,8 +73,8 @@ class DarfiUI(QtGui.QMainWindow):
                 filename+=unicode('.dcf')
             with open(filename, 'w+') as f:
                 #self.tableWidget.getOrders()
-                #print self.settings.rowOrder
-                #print self.settings.columnOrder
+                print self.settings.rowOrder
+                print self.settings.columnOrder
                 pickle.dump([self.fileMenuArea.workDir,self.settings,self.fileMenuArea.getCheckedPaths()], f)
 
     def readSettings(self,filename=None):
