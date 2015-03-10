@@ -141,8 +141,8 @@ class FolderWidget(QtGui.QWidget):
         result = self.imageDirs[self.selectedImageDirKey].touch_cell(coord)
         print result
         if result:
-            params = cell_set.get_parameters_dict()
-            self.imageDirs[self.selectedImageDirKey].image_dir.write_all_pic_files()
+            params = self.cell_set.get_parameters_dict()
+            self.imageDirs[self.selectedImageDirKey].write_all_pic_files()
             params = self.cell_set.get_parameters_dict()
             self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
             self.refreshImages() 

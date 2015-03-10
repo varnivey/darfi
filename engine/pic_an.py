@@ -833,7 +833,7 @@ class image_dir(cell_set):
     def touch_cell(self, coords):
         '''Enable or disable clicked cell'''
 
-        x_touch, y_touch = coords
+        y_touch, x_touch = coords
 
         touch = False
 
@@ -843,9 +843,9 @@ class image_dir(cell_set):
             if not (x_touch >= left and x_touch < right and y_touch >= down and y_touch < up):
                 continue
 
-            x_new, y_new = x_touch - left, y_touch - down
+            x_new, y_new = (x_touch - left).astype(int), (y_touch - down).astype(int)
 
-            if not cur_cell.nuclei[x_new, y_new] == True:
+            if not cur_cell.nucleus[x_new, y_new] == True:
                 continue
 
             cur_cell.is_active = not cur_cell.is_active
