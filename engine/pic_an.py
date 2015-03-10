@@ -392,7 +392,7 @@ class cell_set:
 
         if len(self.active_cells()) == 0:
             return params
-        params['Cell number'] = {'Mean':len(self.cells)}
+        params['Cell number'] = {'Mean':len(self.active_cells())}
 
         cur_param = self.get_cell_area_param()
         params['Cell area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
@@ -675,9 +675,7 @@ class image_dir(cell_set):
 
         x_max, y_max = self.shape
 
-        active_cells = self.active_cells()
-
-        cell_number = len(active_cells)
+        cell_number = len(self.cells)
 
         if cell_number == 0:
 
@@ -687,7 +685,9 @@ class image_dir(cell_set):
 
         colored_nuclei_peaces = []
 
-        for cur_cell, cur_num in zip(active_cells, range(cell_number)):
+        for cur_cell, cur_num in zip(self.cells, range(cell_number)):
+
+            if not cur_cell.is_active: continue
 
             pic_nucleus = cur_cell.pic_nucleus
 
