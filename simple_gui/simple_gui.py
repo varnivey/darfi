@@ -134,6 +134,16 @@ class DarfiUI(QtGui.QMainWindow):
         self.showMiniatures=False
         self.updateImages()
         
+    def labelClicked(self,event):
+        if not(self.showMiniatures):
+            imageName = self.fileMenuArea.selectedImage
+            originalSize = QtGui.QPixmap(imageName).size()
+            coordx =(event.x()/float(self.imagePreviewArea.width()-30))*originalSize.width()
+            coordy=(event.y()/float(self.imagePreviewArea.height()-60))*originalSize.height()
+            coord = [round(coordx),round(coordy)]
+            print coord
+            self.fileMenuArea.touchCellAndRedraw(coord)
+        
     def updateImages(self):
         if self.showMiniatures:
             try:
@@ -244,6 +254,9 @@ class DarfiUI(QtGui.QMainWindow):
         self.imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
         self.connect(self.imagePreviewArea, QtCore.SIGNAL("resizeEvent()"), self.updateImages)
         self.lbl1 = QtGui.QLabel(self)
+        
+        self.lbl1.mousePressEvent = self.labelClicked #.connect(self.labelClicked)    
+            
         self.imagePreviewLayout.addWidget(self.lbl1, 0,0)
         self.lbl2 = QtGui.QLabel(self)
         self.imagePreviewLayout.addWidget(self.lbl2, 0,1)

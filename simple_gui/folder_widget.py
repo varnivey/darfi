@@ -12,6 +12,7 @@ class FolderWidget(QtGui.QWidget):
         self.selectedImage=""
         self.selectedImageDir=""
         self.workDir=self.parent.workDir
+        self.selectedImageDirKey=0
         
 
        
@@ -136,7 +137,15 @@ class FolderWidget(QtGui.QWidget):
             except IndexError:
                 self.signal_update_images.emit()    
 
-        
+    def touchCellAndRedraw(self,coord):
+        result = self.imageDirs[self.selectedImageDirKey].touch_cell(coord)
+        print result
+        if result:
+            params = cell_set.get_parameters_dict()
+            self.imageDirs[self.selectedImageDirKey].image_dir.write_all_pic_files()
+            params = self.cell_set.get_parameters_dict()
+            self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
+            self.refreshImages() 
     
     def calculateSelected(self):
         name=QtCore.QDir(self.workDir).dirName()
@@ -285,10 +294,12 @@ class FolderWidget(QtGui.QWidget):
     
 ##################  i think thats OBSOLEETE
     def updateImage(self,key):
+        self.selectedImageDirKey = key
         self.selectedImage = self.folderWidgets[key].selectedPic
         self.signal_update_image.emit()
         
     def updateImages(self,key):
+        self.selectedImageDirKey = key
         if not(self.folderWidgets[key].selectedPic):
             self.selectedImageDir = self.folderWidgets[key].dir
             self.signal_update_images.emit()
