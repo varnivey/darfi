@@ -172,8 +172,14 @@ class DarfiUI(QtGui.QMainWindow):
             self.fileMenuArea.selectedImage = unicode(self.fileMenuArea.selectedImageDir.absolutePath() + QtCore.QDir.separator() + self.imageNameList[key])
             self.updateImages()        
         
-            
-
+    def saveParams(self):
+        filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Save results of latest calculation'
+            , self.workDir + str(QtCore.QDir.separator()) + 'result.txt','Text File, *.txt;;All Files (*)'))
+        if filename!='':
+            try:
+                self.fileMenuArea.cell_set.write_parameters_dict(outfilename = filename)
+            except:
+                return
             
     def updateImages(self):
         if self.showMiniatures:
@@ -333,8 +339,13 @@ class DarfiUI(QtGui.QMainWindow):
         self.outfileField = QtGui.QLineEdit()
         self.outfileField.setText(self.settings.outfile)
         self.outfileField.textChanged[str].connect(lambda: self.setOutfile(self.outfileField.displayText()))
-        buttonLayout.addWidget(outfileFieldLabel)
-        buttonLayout.addWidget(self.outfileField)
+        #buttonLayout.addWidget(outfileFieldLabel)
+        #buttonLayout.addWidget(self.outfileField)
+        
+        self.outfileButton = QtGui.QPushButton("Save Cell Param.")
+        self.outfileButton.clicked.connect(self.saveParams)
+        self.outfileButton.setEnabled(False)
+        buttonLayout.addWidget(self.outfileButton)
         
         self.rescaleButton = QtGui.QPushButton("Get scale from selection")
         self.rescaleButton.clicked.connect(self.fileMenuArea.getScaleFromSelected)

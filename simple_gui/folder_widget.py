@@ -149,6 +149,7 @@ class FolderWidget(QtGui.QWidget):
         return result
     
     def calculateSelected(self):
+        self.parent.outfileButton.setEnabled(False)
         name=QtCore.QDir(self.workDir).dirName()
         self.cell_set = pic_an.cell_set(name=name, cells=[])
         tasksize=len(self.getCheckedPaths())
@@ -184,6 +185,7 @@ class FolderWidget(QtGui.QWidget):
                 self.updateAllImageLabels()                
                 self.refreshImages()
                 self.parent.pbar.setValue(100)
+                self.parent.outfileButton.setEnabled(True)
 
             else:
                 for i in xrange(0,len(self.folderWidgets)):
@@ -215,11 +217,7 @@ class FolderWidget(QtGui.QWidget):
                 self.cell_set.calculate_foci_parameters()
                 params = self.cell_set.get_parameters_dict()
                 self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
-                try:
-                    abspath=os.path.join(self.workDir,unicode(self.parent.outfile))
-                    self.cell_set.write_parameters(abspath)
-                except:
-                    pass
+                self.parent.outfileButton.setEnabled(True)
                 
                 for i in xrange(0,len(self.folderWidgets)):
                     if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
