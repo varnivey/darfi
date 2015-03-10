@@ -139,13 +139,14 @@ class FolderWidget(QtGui.QWidget):
 
     def touchCellAndRedraw(self,coord):
         result = self.imageDirs[self.selectedImageDirKey].touch_cell(coord)
-        print result
         if result:
+            print "Cell toogled."
             params = self.cell_set.get_parameters_dict()
             self.imageDirs[self.selectedImageDirKey].write_all_pic_files()
             params = self.cell_set.get_parameters_dict()
             self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
             self.refreshImages() 
+        return result
     
     def calculateSelected(self):
         name=QtCore.QDir(self.workDir).dirName()

@@ -35,7 +35,20 @@ try:
 except AttributeError:
     _fromUtf8 = lambda s: s
 
-          
+
+class CusLabel(QtGui.QLabel):
+    def __init__(self, parent, key=None):
+        super(CusLabel, self).__init__(parent)
+        self.parent=parent
+        self.key=key
+ 
+
+    def mousePressEvent(self, e):
+        
+        super(CusLabel, self).mousePressEvent(e)
+        self.parent.labelClicked(e,self.key)
+        
+
     
 class DarfiUI(QtGui.QMainWindow):
     
@@ -136,16 +149,32 @@ class DarfiUI(QtGui.QMainWindow):
         self.showMiniatures=False
         self.updateImages()
         
-    def labelClicked(self,event):
+    def labelClicked(self,event,key):
         if not(self.showMiniatures):
             imageName = self.fileMenuArea.selectedImage
-            originalSize = QtGui.QPixmap(imageName).size()
-            coordx =(event.x()/float(self.lbl1.width()))*originalSize.width()
-            coordy=(event.y()/float(self.lbl1.height()))*originalSize.height()
-            coord = [round(coordx),round(coordy)]
-            print coord
-            self.fileMenuArea.touchCellAndRedraw(coord)
+            if not((os.path.basename(imageName) == self.settings.nuclei_name) |
+                (os.path.basename(imageName) == self.settings.foci_name)):
+                originalSize = QtGui.QPixmap(imageName).size()
+                coordx =(event.x()/float(self.lbl1.width()))*originalSize.width()
+                coordy=(event.y()/float(self.lbl1.height()))*originalSize.height()
+                coord = [round(coordx),round(coordy)]
+                if not(self.fileMenuArea.touchCellAndRedraw(coord)):
+                    self.showMiniatures = True
+                    self.fileMenuArea.selectedImage = ''
+                    self.updateImages()
+            else:
+                self.showMiniatures = True
+                self.fileMenuArea.selectedImage = ''
+                self.updateImages()
+                
+        else:
+            self.showMiniatures = False
+            self.fileMenuArea.selectedImage = unicode(self.fileMenuArea.selectedImageDir.absolutePath() + QtCore.QDir.separator() + self.imageNameList[key])
+            self.updateImages()        
         
+            
+
+            
     def updateImages(self):
         if self.showMiniatures:
             try:
@@ -164,9 +193,13 @@ class DarfiUI(QtGui.QMainWindow):
                     #FIXME use margins e.t.c
                     sizex=self.imagePreviewArea.width()/2-10
                     sizey=self.imagePreviewArea.height()/3-10
+                    filters = ["*.jpg", "*.JPG"]
+                    imageDir.setNameFilters(filters)
+                    self.imageNameList = [self.settings.nuclei_name, self.settings.foci_name]                    
+                    [self.imageNameList.append(i) for i in imageDir.entryList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)]
                     try:
 
-                        pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.settings.nuclei_name)
+                        pix1 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.imageNameList[0])
                         self.lbl1.resize(sizex,sizey)
                         self.lbl1.setPixmap(pix1.scaled(self.lbl1.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl1.update()
@@ -175,7 +208,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl1.clear()
          
                     try:
-                        pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.settings.foci_name)
+                        pix2 = QtGui.QPixmap(path + QtCore.QDir.separator() + self.imageNameList[1])
                         self.lbl2.resize(sizex,sizey)
 
                         self.lbl2.setPixmap(pix2.scaled(self.lbl2.size(), QtCore.Qt.KeepAspectRatio))
@@ -183,11 +216,9 @@ class DarfiUI(QtGui.QMainWindow):
                     except IndexError:
                         self.lbl2.clear()
                         
-                    filters = ["*.jpg", "*.JPG"]
-                    imageDir.setNameFilters(filters)
-                    imageNameList=imageDir.entryList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
+
                     try:
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[0])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + self.imageNameList[2])
                         self.lbl3.resize(sizex,sizey)
                         self.lbl3.update()
                         self.lbl3.setPixmap(pix.scaled(self.lbl3.size(), QtCore.Qt.KeepAspectRatio))
@@ -196,7 +227,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl3.clear()
                     
                     try:    
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[1])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + self.imageNameList[3])
                         self.lbl4.resize(sizex,sizey)
                         self.lbl4.setPixmap(pix.scaled(self.lbl4.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl4.update()
@@ -204,7 +235,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl4.clear()
                     
                     try:    
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[2])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + self.imageNameList[4])
                         self.lbl5.resize(sizex,sizey)
                         self.lbl5.setPixmap(pix.scaled(self.lbl5.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl5.update()
@@ -212,7 +243,7 @@ class DarfiUI(QtGui.QMainWindow):
                         self.lbl5.clear()
                     
                     try:    
-                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + imageNameList[3])
+                        pix = QtGui.QPixmap(path + QtCore.QDir.separator() + self.imageNameList[5])
                         self.lbl6.resize(sizex,sizey)
                         self.lbl6.setPixmap(pix.scaled(self.lbl6.size(), QtCore.Qt.KeepAspectRatio))
                         self.lbl6.update()
@@ -255,20 +286,17 @@ class DarfiUI(QtGui.QMainWindow):
         
         self.imagePreviewLayout = QtGui.QGridLayout(self.imagePreviewArea)
         self.connect(self.imagePreviewArea, QtCore.SIGNAL("resizeEvent()"), self.updateImages)
-        self.lbl1 = QtGui.QLabel(self)
-        
-        self.lbl1.mousePressEvent = self.labelClicked #.connect(self.labelClicked)    
-            
+        self.lbl1 = CusLabel(self,0)          
         self.imagePreviewLayout.addWidget(self.lbl1, 0,0)
-        self.lbl2 = QtGui.QLabel(self)
+        self.lbl2 = CusLabel(self,1)
         self.imagePreviewLayout.addWidget(self.lbl2, 0,1)
-        self.lbl3 = QtGui.QLabel(self)
+        self.lbl3 = CusLabel(self,2)
         self.imagePreviewLayout.addWidget(self.lbl3, 1,0)
-        self.lbl4 = QtGui.QLabel(self)
+        self.lbl4 = CusLabel(self,3)
         self.imagePreviewLayout.addWidget(self.lbl4, 1,1)
-        self.lbl5 = QtGui.QLabel(self)
+        self.lbl5 = CusLabel(self,4)
         self.imagePreviewLayout.addWidget(self.lbl5, 2,0)
-        self.lbl6 = QtGui.QLabel(self)
+        self.lbl6 = CusLabel(self,5)
         self.imagePreviewLayout.addWidget(self.lbl6, 2,1)
        
 ################## SETTINGS AREA  ########################################
