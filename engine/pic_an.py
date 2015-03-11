@@ -434,7 +434,7 @@ class cell_set:
 
         return params
 
-    def write_parameters_dict(self, outfilename = 'result.txt'):
+    def write_parameters_dict(self, outfilename = 'result.txt', verbose = False):
         '''Writes parameters to file <result.txt>'''
 
         return True
