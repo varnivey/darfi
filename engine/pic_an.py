@@ -385,7 +385,7 @@ class cell_set:
 #        params.extend(self.rel_foci_soid_param)
 #        return params
 
-    def get_parameters_dict(self):
+    def get_parameters_dict(self, verbose = True):
         '''Retrun dictionary with cell parameters'''
 
         params = {}
@@ -400,37 +400,63 @@ class cell_set:
         cur_param = self.get_nuclei_pic_mean_intensity_param()
         params['Mean intensity im1'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        if not self.have_foci_params:
-            return params
+        if self.have_foci_params:
 
-        cur_param = self.get_foci_pic_mean_intensity_param()
-        params['Mean intensity im2'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.get_foci_pic_mean_intensity_param()
+            params['Mean intensity im2'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        self.calculate_foci_parameters()
+            self.calculate_foci_parameters()
 
-        cur_param = self.abs_foci_num_param
-        params['Abs foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.abs_foci_num_param
+            params['Abs foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.abs_foci_area_param
-        params['Abs foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.abs_foci_area_param
+            params['Abs foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.abs_foci_soid_param
-        params['Abs foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.abs_foci_soid_param
+            params['Abs foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.rel_foci_num_param
-        params['Rel foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.rel_foci_num_param
+            params['Rel foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.rel_foci_area_param
-        params['Rel foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.rel_foci_area_param
+            params['Rel foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.rel_foci_soid_param
-        params['Rel foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.rel_foci_soid_param
+            params['Rel foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.abs_foci_ints_param
-        params['Foci intensity'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.abs_foci_ints_param
+            params['Foci intensity'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        cur_param = self.foci_size_param
-        params['Foci size'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            cur_param = self.foci_size_param
+            params['Foci size'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+
+        if verbose:
+            active_cells = self.active_cells()
+            mean_cell_size = 8100
+
+            for cur_cell,cur_num in zip(active_cells,range(len(active_cells))):
+
+                name = 'cell_' + str(cur_num)
+                rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
+                rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
+                rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
+
+                params['Cell number'][name]         = -1
+                params['Cell area'][name]           = np.round(cur_cell.area,2)
+                params['Mean intensity im1'][name]  = -1
+
+                if self.have_foci_params:
+                    params['Mean intensity im2'][name]  = -1
+                    params['Abs foci number'][name]     = cur_cell.foci_number
+                    params['Abs foci area'][name]       = cur_cell.foci_area
+                    params['Abs foci soid'][name]       = cur_cell.foci_soid
+                    params['Rel foci number'][name]     = rel_foci_number
+                    params['Rel foci area'][name]       = rel_foci_area
+                    params['Rel foci soid'][name]       = rel_foci_soid
+                    params['Foci intensity'][name]      = cur_cell.foci_intens
+                    params['Foci size'][name]           = np.round(cur_cell.foci_area/cur_cell.foci_number,2)
+
 
         return params
 
