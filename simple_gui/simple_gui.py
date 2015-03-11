@@ -80,7 +80,8 @@ class DarfiUI(QtGui.QMainWindow):
     def dumpSettings(self,filename=None):
         if not(filename):
             filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Write DARFI config file', '','DARFI Config File, *.dcf;;All Files (*)'))
-        if filename != "":
+        if ((filename != "") & (self.settings.nuclei_name!='')):
+            
             #that is rude but it works (
             if filename[-4:] != '.dcf':
                 filename+=unicode('.dcf')
