@@ -5,7 +5,7 @@ Created on Fri Dec 19 22:57:17 2014
 @author: satary
 """
 from PyQt4 import QtGui,QtCore
-import sys
+import sys, csv
 class TableWidget(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(TableWidget, self).__init__(parent)
@@ -32,27 +32,28 @@ class TableWidget(QtGui.QTableWidget):
         self.setRowCount(0)
         self.setColumnCount(0)
        
-        
+        #print columnOrder
         for row in inDict:
             if not(row in rowOrder):
                 rowOrder.append(row)
             for col in inDict[row]:
                 if not(col in columnOrder):
                     columnOrder.append(col)
+        print columnOrder
 
         rows=[]
         columns=[]
         for row in rowOrder:
-            if row in inDict:
-                rows.append(row)
-                self.insertRow(self.rowCount())
-                self.setVerticalHeaderItem(self.rowCount()-1, QtGui.QTableWidgetItem(row))
-                for col in columnOrder:
-                    if (col in inDict[row]):
-                        if (not(col in columns)):
-                            columns.append(col)
-                            self.insertColumn(self.columnCount())
-                            self.setHorizontalHeaderItem(self.columnCount()-1,QtGui.QTableWidgetItem(col))
+            #if row in inDict:
+            rows.append(row)
+            self.insertRow(self.rowCount())
+            self.setVerticalHeaderItem(self.rowCount()-1, QtGui.QTableWidgetItem(row))
+            for col in columnOrder:
+                #if (col in inDict[row]):
+                if (not(col in columns)):
+                    columns.append(col)
+                    self.insertColumn(self.columnCount())
+                    self.setHorizontalHeaderItem(self.columnCount()-1,QtGui.QTableWidgetItem(col))
 
         for row in rows:
             for col in columns:
@@ -98,7 +99,38 @@ class TableWidget(QtGui.QTableWidget):
         action = menu.exec_(QtGui.QCursor.pos())
         if action == copyAction:
             self.copySelectionToClipboard()
+    
+    def handleSave(self,path):
+        rowLog = range(self.rowCount())
+        rowIndx = [self.visualRow(i) for i in rowLog]
+        rowVis = [x for (y,x) in sorted(zip(rowIndx,rowLog))]
         
+        colLog = range(self.columnCount())
+        colIndx = [self.visualColumn(i) for i in colLog]
+        colVis = [x for (y,x) in sorted(zip(colIndx,colLog))]
+        
+    
+        with open(unicode(path), 'wb') as stream:
+            writer = csv.writer(stream)
+            rowdata = []
+            rowdata.append("")
+            for column in colVis:
+                rowdata.append(unicode(self.horizontalHeaderItem(column).text()).encode('utf8'))
+            writer.writerow(rowdata) 
+            for row in rowVis:
+               
+                rowdata = []
+                rowdata.append(unicode(self.verticalHeaderItem(row).text()).encode('utf8'))
+                for column in colVis:
+                    
+                    item = self.item(row, column)
+                    if item is not None:
+                        rowdata.append(
+                            unicode(item.text()).encode('utf8'))
+                    else:
+                        rowdata.append('')
+                writer.writerow(rowdata)    
+    
     def copySelectionToClipboard(self):
         selected = self.selectedRanges()
         s = ""

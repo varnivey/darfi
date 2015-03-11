@@ -1,5 +1,6 @@
 from PyQt4 import QtGui, QtCore
 import hsv_qslider, copy
+from tablewidget import TableWidget
 
 
 class SettingsWindow(QtGui.QDialog):
@@ -172,6 +173,8 @@ class SettingsWindow(QtGui.QDialog):
         tab3layout.addItem(spacer3,3,0)
         
         tab4layout = QtGui.QVBoxLayout()
+        self.tableWidget=TableWidget(self)
+        tab4layout.addWidget(self.tableWidget)
         
         
         spacer4=QtGui.QSpacerItem(0, 0, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding) 

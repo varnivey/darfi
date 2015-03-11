@@ -179,8 +179,7 @@ class FolderWidget(QtGui.QWidget):
                     if self.folderWidgets[i].checked.checkState() == QtCore.Qt.Checked :
                         self.imageDirs[i].write_all_pic_files(self.parent.settings.nuclei_color,
                                                               self.parent.settings.foci_color)
-                params = self.cell_set.get_parameters_dict()
-                self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
+                self.updateParamsTable()
 
 
                 self.updateAllImageLabels()                
@@ -217,8 +216,7 @@ class FolderWidget(QtGui.QWidget):
                                               self.parent.settings.foci_rescale_max))
     # Retrieving results
                 self.cell_set.calculate_foci_parameters()
-                params = self.cell_set.get_parameters_dict()
-                self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
+                self.updateParamsTable()
                 self.parent.outfileButton.setEnabled(True)
                 self.parent.singleCellOutputBox.setEnabled(True)
                 
@@ -232,6 +230,11 @@ class FolderWidget(QtGui.QWidget):
                 self.updateAllImageLabels()
                 self.parent.pbar.setValue(100)
                 print("Foci calculation has finished for %s" % name)
+                
+    def updateParamsTable(self):
+        params = self.cell_set.get_parameters_dict(verbose = self.parent.singleCellOutputBox.isChecked())
+        self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
+        
 
     def getScaleFromSelected(self):
         self.cell_set = pic_an.cell_set(name=self.workDir, cells=[])

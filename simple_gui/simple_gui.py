@@ -170,15 +170,16 @@ class DarfiUI(QtGui.QMainWindow):
             self.updateImages()        
         
     def saveParams(self):
-        filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Save results of latest calculation'
-            , self.workDir + str(QtCore.QDir.separator()) + 'result.txt','Text File, *.txt;;All Files (*)'))
-        if filename!='':
-            
+        
+        filename=QtGui.QFileDialog.getSaveFileName(self,'Save results of latest calculation'
+            , self.workDir + str(os.sep) + 'result.csv','CSV File, *.csv;;All Files (*)')
+        if not filename.isEmpty():
+           
             try:
-                self.fileMenuArea.cell_set.write_parameters_dict(outfilename = filename
-                        ,verbose = self.singleCellOutputBox.isChecked())
+                self.tableWidget.handleSave(filename)
+                print "File saved!"
             except:
-                return
+                print "Error file saving!"
             
     def updateImages(self):
         if self.showMiniatures:
@@ -330,6 +331,7 @@ class DarfiUI(QtGui.QMainWindow):
         self.fociNameComboBox = QtGui.QComboBox(self)   
         self.fociNameComboBox.addItem('--None--')
         self.fociNameComboBox.activated[str].connect(self.setFoci_name)
+        
         buttonLayout.addWidget(fociNameFieldLabel)
         buttonLayout.addWidget(self.fociNameComboBox)
         
@@ -350,9 +352,9 @@ class DarfiUI(QtGui.QMainWindow):
         self.pbar.hide()
         buttonLayout.addWidget(self.pbar)
         
-        spacer=QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum) 
+        #spacer=QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum) 
         
-        buttonLayout.addSpacerItem(spacer)
+        #buttonLayout.addSpacerItem(spacer)
         
         self.tableWidget=TableWidget(self)
         
@@ -374,6 +376,7 @@ class DarfiUI(QtGui.QMainWindow):
         
         self.singleCellOutputBox = QtGui.QCheckBox('Single cell output', self)
         self.singleCellOutputBox.setEnabled(False)
+        self.singleCellOutputBox.stateChanged.connect(self.fileMenuArea.updateParamsTable)
         tab1Layout.addWidget(self.singleCellOutputBox)
         
        
