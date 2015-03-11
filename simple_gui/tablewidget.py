@@ -31,30 +31,55 @@ class TableWidget(QtGui.QTableWidget):
     def buildFromDict(self,inDict,rowOrder,columnOrder):
         self.setRowCount(0)
         self.setColumnCount(0)
-       
-        #print columnOrder
+        # finding all rows and cols in dict
+        newRow = []
+        newCol = []
+        for row in inDict:
+            if not(row in newRow):
+                newRow.append(row)
+            for col in inDict[row]:
+                if not(col in newCol):
+                    newCol.append(col)        
+        
+        # adding new rows and cols in dict
+        sortNewRow=[]
+        sortNewCol=[]
         for row in inDict:
             if not(row in rowOrder):
-                rowOrder.append(row)
+                sortNewRow.append(row)
             for col in inDict[row]:
                 if not(col in columnOrder):
-                    columnOrder.append(col)
-        print columnOrder
-
+                    sortNewCol.append(col)
+        sortNewRow.sort()
+        sortNewCol.sort()
+        [rowOrder.append(row) for row in sortNewRow]
+        [columnOrder.append(col) for col in sortNewCol]
+                    
+        # creating ordered list of not empty values            
+        visibleRows = []
+        visibleCols = []
+        for row in rowOrder:
+            if row in newRow:
+                visibleRows.append(row)
+                
+        for col in columnOrder:
+            if col in newCol:
+                visibleCols.append(col)
+        #drawin table and asigning row and column names
         rows=[]
         columns=[]
-        for row in rowOrder:
+        for row in visibleRows:
             #if row in inDict:
             rows.append(row)
             self.insertRow(self.rowCount())
             self.setVerticalHeaderItem(self.rowCount()-1, QtGui.QTableWidgetItem(row))
-            for col in columnOrder:
+            for col in visibleCols:
                 #if (col in inDict[row]):
                 if (not(col in columns)):
                     columns.append(col)
                     self.insertColumn(self.columnCount())
                     self.setHorizontalHeaderItem(self.columnCount()-1,QtGui.QTableWidgetItem(col))
-
+        #asidning values
         for row in rows:
             for col in columns:
                 try:
@@ -65,8 +90,8 @@ class TableWidget(QtGui.QTableWidget):
                     pass       
                       
         self.verticalHeader().setDefaultSectionSize(self.verticalHeader().minimumSectionSize())
-        self.rowOrder = rows
-        self.columnOrder = columns
+        self.rowOrder = rowOrder #rows
+        self.columnOrder = columnOrder #columns
         #print self.rowOrder
         #print self.columnOrder
 
