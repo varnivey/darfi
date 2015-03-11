@@ -19,7 +19,7 @@ class TableWidget(QtGui.QTableWidget):
         self.horizontalHeader().setDefaultSectionSize(60)
         self.setMinimumWidth(237)
         self.setMinimumHeight(260)
-        self.setSizePolicy(QtGui.QSizePolicy.Maximum,QtGui.QSizePolicy.Minimum)
+        self.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
        
 
         self.rowOrder=[]

@@ -71,7 +71,6 @@ class DarfiUI(QtGui.QMainWindow):
         self.settings=Settings()
         self.settings.foci_name=self.fociNameComboBox.currentText()
         self.settings.nuclei_name=self.nuclNameComboBox.currentText()
-        self.outfileField.setText(self.settings.outfile)
         self.fileMenuArea.setWorkDir(self.workDir)
         print "Default settings loaded"
 
@@ -101,7 +100,6 @@ class DarfiUI(QtGui.QMainWindow):
                     self.workDir,self.settings, paths = pickle.load(f)
                     self.fileMenuArea.openWorkDir(self.workDir)
                     self.fileMenuArea.setCheckedFromPaths(paths)
-                    self.outfileField.setText(self.settings.outfile)
                     if self.settings.foci_name=='--None--':
                         self.rescaleButton.setEnabled(False)
                     else:
@@ -138,8 +136,6 @@ class DarfiUI(QtGui.QMainWindow):
         else:
             self.rescaleButton.setEnabled(True)
         
-    def setOutfile(self,text):
-        self.settings.outfile = unicode(text)
 
         
     def refreshImages(self):
@@ -177,8 +173,10 @@ class DarfiUI(QtGui.QMainWindow):
         filename=unicode(QtGui.QFileDialog.getSaveFileName(self,'Save results of latest calculation'
             , self.workDir + str(QtCore.QDir.separator()) + 'result.txt','Text File, *.txt;;All Files (*)'))
         if filename!='':
+            
             try:
-                self.fileMenuArea.cell_set.write_parameters_dict(outfilename = filename)
+                self.fileMenuArea.cell_set.write_parameters_dict(outfilename = filename
+                        ,verbose = self.singleCellOutputBox.isChecked())
             except:
                 return
             
@@ -335,18 +333,8 @@ class DarfiUI(QtGui.QMainWindow):
         buttonLayout.addWidget(fociNameFieldLabel)
         buttonLayout.addWidget(self.fociNameComboBox)
         
-        outfileFieldLabel = QtGui.QLabel(self)
-        outfileFieldLabel.setText("Outfile name:")
-        self.outfileField = QtGui.QLineEdit()
-        self.outfileField.setText(self.settings.outfile)
-        self.outfileField.textChanged[str].connect(lambda: self.setOutfile(self.outfileField.displayText()))
-        #buttonLayout.addWidget(outfileFieldLabel)
-        #buttonLayout.addWidget(self.outfileField)
         
-        self.outfileButton = QtGui.QPushButton("Save Cell Param.")
-        self.outfileButton.clicked.connect(self.saveParams)
-        self.outfileButton.setEnabled(False)
-        buttonLayout.addWidget(self.outfileButton)
+
         
         self.rescaleButton = QtGui.QPushButton("Get scale from selection")
         self.rescaleButton.clicked.connect(self.fileMenuArea.getScaleFromSelected)
@@ -369,12 +357,25 @@ class DarfiUI(QtGui.QMainWindow):
         self.tableWidget=TableWidget(self)
         
         tabs = QtGui.QTabWidget(self)
-
-        
-        
         #_______________________________________
         #buttonLayout.addWidget(self.tableWidget)
-        tabs.addTab(self.tableWidget,"Results")
+        
+        tab1=QtGui.QWidget()
+        tab1Layout=QtGui.QVBoxLayout(tab1)
+        tabs.addTab(tab1,"Results")        
+        tab1Layout.addWidget(self.tableWidget)
+        
+               
+        
+        self.outfileButton = QtGui.QPushButton("Save results")
+        self.outfileButton.clicked.connect(self.saveParams)
+        self.outfileButton.setEnabled(False)
+        tab1Layout.addWidget(self.outfileButton)
+        
+        self.singleCellOutputBox = QtGui.QCheckBox('Single cell output', self)
+        self.singleCellOutputBox.setEnabled(False)
+        tab1Layout.addWidget(self.singleCellOutputBox)
+        
        
        
         nuclLogLabel = QtGui.QLabel(self)

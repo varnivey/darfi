@@ -10,7 +10,6 @@ class Settings(object):
     def __init__(self):
         self.nuclei_name='' # type 'unicode'
         self.foci_name='' # type 'unicode'
-        self.outfile='' # type 'unicode'
         self.sensitivity=5 # type 'int' range: 0 to 10
         self.min_cell_size=4000 # type 'int' range: 0 to 4294967296
         self.foci_lookup_sensivity=70 # type 'int' range: 0 to 100
