@@ -349,12 +349,12 @@ class cell_set:
 
         self.abs_foci_num_param   = mean_and_MSE(abs_foci_nums)
         self.abs_foci_area_param  = mean_and_MSE(abs_foci_areas)
-        self.abs_foci_soid_param  = mean_and_MSE(abs_foci_soids)
+        self.abs_foci_soid_param  = mean_and_MSE(abs_foci_soids,0)
         self.abs_foci_ints_param  = mean_and_MSE(abs_foci_ints)
 
         self.rel_foci_num_param   = mean_and_MSE(rel_foci_nums)
         self.rel_foci_area_param  = mean_and_MSE(rel_foci_areas)
-        self.rel_foci_soid_param  = mean_and_MSE(rel_foci_soids)
+        self.rel_foci_soid_param  = mean_and_MSE(rel_foci_soids,0)
 
         abs_num ,  num_err = self.abs_foci_num_param
         abs_area, area_err = self.abs_foci_area_param
@@ -441,13 +441,17 @@ class cell_set:
                 rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
+                if cur_cell.foci_number != 0:
+                    foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
+                else:
+                    foci_size       = 0
 
-                params['Cell number'][name]         = -1
+                params['Cell number'][name]         = ''
                 params['Cell area'][name]           = np.round(cur_cell.area,2)
-                params['Mean intensity im1'][name]  = -1
+                params['Mean intensity im1'][name]  = ''
 
                 if self.have_foci_params:
-                    params['Mean intensity im2'][name]  = -1
+                    params['Mean intensity im2'][name]  = ''
                     params['Abs foci number'][name]     = cur_cell.foci_number
                     params['Abs foci area'][name]       = cur_cell.foci_area
                     params['Abs foci soid'][name]       = cur_cell.foci_soid
@@ -455,13 +459,17 @@ class cell_set:
                     params['Rel foci area'][name]       = rel_foci_area
                     params['Rel foci soid'][name]       = rel_foci_soid
                     params['Foci intensity'][name]      = cur_cell.foci_intens
-                    params['Foci size'][name]           = np.round(cur_cell.foci_area/cur_cell.foci_number,2)
+                    params['Foci size'][name]           = foci_size
 
 
         return params
 
-    def write_parameters_dict(self, outfilename = 'result.txt', verbose = False):
-        '''Writes parameters to file <result.txt>'''
+    def write_parameters_dict(self, outfilename = 'result.csv', verbose = False):
+        '''Writes parameters to file <result.csv>'''
+
+#        params = self.get_parameters_dict()
+
+#        for param in params
 
         return True
 
@@ -914,6 +922,10 @@ def mean_and_MSE(value_list, precision = 2):
 
     MSE = np.round(np.power(np.sum(np.power(new_values - mean, 2)/len(new_values)), 0.5), precision)
 
+    if precision == 0:
+        mean = mean.astype(np.int)
+        MSE  =  MSE.astype(np.int)
+
     return [mean, MSE]
 
 
@@ -974,4 +986,3 @@ def at_border(coords, x_max, y_max):
 
     return False
 
-#endif // PIC_AN_PY
