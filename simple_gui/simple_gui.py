@@ -361,19 +361,27 @@ class DarfiUI(QtGui.QMainWindow):
         
         self.pbar.hide()
         buttonLayout.addWidget(self.pbar)
-        spacer=QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Expanding) 
+        
+        spacer=QtGui.QSpacerItem(20, 40, QtGui.QSizePolicy.Minimum, QtGui.QSizePolicy.Minimum) 
+        
         buttonLayout.addSpacerItem(spacer)
         
         self.tableWidget=TableWidget(self)
-        buttonLayout.addWidget(self.tableWidget)
+        
+        tabs = QtGui.QTabWidget(self)
+
+        
+        
+        #_______________________________________
+        #buttonLayout.addWidget(self.tableWidget)
+        tabs.addTab(self.tableWidget,"Results")
        
        
         nuclLogLabel = QtGui.QLabel(self)
-        nuclLogLabel.setText("Log:")
-        buttonLayout.addWidget(nuclLogLabel)        
+       
         
         self.logText = QtGui.QTextEdit()
-        self.logText.setMaximumHeight(130)
+        #self.logText.setMaximumHeight(130)
         self.logText.setReadOnly(True)
         self.logText.setVerticalScrollBarPolicy(QtCore.Qt.ScrollBarAlwaysOn)
         self.logText.append("Welcome to DARFI! ")
@@ -381,7 +389,10 @@ class DarfiUI(QtGui.QMainWindow):
         #self.errors = Logger(self.logText)
         sys.stdout = self.logger
         #sys.stderr = self.errors
-        buttonLayout.addWidget(self.logText)
+        #________________________________
+        #buttonLayout.addWidget(self.logText)
+        tabs.addTab(self.logText,"Log")
+        buttonLayout.addWidget(tabs)
         
 
         buttonLayout.setAlignment(QtCore.Qt.AlignTop)
