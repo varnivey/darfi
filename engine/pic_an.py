@@ -432,12 +432,16 @@ class cell_set:
             params['Foci size'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
         if verbose:
-            active_cells = self.active_cells()
             mean_cell_size = 8100
+            cell_num = len(self.cells)
+            if cell_num != 0:
+                zero_num = np.floor(np.log(cell_num)/np.log(10)).astype(int) + 1
 
-            for cur_cell,cur_num in zip(active_cells,range(len(active_cells))):
+            for cur_cell,cur_num in zip(self.cells,range(cell_num)):
 
-                name = 'cell_' + str(cur_num)
+                if not cur_cell.is_active: continue
+
+                name = 'cell_' + str(cur_num).zfill(zero_num)
                 rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
@@ -466,10 +470,6 @@ class cell_set:
 
     def write_parameters_dict(self, outfilename = 'result.csv', verbose = False):
         '''Writes parameters to file <result.csv>'''
-
-#        params = self.get_parameters_dict()
-
-#        for param in params
 
         return True
 
