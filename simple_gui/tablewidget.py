@@ -98,13 +98,22 @@ class TableWidget(QtGui.QTableWidget):
 
     def getOrders(self,event=None):
         #try:
-        rowNames = [str(self.verticalHeaderItem(i).text()) for i in range(len(self.rowOrder))]
-        rowIndx = [self.visualRow(i) for i in range(len(self.rowOrder))]
-        self.rowOrder = [x for (y,x) in sorted(zip(rowIndx,rowNames))]
+        rowNames = [str(self.verticalHeaderItem(i).text()) for i in range(self.rowCount())]
+        rowIndx = [self.visualRow(i) for i in range(self.rowCount())]
+        rowOrder = [x for (y,x) in sorted(zip(rowIndx,rowNames))]
+        for row in self.rowOrder:
+            if not(row in rowOrder):
+                rowOrder.append(row)
+        self.rowOrder = rowOrder
         
-        colNames = [str(self.horizontalHeaderItem(i).text()) for i in range(len(self.columnOrder))]
-        colIndx = [self.visualColumn(i) for i in range(len(self.columnOrder))]
-        self.columnOrder = [x for (y,x) in sorted(zip(colIndx,colNames))]
+        
+        colNames = [str(self.horizontalHeaderItem(i).text()) for i in range(self.columnCount())]
+        colIndx = [self.visualColumn(i) for i in range(self.columnCount())]
+        columnOrder = [x for (y,x) in sorted(zip(colIndx,colNames))]
+        for col in self.columnOrder:
+            if not(col in columnOrder):
+                columnOrder.append(col)
+        self.columnOrder = columnOrder
         #print self.rowOrder
         #print self.columnOrder
         self.parent.settings.rowOrder = self.rowOrder
