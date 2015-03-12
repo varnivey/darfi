@@ -41,12 +41,27 @@ class CusLabel(QtGui.QLabel):
         super(CusLabel, self).__init__(parent)
         self.parent=parent
         self.key=key
+        self.setMouseTracking(True)
+        self.timer = QtCore.QTimer()
+        self.timer.timeout.connect(self.hoverMouse)
  
 
     def mousePressEvent(self, e):
         
         super(CusLabel, self).mousePressEvent(e)
         self.parent.labelClicked(e,self.key)
+        
+    def mouseMoveEvent(self, e):
+        super(CusLabel, self).mouseMoveEvent(e)
+        self.coord= [e.x(),e.y()]
+        self.timer.stop()
+        self.timer.start(600)
+        
+    def hoverMouse(self):
+        #print self.coord
+        self.timer.stop()
+        
+
         
 
     
