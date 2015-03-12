@@ -143,8 +143,7 @@ class FolderWidget(QtGui.QWidget):
             print "Cell toggled."
             params = self.cell_set.get_parameters_dict()
             self.imageDirs[self.selectedImageDirKey].write_all_pic_files()
-            params = self.cell_set.get_parameters_dict()
-            self.parent.tableWidget.buildFromDict(params,self.parent.settings.rowOrder,self.parent.settings.columnOrder)
+            self.updateParamsTable()
             self.refreshImages() 
         return result
     
