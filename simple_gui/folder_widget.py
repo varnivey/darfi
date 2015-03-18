@@ -141,7 +141,7 @@ class FolderWidget(QtGui.QWidget):
         result = self.imageDirs[self.selectedImageDirKey].touch_cell(coord)
         if result:
             print "Cell toggled."
-            params = self.cell_set.get_parameters_dict()
+#            params = self.cell_set.get_parameters_dict()
             self.imageDirs[self.selectedImageDirKey].write_all_pic_files()
             self.updateParamsTable()
             self.refreshImages() 
