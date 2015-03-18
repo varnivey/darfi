@@ -359,13 +359,13 @@ class cell_set:
         abs_num ,  num_err = self.abs_foci_num_param
         abs_area, area_err = self.abs_foci_area_param
 
-        try:
+        if abs_num != 0 or abs_area != 0:
             foci_size = np.round(abs_area/abs_num,2)
             size_err  = np.round((num_err/abs_num + area_err/abs_area)*foci_size,2)
 
             self.foci_size_param = [foci_size, size_err]
-        except:
-            self.foci_size_param = [0, 0]
+        else:
+            self.foci_size_param = [0., 0.]
 
         self.have_foci_params = True
 
@@ -442,19 +442,22 @@ class cell_set:
                 if not cur_cell.is_active: continue
 
                 name = 'cell_' + str(cur_num).zfill(zero_num)
-                rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
-                rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
-                rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
-                if cur_cell.foci_number != 0:
-                    foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
-                else:
-                    foci_size       = 0
 
                 params['Cell number'][name]         = ''
                 params['Cell area'][name]           = np.round(cur_cell.area,2)
                 params['Mean intensity im1'][name]  = ''
 
                 if self.have_foci_params:
+
+                    for cur_cell,cur_num in zip(self.cells,range(cell_num)):
+                        rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
+                        rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
+                        rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
+                        if cur_cell.foci_number != 0:
+                            foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
+                        else:
+                            foci_size       = 0
+
                     params['Mean intensity im2'][name]  = ''
                     params['Abs foci number'][name]     = cur_cell.foci_number
                     params['Abs foci area'][name]       = cur_cell.foci_area
@@ -577,6 +580,7 @@ class image_dir(cell_set):
 
         if hasattr(self, 'cell_detect_params'):
             if (sensitivity, min_cell_size) == self.cell_detect_params:
+                self.all_pics = load_foci
                 return
 
         self.reset_dir()
@@ -851,6 +855,8 @@ class image_dir(cell_set):
         if (self.number_of_cells() == 0):
             return
 
+        print self.all_pics
+
         if not self.all_pics:
             self.write_pic_with_nuclei_colored()
             return
@@ -892,7 +898,6 @@ class image_dir(cell_set):
             break
 
         return touch
-
 
 
 
