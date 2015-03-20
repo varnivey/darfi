@@ -56,6 +56,7 @@ class cell:
         self.coords       = coords
         self.area         = np.sum(nucleus)
         self.is_active    = True
+        self.touched      = False
 
         if pic_foci != None:
             self.pic_foci = nucleus*pic_foci
@@ -371,21 +372,6 @@ class cell_set:
         self.have_foci_params = True
 
 
-
-#    This is original get_parameters function
-#
-#    def get_parameters(self):
-#        '''Metod returns list with set parameters'''
-#
-#        params = [len(self.cells)]
-#        params.extend(self.abs_foci_num_param)
-#        params.extend(self.abs_foci_area_param)
-#        params.extend(self.abs_foci_soid_param)
-#        params.extend(self.rel_foci_num_param)
-#        params.extend(self.rel_foci_area_param)
-#        params.extend(self.rel_foci_soid_param)
-#        return params
-
     def get_mean_parameters(self, mean_cell_size = 8100):
         '''Retrun dictionary with mean parameters'''
 
@@ -471,7 +457,7 @@ class cell_set:
 
                 rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
-                rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
+                rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),0).astype(int)
                 if cur_cell.foci_number != 0:
                     foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
                 else:
@@ -480,11 +466,11 @@ class cell_set:
                 params['Mean intensity im2'][name]  = ''
                 params['Abs foci number'][name]     = cur_cell.foci_number
                 params['Abs foci area'][name]       = cur_cell.foci_area
-                params['Abs foci soid'][name]       = cur_cell.foci_soid
+                params['Abs foci soid'][name]       = np.round(cur_cell.foci_soid,0).astype(int)
                 params['Rel foci number'][name]     = rel_foci_number
                 params['Rel foci area'][name]       = rel_foci_area
                 params['Rel foci soid'][name]       = rel_foci_soid
-                params['Foci intensity'][name]      = cur_cell.foci_intens
+                params['Foci intensity'][name]      = np.round(cur_cell.foci_intens,2)
                 params['Foci size'][name]           = foci_size
 
 
@@ -496,33 +482,71 @@ class cell_set:
 
         self.mean_params = self.get_mean_parameters(mean_cell_size)
 
-        if not verbose: return self.mean_params
+        if not verbose:
+            self.last_dict_not_verbose = True
+            return self.mean_params
 
         if not hasattr(self,'cell_params'):
+            self.last_dict_not_verbose = True
             self.cell_params = self.get_cell_parameters(mean_cell_size)
+            cell_names = []
 
-        params = copy.deepcopy(self.cell_params)
+            cell_num = len(self.cells)
 
-        param_names = params.keys()
+            if cell_num != 0:
+                zero_num = np.floor(np.log(cell_num)/np.log(10)).astype(int) + 1
+            for cur_num in range(cell_num):
+                cell_names.append('cell_' + str(cur_num).zfill(zero_num))
 
-        cell_names = params[param_names[0]].keys()
+            self.cell_names = cell_names
 
-        for cell_name, cur_cell in zip(cell_names,self.cells):
-            if not cur_cell.is_active:
-                for key in params.keys():
-                    params[key].pop(cell_name)
+        cell_params = self.cell_params
+
+        param_names = cell_params.keys()
+
+        cell_names = self.cell_names
+
+        if self.last_dict_not_verbose:
+            params = copy.deepcopy(cell_params)
+
+            for cell_name, cur_cell in zip(cell_names,self.cells):
+                if not cur_cell.is_active:
+                    for key in param_names:
+                        params[key].pop(cell_name)
+
+            self.last_cell_params = params
+
+        params = self.last_cell_params
 
         for key in param_names:
             params[key].update(self.mean_params[key])
 
-        print cell_names
+        if not self.last_dict_not_verbose:
+            for cell_name, cur_cell in zip(cell_names,self.cells):
+                if cur_cell.touched:
+                    if not cur_cell.is_active:
+                        for key in param_names:
+                            params[key].pop(cell_name)
+                    else:
+                        for key in param_names:
+                            params[key][cell_name] = cell_params[key][cell_name]
+
+        self.last_dict_not_verbose = False
+        self.last_cell_params = params
 
         return params
+
+    def untouch_cells(self):
+        '''Untouch all cells in cell set'''
+
+        for cur_cell in self.cells:
+            cur_cell.touched = False
 
 
     def append(self,new_cell):
         '''Add a new cell to the set'''
 
+        new_cell.touched = False
         self.cells.append(new_cell)
 
     def extend(self, other_cell_set):
@@ -866,8 +890,6 @@ class image_dir(cell_set):
         if (self.number_of_cells() == 0):
             return
 
-        print self.all_pics
-
         if not self.all_pics:
             self.write_pic_with_nuclei_colored()
             return
@@ -889,6 +911,8 @@ class image_dir(cell_set):
     def touch_cell(self, coords):
         '''Enable or disable clicked cell'''
 
+        self.untouch_cells()
+
         y_touch, x_touch = coords
 
         touch = False
@@ -905,11 +929,11 @@ class image_dir(cell_set):
                 continue
 
             cur_cell.is_active = not cur_cell.is_active
+            cur_cell.touched = True
             touch = True
             break
 
         return touch
-
 
 
     def number_of_cells(self):
@@ -924,15 +948,22 @@ def mean_and_MSE(value_list, precision = 2):
     '''Returns list with the mean value and MSE for value_list in 10-90 percentile'''
 
     if(len(value_list) == 0):
+        if precision == 0: return [0,0]
         return [0.,0.]
 
     np_value_list = np.array(value_list)
 
-    p10,p90 = np.percentile(np_value_list, (10,90))
+    if(len(value_list) <= 4):
 
-    match_10_90 = np.logical_and(np_value_list >= p10, np_value_list <= p90)
+        new_values = np_value_list
 
-    new_values = np.extract(match_10_90, np_value_list)
+    else:
+
+        p10,p90 = np.percentile(np_value_list, (10,90))
+
+        match_10_90 = np.logical_and(np_value_list >= p10, np_value_list <= p90)
+
+        new_values = np.extract(match_10_90, np_value_list)
 
     mean = np.round(np.mean(new_values), precision)
 
