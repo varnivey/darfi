@@ -18,7 +18,7 @@
 #    51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 
-import os
+import os, copy
 import numpy as np
 
 from skimage.exposure import rescale_intensity
@@ -313,8 +313,10 @@ class cell_set:
 
 
 
-    def calculate_foci_parameters(self):
+    def calculate_mean_foci_parameters(self, mean_cell_size = 8100):
         '''Calculate absolute and relative foci number, area and soid in 10-90 percent interval'''
+
+        params = {}
 
         abs_foci_nums  = []
         abs_foci_areas = []
@@ -329,7 +331,6 @@ class cell_set:
 
 #        mean_cell_size = self.mean_cell_size()
 
-        mean_cell_size = 8100
 
         for cur_cell in self.active_cells():
 
@@ -385,13 +386,11 @@ class cell_set:
 #        params.extend(self.rel_foci_soid_param)
 #        return params
 
-    def get_parameters_dict(self, verbose = True):
-        '''Retrun dictionary with cell parameters'''
+    def get_mean_parameters(self, mean_cell_size = 8100):
+        '''Retrun dictionary with mean parameters'''
 
         params = {}
 
-        if len(self.active_cells()) == 0:
-            return params
         params['Cell number'] = {'Mean':len(self.active_cells())}
 
         cur_param = self.get_cell_area_param()
@@ -405,7 +404,7 @@ class cell_set:
             cur_param = self.get_foci_pic_mean_intensity_param()
             params['Mean intensity im2'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-            self.calculate_foci_parameters()
+            self.calculate_mean_foci_parameters(mean_cell_size = 8100)
 
             cur_param = self.abs_foci_num_param
             params['Abs foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
@@ -431,82 +430,94 @@ class cell_set:
             cur_param = self.foci_size_param
             params['Foci size'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
 
-        if verbose:
-            mean_cell_size = 8100
-            cell_num = len(self.cells)
-            if cell_num != 0:
-                zero_num = np.floor(np.log(cell_num)/np.log(10)).astype(int) + 1
+        return params
 
-            for cur_cell,cur_num in zip(self.cells,range(cell_num)):
 
-                if not cur_cell.is_active: continue
+    def get_cell_parameters(self,mean_cell_size = 8100):
+        '''Returns parameters for individual cells'''
 
-                name = 'cell_' + str(cur_num).zfill(zero_num)
+        params = {}
 
-                params['Cell number'][name]         = ''
-                params['Cell area'][name]           = np.round(cur_cell.area,2)
-                params['Mean intensity im1'][name]  = ''
+        params['Cell number']            = {}
+        params['Cell area']              = {}
+        params['Mean intensity im1']     = {}
 
-                if self.have_foci_params:
+        if self.have_foci_params:
 
-                    for cur_cell,cur_num in zip(self.cells,range(cell_num)):
-                        rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
-                        rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
-                        rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
-                        if cur_cell.foci_number != 0:
-                            foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
-                        else:
-                            foci_size       = 0
+            params['Mean intensity im2'] = {}
+            params['Abs foci number']    = {}
+            params['Abs foci area']      = {}
+            params['Abs foci soid']      = {}
+            params['Rel foci number']    = {}
+            params['Rel foci area']      = {}
+            params['Rel foci soid']      = {}
+            params['Foci intensity']     = {}
+            params['Foci size']          = {}
 
-                    params['Mean intensity im2'][name]  = ''
-                    params['Abs foci number'][name]     = cur_cell.foci_number
-                    params['Abs foci area'][name]       = cur_cell.foci_area
-                    params['Abs foci soid'][name]       = cur_cell.foci_soid
-                    params['Rel foci number'][name]     = rel_foci_number
-                    params['Rel foci area'][name]       = rel_foci_area
-                    params['Rel foci soid'][name]       = rel_foci_soid
-                    params['Foci intensity'][name]      = cur_cell.foci_intens
-                    params['Foci size'][name]           = foci_size
+        cell_num = len(self.cells)
+        if cell_num != 0:
+            zero_num = np.floor(np.log(cell_num)/np.log(10)).astype(int) + 1
+        for cur_cell,cur_num in zip(self.cells,range(cell_num)):
+
+#            if not cur_cell.is_active: continue
+
+            name = 'cell_' + str(cur_num).zfill(zero_num)
+
+            params['Cell number'][name]         = ''
+            params['Cell area'][name]           = np.round(cur_cell.area,2)
+            params['Mean intensity im1'][name]  = ''
+
+            if self.have_foci_params:
+
+                rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
+                rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
+                rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),2)
+                if cur_cell.foci_number != 0:
+                    foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
+                else:
+                    foci_size       = 0
+
+                params['Mean intensity im2'][name]  = ''
+                params['Abs foci number'][name]     = cur_cell.foci_number
+                params['Abs foci area'][name]       = cur_cell.foci_area
+                params['Abs foci soid'][name]       = cur_cell.foci_soid
+                params['Rel foci number'][name]     = rel_foci_number
+                params['Rel foci area'][name]       = rel_foci_area
+                params['Rel foci soid'][name]       = rel_foci_soid
+                params['Foci intensity'][name]      = cur_cell.foci_intens
+                params['Foci size'][name]           = foci_size
 
 
         return params
 
-    def write_parameters_dict(self, outfilename = 'result.csv', verbose = False):
-        '''Writes parameters to file <result.csv>'''
 
-        return True
+    def get_parameters_dict(self, verbose = True, mean_cell_size = 8100):
+        '''Returns final dictionary with all parameters'''
 
+        self.mean_params = self.get_mean_parameters(mean_cell_size)
 
-    def get_parameters(self):
-        '''Return list with set parameters'''
+        if not verbose: return self.mean_params
 
-        params = [len(self.cells)]
-        params.extend(self.get_cell_area_param())
-        params.extend(self.get_foci_pic_mean_intensity_param())
-        params.extend(self.rel_foci_num_param)
-        params.extend(self.rel_foci_area_param)
-        params.extend(self.abs_foci_ints_param)
-        params.extend(self.rel_foci_soid_param)
-        params.extend(self.foci_size_param)
+        if not hasattr(self,'cell_params'):
+            self.cell_params = self.get_cell_parameters(mean_cell_size)
+
+        params = copy.deepcopy(self.cell_params)
+
+        param_names = params.keys()
+
+        cell_names = params[param_names[0]].keys()
+
+        for cell_name, cur_cell in zip(cell_names,self.cells):
+            if not cur_cell.is_active:
+                for key in params.keys():
+                    params[key].pop(cell_name)
+
+        for key in param_names:
+            params[key].update(self.mean_params[key])
+
+        print cell_names
 
         return params
-
-    def write_parameters(self, outfilename):
-        '''Write file with set parameters'''
-
-        params = [len(self.cells)]
-        params.extend(self.abs_foci_num_param)
-        params.extend(self.abs_foci_area_param)
-        params.extend(self.abs_foci_soid_param)
-        params.extend(self.rel_foci_num_param)
-        params.extend(self.rel_foci_area_param)
-        params.extend(self.rel_foci_soid_param)
-
-        str_params = [unicode(round(item, 4)).rjust(12) for item in params]
-        str_params.insert(0,self.name.rjust(20))
-
-        with open(outfilename, 'w') as outfile:
-            outfile.write(u' '.join(str_params).encode('utf-8'))
 
 
     def append(self,new_cell):

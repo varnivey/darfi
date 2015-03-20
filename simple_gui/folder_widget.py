@@ -214,7 +214,7 @@ class FolderWidget(QtGui.QWidget):
                                              (self.parent.settings.foci_rescale_min,
                                               self.parent.settings.foci_rescale_max))
     # Retrieving results
-                self.cell_set.calculate_foci_parameters()
+#                self.cell_set.calculate_foci_parameters()
                 self.updateParamsTable()
                 self.parent.outfileButton.setEnabled(True)
                 self.parent.singleCellOutputBox.setEnabled(True)
