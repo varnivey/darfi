@@ -51,15 +51,17 @@ class cell:
     def __init__(self, nucleus, pic_nucleus, pic_foci, coords = (0,0,0,0)):
         '''Construct cell from mask and channel pics'''
 
-        self.nucleus      = nucleus
-        self.pic_nucleus  = nucleus*pic_nucleus
-        self.coords       = coords
-        self.area         = np.sum(nucleus)
-        self.is_active    = True
-        self.touched      = False
+        self.nucleus           = nucleus
+        self.pic_nucleus       = nucleus*pic_nucleus
+        self.coords            = coords
+        self.area              = np.sum(nucleus)
+        self.nucleus_pic_mean  = np.sum(self.pic_nucleus)/np.float(self.area)
+        self.is_active         = True
+        self.touched           = False
 
         if pic_foci != None:
             self.pic_foci = nucleus*pic_foci
+            self.foci_pic_mean = np.sum(self.pic_foci)/np.float(self.area)
 
 
     def calculate_foci(self, foci_det_sens = 70, foci_fill_perc = 30, \
@@ -85,7 +87,7 @@ class cell:
         '''Add pic with foci to cell'''
 
         self.pic_foci     = self.nucleus*pic_foci
-
+        self.foci_pic_mean = np.sum(self.pic_foci)/np.float(self.area)
 
 #    def get_nucleus_mean_value(self):
 #        '''Return mean value of the nucleus'''
@@ -278,43 +280,36 @@ class cell_set:
 
         return np.mean(cell_size_list)
 
-    def get_cell_area_param(self):
-        '''Return mean cell area with mse'''
+
+    def mean_nuclei_parameters(self):
+        '''Return mean and MSE for cell area, mean intensity and mean cell
+           intensity on nuclei image'''
+
+        params = {}
+
+        active_cells = self.active_cells()
 
         cell_areas     = []
+        cell_ints_im1  = []
+        cell_number    = len(active_cells)
 
-        for cur_cell in self.active_cells():
+        for cur_cell in active_cells:
 
             cell_areas.append(cur_cell.area)
-
-        return mean_and_MSE(cell_areas)
-
-    def get_nuclei_pic_mean_intensity_param(self):
-        '''Return nucleus pics mean intensity'''
-
-        mean_ints = []
-
-        for cur_cell in self.active_cells():
-
-            mean_ints.append(np.mean(cur_cell.pic_nucleus))
-
-        return mean_and_MSE(mean_ints)
-
-    def get_foci_pic_mean_intensity_param(self):
-        '''Return foci pics mean intensity'''
-
-        mean_ints = []
-
-        for cur_cell in self.active_cells():
-
-            mean_ints.append(np.mean(cur_cell.pic_foci))
-
-        return mean_and_MSE(mean_ints)
+            cell_ints_im1.append(cur_cell.nucleus_pic_mean)
 
 
+        params['Cell number'] = {}
+        params['Cell number']['Mean']  = cell_number
+        params['Cell number']['MSE']   = ''
+
+        params['Cell area']            = mean_and_MSE(cell_areas,0)
+        params['Cell intensity im1']   = mean_and_MSE(cell_ints_im1)
+
+        return params
 
 
-    def calculate_mean_foci_parameters(self, mean_cell_size = 8100):
+    def mean_foci_parameters(self, mean_cell_size = 8100):
         '''Calculate absolute and relative foci number, area and soid in 10-90 percent interval'''
 
         params = {}
@@ -329,6 +324,8 @@ class cell_set:
 #        rel_foci_ints  = []
         rel_foci_soids = []
 
+        cell_ints_im2  = []
+
 
 #        mean_cell_size = self.mean_cell_size()
 
@@ -340,36 +337,44 @@ class cell_set:
             abs_foci_ints.append ( cur_cell.foci_intens)
             abs_foci_soids.append( cur_cell.foci_soid  )
 
-            try:
+            cell_ints_im2.append ( cur_cell.foci_pic_mean)
+
+            if (cur_cell.area != 0):
                 rel_foci_nums.append(  cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area))
                 rel_foci_areas.append( cur_cell.foci_area*  mean_cell_size/np.float(cur_cell.area))
 #                rel_foci_ints.append(  cur_cell.foci_intens*mean_cell_size/np.float(cur_cell.area))
                 rel_foci_soids.append( cur_cell.foci_soid*  mean_cell_size/np.float(cur_cell.area))
-            except:
-                pass
 
 
-        self.abs_foci_num_param   = mean_and_MSE(abs_foci_nums)
-        self.abs_foci_area_param  = mean_and_MSE(abs_foci_areas)
-        self.abs_foci_soid_param  = mean_and_MSE(abs_foci_soids,0)
-        self.abs_foci_ints_param  = mean_and_MSE(abs_foci_ints)
+        params['Abs foci number']       = mean_and_MSE(abs_foci_nums)
+        params['Abs foci area']         = mean_and_MSE(abs_foci_areas)
+        params['Abs foci soid']         = mean_and_MSE(abs_foci_soids,0)
+        params['Foci intensity']        = mean_and_MSE(abs_foci_ints)
 
-        self.rel_foci_num_param   = mean_and_MSE(rel_foci_nums)
-        self.rel_foci_area_param  = mean_and_MSE(rel_foci_areas)
-        self.rel_foci_soid_param  = mean_and_MSE(rel_foci_soids,0)
+        params['Rel foci number']       = mean_and_MSE(rel_foci_nums)
+        params['Rel foci area']         = mean_and_MSE(rel_foci_areas)
+        params['Rel foci soid']         = mean_and_MSE(rel_foci_soids,0)
 
-        abs_num ,  num_err = self.abs_foci_num_param
-        abs_area, area_err = self.abs_foci_area_param
+        params['Cell intensity im2']    = mean_and_MSE(cell_ints_im2)
+
+        abs_num ,  num_err = params['Abs foci number']['Mean'], params['Abs foci number']['MSE']
+        abs_area, area_err = params['Abs foci area'  ]['Mean'], params['Abs foci area'  ]['MSE']
+
+        params['Foci size'] = {}
 
         if abs_num != 0 or abs_area != 0:
             foci_size = np.round(abs_area/abs_num,2)
             size_err  = np.round((num_err/abs_num + area_err/abs_area)*foci_size,2)
 
-            self.foci_size_param = [foci_size, size_err]
+            params['Foci size']['Mean'] = foci_size
+            params['Foci size']['MSE']  = size_err
         else:
-            self.foci_size_param = [0., 0.]
+            params['Foci size']['Mean'] = 0.
+            params['Foci size']['MSE']  = 0.
 
         self.have_foci_params = True
+
+        return params
 
 
     def get_mean_parameters(self, mean_cell_size = 8100):
@@ -377,44 +382,11 @@ class cell_set:
 
         params = {}
 
-        params['Cell number'] = {'Mean':len(self.active_cells())}
-
-        cur_param = self.get_cell_area_param()
-        params['Cell area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-        cur_param = self.get_nuclei_pic_mean_intensity_param()
-        params['Mean intensity im1'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+        params.update(self.mean_nuclei_parameters())
 
         if self.have_foci_params:
 
-            cur_param = self.get_foci_pic_mean_intensity_param()
-            params['Mean intensity im2'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            self.calculate_mean_foci_parameters(mean_cell_size = 8100)
-
-            cur_param = self.abs_foci_num_param
-            params['Abs foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.abs_foci_area_param
-            params['Abs foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.abs_foci_soid_param
-            params['Abs foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.rel_foci_num_param
-            params['Rel foci number'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.rel_foci_area_param
-            params['Rel foci area'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.rel_foci_soid_param
-            params['Rel foci soid'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.abs_foci_ints_param
-            params['Foci intensity'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
-
-            cur_param = self.foci_size_param
-            params['Foci size'] = {'Mean':cur_param[0], 'MSE':cur_param[1]}
+            params.update(self.mean_foci_parameters(mean_cell_size))
 
         return params
 
@@ -426,11 +398,11 @@ class cell_set:
 
         params['Cell number']            = {}
         params['Cell area']              = {}
-        params['Mean intensity im1']     = {}
+        params['Cell intensity im1']     = {}
 
         if self.have_foci_params:
 
-            params['Mean intensity im2'] = {}
+            params['Cell intensity im2'] = {}
             params['Abs foci number']    = {}
             params['Abs foci area']      = {}
             params['Abs foci soid']      = {}
@@ -449,21 +421,24 @@ class cell_set:
 
             name = 'cell_' + str(cur_num).zfill(zero_num)
 
+            cell_int_im1    = np.round(cur_cell.nucleus_pic_mean,2)
+
             params['Cell number'][name]         = ''
             params['Cell area'][name]           = np.round(cur_cell.area,2)
-            params['Mean intensity im1'][name]  = ''
+            params['Cell intensity im1'][name]  = cell_int_im1
 
             if self.have_foci_params:
 
                 rel_foci_number = np.round(cur_cell.foci_number*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_area   = np.round(cur_cell.foci_area*mean_cell_size/np.float(cur_cell.area),2)
                 rel_foci_soid   = np.round(cur_cell.foci_soid*mean_cell_size/np.float(cur_cell.area),0).astype(int)
+                cell_int_im2    = np.round(cur_cell.foci_pic_mean,2)
                 if cur_cell.foci_number != 0:
                     foci_size       = np.round(cur_cell.foci_area/np.float(cur_cell.foci_number),2)
                 else:
                     foci_size       = 0
 
-                params['Mean intensity im2'][name]  = ''
+                params['Cell intensity im2'][name]  = cell_int_im2
                 params['Abs foci number'][name]     = cur_cell.foci_number
                 params['Abs foci area'][name]       = cur_cell.foci_area
                 params['Abs foci soid'][name]       = np.round(cur_cell.foci_soid,0).astype(int)
@@ -530,6 +505,7 @@ class cell_set:
                     else:
                         for key in param_names:
                             params[key][cell_name] = cell_params[key][cell_name]
+                    break
 
         self.last_dict_not_verbose = False
         self.last_cell_params = params
@@ -911,7 +887,7 @@ class image_dir(cell_set):
     def touch_cell(self, coords):
         '''Enable or disable clicked cell'''
 
-        self.untouch_cells()
+#        self.untouch_cells()
 
         y_touch, x_touch = coords
 
@@ -973,7 +949,7 @@ def mean_and_MSE(value_list, precision = 2):
         mean = mean.astype(np.int)
         MSE  =  MSE.astype(np.int)
 
-    return [mean, MSE]
+    return {'Mean':mean, 'MSE':MSE}
 
 
 def image_hsv_value(image_file):

@@ -138,6 +138,7 @@ class FolderWidget(QtGui.QWidget):
                 self.signal_update_images.emit()    
 
     def touchCellAndRedraw(self,coord):
+        self.cell_set.untouch_cells()
         result = self.imageDirs[self.selectedImageDirKey].touch_cell(coord)
         if result:
             print "Cell toggled."
