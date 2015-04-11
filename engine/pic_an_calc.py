@@ -29,17 +29,17 @@ from scipy.misc import imsave
 from skimage import img_as_ubyte
 from skimage import img_as_float
 from skimage.draw import circle_perimeter, circle
-from skimage.filter import gaussian_filter
-from skimage.filter import canny as canny_filter
-#from skimage.filter import threshold_adaptive
-from skimage.filter import threshold_otsu as global_otsu
-from skimage.filter.rank import otsu as local_otsu
-#from skimage.filter.rank import median as median_filter
+from skimage.filters import gaussian_filter
+from skimage.feature import canny as canny_filter
+#from skimage.filters import threshold_adaptive
+from skimage.filters import threshold_otsu as global_otsu
+from skimage.filters.rank import otsu as local_otsu
+#from skimage.filters.rank import median as median_filter
 from skimage.feature import peak_local_max
 from skimage.feature import blob_log
 from skimage.measure import label as measure_label
 from skimage.morphology import disk
-from skimage.morphology import binary_dilation, binary_erosion
+from scipy.ndimage.morphology import binary_dilation, binary_erosion
 from skimage.morphology import remove_small_objects, watershed
 #from skimage.morphology import medial_axis
 from skimage.segmentation import relabel_sequential

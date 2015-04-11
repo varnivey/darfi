@@ -27,7 +27,7 @@ from skimage.color import hsv2rgb
 
 from skimage.measure import label as measure_label
 from skimage.morphology import remove_small_objects
-from skimage.filter import threshold_otsu as global_otsu
+from skimage.filters import threshold_otsu as global_otsu
 
 #from skimage.io import imsave
 #from skimage.io import imread
