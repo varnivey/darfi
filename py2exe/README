@@ -22,13 +22,14 @@ The configuration which was tested successfully:
 
 
 python-2.7.7
-numpy-1.9.0-win32-superpack-python2.7
+numpy-1.9.2+mkl-cp27-none-win32
 six-1.8.0.win32-py2.7
 PyQt4-4.11.2-gpl-Py2.7-Qt4.8.6-x32
 matplotlib-1.4.0.win32-py2.7
 scipy-0.14.0-win32-superpack-python2.7
 Pillow-2.5.3.win32-py2.7
-scikit-image-0.10.1.win32-py2.7
+networkx-1.9.1-py2.py3-none-any
+scikit_image-0.11.3-cp27-none-win32
 SIP-4.6.13
 py2exe-0.6.9
 NSIS-2.46

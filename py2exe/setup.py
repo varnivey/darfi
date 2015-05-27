@@ -56,7 +56,7 @@ setup(
             "sip",\
 #            "pic_an",\
             "scipy.special._ufuncs_cxx",\
-            "skimage.filter.rank.core_cy",\
+            "skimage.filters.rank.core_cy",\
             "scipy.sparse.csgraph._validation",\
             "skimage._shared.geometry",\
             "skimage",\
