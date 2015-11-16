@@ -58,7 +58,7 @@ class FolderWidget(QtGui.QWidget):
             
             while folderIterator.hasNext():
                 imageQDir=QtCore.QDir(folderIterator.next())
-                imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG"])
+                imageList= imageQDir.entryList(["*.TIF", "*.tif", "*.jpg", "*.JPG", "*.BMP", "*.bmp"])
                 for name in imageList:
                     if not(name in self.nameList):
                         self.nameList.append(unicode(name))
@@ -368,7 +368,7 @@ class imageFolderWidget(QtGui.QWidget):
         self.updateImageLabels()
     
     def updateImageLabels(self):
-        filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG"]
+        filters = ["*.TIF", "*.tif", "*.jpg", "*.JPG", "*.BMP", "*.bmp"]
         picQFileinfoList= self.dir.entryInfoList(filters,sort= QtCore.QDir.Name|QtCore.QDir.Type)
         for picQFileinfo in picQFileinfoList:
             
