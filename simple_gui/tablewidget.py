@@ -5,7 +5,7 @@ Created on Fri Dec 19 22:57:17 2014
 @author: satary
 """
 from PyQt4 import QtGui,QtCore
-import sys, csv
+import sys, csv, xlwt
 class TableWidget(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(TableWidget, self).__init__(parent)
@@ -20,7 +20,7 @@ class TableWidget(QtGui.QTableWidget):
         self.setMinimumWidth(237)
         self.setMinimumHeight(260)
         self.setSizePolicy(QtGui.QSizePolicy.Expanding,QtGui.QSizePolicy.Minimum)
-       
+
 
         self.rowOrder=[]
         self.columnOrder=[]
@@ -39,8 +39,8 @@ class TableWidget(QtGui.QTableWidget):
                 newRow.append(row)
             for col in inDict[row]:
                 if not(col in newCol):
-                    newCol.append(col)        
-        
+                    newCol.append(col)
+
         # adding new rows and cols in dict
         sortNewRow=[]
         sortNewCol=[]
@@ -54,14 +54,14 @@ class TableWidget(QtGui.QTableWidget):
         sortNewCol.sort()
         [rowOrder.append(row) for row in sortNewRow]
         [columnOrder.append(col) for col in sortNewCol]
-                    
-        # creating ordered list of not empty values            
+
+        # creating ordered list of not empty values
         visibleRows = []
         visibleCols = []
         for row in rowOrder:
             if row in newRow:
                 visibleRows.append(row)
-                
+
         for col in columnOrder:
             if col in newCol:
                 visibleCols.append(col)
@@ -87,8 +87,8 @@ class TableWidget(QtGui.QTableWidget):
                     item.setFlags(QtCore.Qt.ItemIsSelectable |  QtCore.Qt.ItemIsEnabled)
                     self.setItem(rows.index(row),columns.index(col),item)
                 except:
-                    pass       
-                      
+                    pass
+
         self.verticalHeader().setDefaultSectionSize(self.verticalHeader().minimumSectionSize())
         self.rowOrder = rowOrder #rows
         self.columnOrder = columnOrder #columns
@@ -105,8 +105,8 @@ class TableWidget(QtGui.QTableWidget):
             if not(row in rowOrder):
                 rowOrder.append(row)
         self.rowOrder = rowOrder
-        
-        
+
+
         colNames = [str(self.horizontalHeaderItem(i).text()) for i in range(self.columnCount())]
         colIndx = [self.visualColumn(i) for i in range(self.columnCount())]
         columnOrder = [x for (y,x) in sorted(zip(colIndx,colNames))]
@@ -121,50 +121,88 @@ class TableWidget(QtGui.QTableWidget):
             #print self.rowOrder
         #except:
             #pass
-        
+
     def keyPressEvent(self, e):
-        if (e.modifiers() & QtCore.Qt.ControlModifier):        
+        if (e.modifiers() & QtCore.Qt.ControlModifier):
             if e.key() == QtCore.Qt.Key_C:
                 self.copySelectionToClipboard()
-        
+
     def contextMenuEvent(self, pos):
         menu = QtGui.QMenu()
         copyAction = menu.addAction("Copy")
         action = menu.exec_(QtGui.QCursor.pos())
         if action == copyAction:
             self.copySelectionToClipboard()
-    
-    def handleSave(self,path):
+
+    def handleSaveCSV(self,path):
         rowLog = range(self.rowCount())
         rowIndx = [self.visualRow(i) for i in rowLog]
         rowVis = [x for (y,x) in sorted(zip(rowIndx,rowLog))]
-        
+
         colLog = range(self.columnCount())
         colIndx = [self.visualColumn(i) for i in colLog]
         colVis = [x for (y,x) in sorted(zip(colIndx,colLog))]
-        
-    
+
+
         with open(unicode(path), 'wb') as stream:
             writer = csv.writer(stream)
             rowdata = []
             rowdata.append("")
             for column in colVis:
                 rowdata.append(unicode(self.horizontalHeaderItem(column).text()).encode('utf8'))
-            writer.writerow(rowdata) 
+            writer.writerow(rowdata)
             for row in rowVis:
-               
+
                 rowdata = []
                 rowdata.append(unicode(self.verticalHeaderItem(row).text()).encode('utf8'))
                 for column in colVis:
-                    
+
                     item = self.item(row, column)
                     if item is not None:
                         rowdata.append(
                             unicode(item.text()).encode('utf8'))
                     else:
                         rowdata.append('')
-                writer.writerow(rowdata)    
-    
+                writer.writerow(rowdata)
+
+
+    def handleSaveXLSX(self,path):
+        rowLog = range(self.rowCount())
+        rowIndx = [self.visualRow(i) for i in rowLog]
+        rowVis = [x for (y,x) in sorted(zip(rowIndx,rowLog))]
+
+        colLog = range(self.columnCount())
+        colIndx = [self.visualColumn(i) for i in colLog]
+        colVis = [x for (y,x) in sorted(zip(colIndx,colLog))]
+
+
+        wb = xlwt.Workbook()
+        ws = wb.add_sheet('DARFI results')
+        rowdata = []
+        rowdata.append("")
+        for column in colVis:
+            rowdata.append(unicode(self.horizontalHeaderItem(column).text()).encode('utf8'))
+        for i,text_item in enumerate(rowdata):
+            ws.write(0,i,text_item)
+
+        for j,row in enumerate(rowVis):
+
+            rownum = j+1
+            rowdata = []
+            rowdata.append(unicode(self.verticalHeaderItem(row).text()).encode('utf8'))
+            for column in colVis:
+
+                item = self.item(row, column)
+                if item is not None:
+                    rowdata.append(
+                        unicode(item.text()).encode('utf8'))
+                else:
+                    rowdata.append('')
+            for i, text_item in enumerate(rowdata):
+                ws.write(rownum,i,text_item)
+
+        wb.save(path)
+
     def copySelectionToClipboard(self):
         selected = self.selectedRanges()
         s = ""
@@ -176,9 +214,9 @@ class TableWidget(QtGui.QTableWidget):
                     s += "\t"
             s = s[:-1] + "\n" #eliminate last '\t'
             self.clip.setText(s)
-            
+
 def main():
-    
+
     app = QtGui.QApplication(sys.argv)
     ex = TableWidget()
     ex.show()
@@ -186,4 +224,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()    
+    main()

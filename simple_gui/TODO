@@ -5,9 +5,4 @@ If an issue was soved, it should be removed from the list below immediately.
 
 Features list:
 
-- add explicit "detect cells" button. It should start image_dir.detect_nuclei()
-for directories selected.
-
-- image_dirs should be created once after the workdir is selected. Only those
-directories which contain at least an image with nuclei have to be loaded.
 
