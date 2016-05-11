@@ -199,6 +199,10 @@ class TableWidget(QtGui.QTableWidget):
                 else:
                     rowdata.append('')
             for i, text_item in enumerate(rowdata):
+                try:
+                    text_item = eval(text_item)
+                except:
+                    pass
                 ws.write(rownum,i,text_item)
 
         wb.close()
