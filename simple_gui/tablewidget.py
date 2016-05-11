@@ -5,7 +5,7 @@ Created on Fri Dec 19 22:57:17 2014
 @author: satary
 """
 from PyQt4 import QtGui,QtCore
-import sys, csv, xlwt
+import sys, csv, xlsxwriter
 class TableWidget(QtGui.QTableWidget):
     def __init__(self,parent=None):
         super(TableWidget, self).__init__(parent)
@@ -175,9 +175,9 @@ class TableWidget(QtGui.QTableWidget):
         colIndx = [self.visualColumn(i) for i in colLog]
         colVis = [x for (y,x) in sorted(zip(colIndx,colLog))]
 
-
-        wb = xlwt.Workbook()
-        ws = wb.add_sheet('DARFI results')
+        path = unicode(path).encode('utf8')
+        wb = xlsxwriter.Workbook(path)
+        ws = wb.add_worksheet('DARFI results')
         rowdata = []
         rowdata.append("")
         for column in colVis:
@@ -201,7 +201,7 @@ class TableWidget(QtGui.QTableWidget):
             for i, text_item in enumerate(rowdata):
                 ws.write(rownum,i,text_item)
 
-        wb.save(path)
+        wb.close()
 
     def copySelectionToClipboard(self):
         selected = self.selectedRanges()
