@@ -175,7 +175,8 @@ class TableWidget(QtGui.QTableWidget):
         colIndx = [self.visualColumn(i) for i in colLog]
         colVis = [x for (y,x) in sorted(zip(colIndx,colLog))]
 
-        path = unicode(path).encode('utf8')
+#        path = unicode(path).encode('utf8')
+        path = unicode(path)
         wb = xlsxwriter.Workbook(path)
         ws = wb.add_worksheet('DARFI results')
         rowdata = []
